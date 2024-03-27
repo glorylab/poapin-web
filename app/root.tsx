@@ -12,6 +12,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import { NextUIProvider } from "@nextui-org/react";
+import FooterComponent from "./components/global/footer";
 
 
 export const links: LinksFunction = () => [
@@ -39,6 +40,7 @@ export default function App() {
           <ScrollRestoration />
           <Scripts />
           <LiveReload />
+          <FooterComponent />
         </NextUIProvider>
       </body>
     </html>

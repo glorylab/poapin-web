@@ -16,13 +16,17 @@
     "@remix-run/cloudflare-pages": "^2.8.1",
     "@remix-run/css-bundle": "^2.8.1",
     "@remix-run/react": "^2.8.1",
+    "clsx": "^2.1.0",
     "framer-motion": "^11.0.21",
     "isbot": "^4.1.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.2.2",
+    "usehooks-ts": "^3.0.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230518.0",
+    "@iconify/react": "^4.1.1",
     "@remix-run/dev": "^2.8.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",

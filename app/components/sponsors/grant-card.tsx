@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import { Card, CardBody, Image, CardHeader, CardFooter } from "@nextui-org/react";
 import { m, useMotionValue, domAnimation, LazyMotion, useMotionTemplate } from "framer-motion";
