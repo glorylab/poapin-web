@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Card, CardBody, Image, CardHeader, CardFooter } from "@nextui-org/react";
 import { m, useMotionValue, domAnimation, LazyMotion, useMotionTemplate } from "framer-motion";
 import { Grant } from "~/types/grant";
-import ScrollingBanner from "./shared/scrolling-banner";
+import ScrollingBanner from "../shared/scrolling-banner";
 
 interface GrantProps {
     grant: Grant;

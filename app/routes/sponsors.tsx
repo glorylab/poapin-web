@@ -2,7 +2,7 @@ import { Spacer } from "@nextui-org/react";
 import { json, LoaderFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getGrants } from "~/api/grants";
-import GrantCardComponent from "~/components/grant-card";
+import GrantCardComponent from "~/components/sponsors/grant-card";
 import { GrantData } from "~/types/data";
 
 export const loader: LoaderFunction = async ({ context }) => {
@@ -18,7 +18,7 @@ export const loader: LoaderFunction = async ({ context }) => {
 };
 
 
-export default function GrantsPage() {
+export default function SponsorsPage() {
 
   const grantsData = useLoaderData<GrantData>();
   if (grantsData.error) {
