@@ -3,6 +3,7 @@ import { AppLoadContext } from "@remix-run/cloudflare";
 interface Env {
     pylonBaseUrl: string;
     poapinReadApiKey: string;
+    poapApiKey: string;
 }
 
 interface EnvProps {
@@ -16,5 +17,6 @@ export const getEnv = ({ context }: EnvProps): Env => {
     return {
         pylonBaseUrl: env.SECRET_PYLON_BASE_URL,
         poapinReadApiKey: env.SECRET_POAPIN_READ_API,
+        poapApiKey: env.SECRET_POAP_API_KEY,
     };
 };
