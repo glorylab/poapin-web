@@ -1,6 +1,5 @@
 import React from "react";
-import { Button, Image, Skeleton } from "@nextui-org/react";
-import { Icon } from "@iconify/react";
+import { Image, Skeleton } from "@nextui-org/react";
 
 import { cn } from "~/src/cn";
 import { POAP } from "~/types/poap";
@@ -26,7 +25,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
       <div
         ref={ref}
         className={cn(
-          "relative flex w-full flex-col",
+          "group relative flex w-full hover:shadow-lg active:bg-background-700 active:p-3 active:duration-100 hover:cursor-pointer hover:bg-background-600 p-2 rounded-md overflow-visible flex-col transition-all duration-300 ease-in-out hover:scale-95",
           {
             "rounded-none bg-background shadow-none": removeWrapper,
           },
@@ -37,7 +36,9 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
         <Image
           isBlurred
           alt={event.name}
-          className="aspect-square w-full hover:scale-110 rounded-full"
+          className="aspect-square w-full rounded-full"
+          width={300}
+          height={300}
           isLoading={isLoading}
           src={event.image_url}
         />
@@ -59,15 +60,11 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
             <>
               <div className="flex items-start justify-between gap-1">
                 <div className="relative flex flex-grow max-h-12 overflow-hidden rounded-lg px-2 pt-6">
-                  <h3 className="text-small font-bold text-default-700 overflow-hidden whitespace-nowrap">{event.name}</h3>
+                  <h3 className="text-small font-bold text-default-700 overflow-hidden whitespace-nowrap mask-image-gradient-to-r">
+                    {event.name}
+                  </h3>
                 </div>
               </div>
-              {event.description ? (
-                <div className="relative flex-grow max-h-24 bg-neutral-100 overflow-hidden rounded-lg p-2">
-                  <p className="text-small text-default-500">{event.description}</p>
-                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-neutral-100 to-transparent" />
-                </div>
-              ) : null}
             </>
           )}
         </div>
