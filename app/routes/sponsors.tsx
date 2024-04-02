@@ -6,8 +6,6 @@ import GrantCardComponent from "~/components/sponsors/grant-card";
 import { GrantData } from "~/types/data";
 
 export const loader: LoaderFunction = async ({ context }) => {
-  const apiKey = context.cloudflare.env.SECRET_POAPIN_READ_API;
-  console.log(apiKey);
   try {
     const grants = await getGrants(context);
     return json(grants);

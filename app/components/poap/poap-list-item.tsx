@@ -1,5 +1,5 @@
-import React from "react";
-import { Image, Skeleton } from "@nextui-org/react";
+import React, { useEffect, useRef } from "react";
+import { Skeleton } from "@nextui-org/react";
 
 import { cn } from "~/src/cn";
 import { POAP } from "~/types/poap";
@@ -11,6 +11,7 @@ export type PoapListItemColor = {
 
 export type PoapListItemProps = Omit<React.HTMLAttributes<HTMLDivElement>, "id"> & {
   isPopular?: boolean;
+  tokenId: string;
   isLoading?: boolean;
   removeWrapper?: boolean;
 } & POAP;
@@ -21,11 +22,41 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
     ref,
   ) => {
 
+    const imageRef = useRef(null);
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const lazyImage = entry.target as HTMLImageElement;
+              lazyImage.src = lazyImage.dataset.src || "";
+              observer.unobserve(lazyImage);
+            }
+          });
+        },
+        {
+          rootMargin: "0px",
+          threshold: 0.1,
+        }
+      );
+
+      if (imageRef.current) {
+        observer.observe(imageRef.current);
+      }
+
+      return () => {
+        if (imageRef.current) {
+          observer.unobserve(imageRef.current);
+        }
+      };
+    }, []);
+
     return (
       <div
         ref={ref}
         className={cn(
-          "group relative flex w-full hover:shadow-lg active:bg-background-700 active:p-3 active:duration-100 hover:cursor-pointer hover:bg-background-600 p-2 rounded-md overflow-visible flex-col transition-all duration-300 ease-in-out hover:scale-95",
+          "group relative flex w-full active:bg-background-700 active:p-3 hover:cursor-pointer hover:bg-background-600 p-2 rounded-md overflow-visible flex-col transition-all duration-300 ease-in-out hover:scale-95",
           {
             "rounded-none bg-background shadow-none": removeWrapper,
           },
@@ -33,14 +64,14 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
         )}
         {...props}
       >
-        <Image
-          isBlurred
+
+        <img
+          ref={imageRef}
           alt={event.name}
+          data-src={event.image_url + "?size=medium"}
           className="aspect-square w-full rounded-full"
           width={300}
           height={300}
-          isLoading={isLoading}
-          src={event.image_url}
         />
 
         <div className="mt-1 mb-4 flex flex-col flex-grow gap-2 px-1">
