@@ -51,8 +51,8 @@ export default function GrantCardComponent(props: GrantProps) {
                     style={{
                         background: useMotionTemplate`
             radial-gradient(
-              450px circle at ${mouseX}px ${mouseY}px,
-              rgba(120, 40, 200, 0.2),
+              600px circle at ${mouseX}px ${mouseY}px,
+              rgba(235, 222, 108, 0.4),
               transparent 80%
             )
           `,

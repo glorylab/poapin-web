@@ -36,7 +36,7 @@ export default function SponsorsPage() {
   return (
     <section className="max-w-xl mx-auto relative py-8 lg:py-16 px-8">
       <h2 className="font-medium leading-7 text-secondary">POAPin&apos;s Grant Records</h2>
-      <h1 className="text-4xl font-medium tracking-tight">Thanks for your generous support!</h1>
+      <h1 className="text-4xl font-medium text-primary tracking-tight">Thanks for your generous support!</h1>
       <Spacer y={4} />
       <div className="mt-10">
         {sortedGrants.map((grant, index) => (

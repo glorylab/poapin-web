@@ -33,7 +33,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <NextUIProvider>
+        <NextUIProvider className="bg-background">
           <main className="dot-background">
             <Outlet />
           </main>

@@ -34,7 +34,7 @@ export default function POAPList({ className }: { className?: string }) {
         <div className="flex flex-col items-center">
             <div
                 className={cn(
-                    "my-auto grid max-w-7xl grid-cols-1 gap-5 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+                    "my-auto grid max-w-7xl gap-5 p-4 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
                     className
                 )}
             >

@@ -1,5 +1,9 @@
 .dot-background {
         width: 100%;
-        background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+        background-image: radial-gradient(#ffffff66 1px, transparent 1px);
         background-size: 16px 16px;
+}
+
+.mask-image-gradient-to-r {
+        mask-image: linear-gradient(to right, black 70%, transparent);
 }

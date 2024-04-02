@@ -41,7 +41,7 @@ export default function FooterComponent() {
         <footer className="flex w-full flex-col border-t-1 border-neutral-300 z-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center px-6 py-12 lg:px-8">
                 <div className="flex items-center justify-center">
-                    <span className="text-medium font-medium">POAP.in</span>
+                    <span className="text-medium text-default font-medium">POAP.in</span>
                 </div>
                 <Spacer y={4} />
                 <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
