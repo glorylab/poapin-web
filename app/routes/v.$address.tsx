@@ -10,7 +10,7 @@ export const loader: LoaderFunction = async ({ context, params }) => {
     const address = params.address;
 
     if (!address) {
-        return json({ error: "Address not found" }, { status: 400 });
+        return json({ error: "Address not found" }, { status: 404 });
     }
 
     try {

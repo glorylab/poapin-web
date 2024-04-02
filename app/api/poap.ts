@@ -20,3 +20,22 @@ export async function getPoapsOfAddress(context: AppLoadContext, address: string
     }
     return await res.json<POAPData>();
 }
+
+export async function getPoapToken(context: AppLoadContext, tokenId: string) {
+    const apiKey = getEnv({ context }).poapinReadApiKey;
+
+    if (!apiKey) {
+        throw new Error("API key not found");
+    }
+    const res = await fetch(`https://api.poap.tech/token/${tokenId}`, {
+        headers: {
+            accept: "application/json",
+            "x-api-key": getEnv({ context }).poapApiKey,
+        }
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch poap");
+    }
+    return await res.json<POAPData>();
+}

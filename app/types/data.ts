@@ -1,5 +1,5 @@
 import { Grant } from "./grant";
-import { POAP } from "./poap";
+import { POAP, POAPDetail } from "./poap";
 
 export type GrantData = {
     data: Grant[];
@@ -8,5 +8,10 @@ export type GrantData = {
 
 export type POAPData = {
     data: POAP[];
+    error: string;
+};
+
+export type POAPDetailData = {
+    data: POAPDetail;
     error: string;
 };

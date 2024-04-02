@@ -21,3 +21,15 @@ export interface POAP {
     chain: string;
     created: string;
 }
+
+export interface POAPDetail {
+    event: POAPEvent;
+    tokenId: string;
+    owner: string;
+    layer: string;
+    created: string;
+    supply: {
+        total: number;
+        order: number;
+    };
+}
