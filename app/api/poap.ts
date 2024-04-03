@@ -1,7 +1,6 @@
 import { AppLoadContext } from "@remix-run/cloudflare";
 import { getEnv } from "~/src/env";
-import { POAPData } from "~/types/data";
-import { POAP, POAPDetail } from "~/types/poap";
+import { POAP, POAPActivity, POAPDetail } from "~/types/poap";
 
 export async function getPoapsOfAddress(context: AppLoadContext, address: string): Promise<POAP[]> {
     const apiKey = getEnv({ context }).poapinReadApiKey;
@@ -39,6 +38,26 @@ export async function getPoapToken(context: AppLoadContext, tokenId: string): Pr
 
     if (!res.ok) {
         throw new Error("Failed to fetch poap");
+    }
+    return await res.json();
+}
+
+export async function getPoapActivity(context: AppLoadContext, eventId: number): Promise<POAPActivity> {
+    const apiKey = getEnv({ context }).poapinReadApiKey;
+
+    if (!apiKey) {
+        throw new Error("API key not found");
+    }
+    const res = await fetch(`https://api.poap.tech/event/${eventId}/poaps`, {
+        headers: {
+            accept: "application/json",
+            "x-api-key": getEnv({ context }).poapApiKey,
+            "charset": "utf-8",
+        }
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch poap activity");
     }
     return await res.json();
 }

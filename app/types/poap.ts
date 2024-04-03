@@ -33,3 +33,14 @@ export interface POAPDetail {
         order: number;
     };
 }
+
+export interface POAPActivity {
+    created: string;
+    id: string;
+    owner: {
+        id: string;
+        tokensOwned: number;
+        ens: string;
+    };
+    transferCount: string;
+}

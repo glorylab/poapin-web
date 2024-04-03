@@ -1,5 +1,5 @@
 import { Grant } from "./grant";
-import { POAP, POAPDetail } from "./poap";
+import { POAP, POAPActivity, POAPDetail } from "./poap";
 
 export type GrantData = {
     data: Grant[];
@@ -13,5 +13,16 @@ export type POAPData = {
 
 export type POAPDetailData = {
     data: POAPDetail;
+    error: string;
+};
+
+export type POAPActivityData = {
+    data: {
+        limit: number;
+        offset: number;
+        total: number;
+        transferCount: number;
+        tokens: POAPActivity[];
+    }
     error: string;
 };

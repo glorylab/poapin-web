@@ -1,7 +1,8 @@
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { getPoapToken } from "~/api/poap";
+import { getPoapActivity, getPoapToken } from "~/api/poap";
 import POAPDetailItem from "~/components/poap/poap-detail-item";
+import { POAPActivityData } from "~/types/data";
 import { POAPDetail } from "~/types/poap";
 
 export const meta: MetaFunction = ({ data }) => {
@@ -41,6 +42,7 @@ export const meta: MetaFunction = ({ data }) => {
 
 interface LoaderData {
     poap: POAPDetail;
+    poapActivityData: POAPActivityData;
     error: string;
     meta: {
         title: string;
@@ -78,7 +80,10 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             keywords: `${metaKeywords}`,
             poap,
         };
-        return json({ poap, meta });
+
+        const poapActivityData = {data:await getPoapActivity(context, poap.event.id)};
+
+        return json({ poap, poapActivityData, meta });
     } catch (error) {
         console.error(error);
         return json({ error: "Failed to fetch grants" }, { status: 500 });
@@ -86,15 +91,18 @@ export const loader: LoaderFunction = async ({ context, params }) => {
 };
 
 export default function POAPDetailPage() {
-    const { poap, error, meta } = useLoaderData<LoaderData>();
+    const { poap, poapActivityData } = useLoaderData<LoaderData>();
+    
 
     if (!poap || !poap) {
         return <div className="loading">Loading POAP...</div>;
     }
 
+
+
     return (
         <div className="flex flex-col items-center">
-            <POAPDetailItem poap={poap} />
+            <POAPDetailItem poap={poap} poapActivityData={poapActivityData} />
         </div>
     );
 }

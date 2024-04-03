@@ -88,7 +88,7 @@ interface LoaderData {
 }
 
 export default function POAPList({ className }: { className?: string }) {
-    const { poaps, error, meta } = useLoaderData<LoaderData>();
+    const { poaps, error } = useLoaderData<LoaderData>();
 
     if (!poaps || !poaps.length) {
         if (error) {
@@ -100,7 +100,7 @@ export default function POAPList({ className }: { className?: string }) {
                             <p>{error}</p>
                         </CardBody>
                         <CardFooter className="justify-between before:bg-secondary-800  border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-                            <p className="text-tiny text-background-600">Check out other friends' POAP 👉</p>
+                            <p className="text-tiny text-background-600">Check out other friends&apos; POAP 👉</p>
                             <Button className="text-tiny text-white bg-secondary-400" variant="flat" color="default" radius="lg" size="sm">
                                 Explore
                             </Button>
