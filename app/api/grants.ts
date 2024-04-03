@@ -10,7 +10,8 @@ export async function getGrants(context: AppLoadContext) {
     }
     const res = await fetch(`${pylonBaseUrl}/poapin-grants?populate[grants][populate]=*&populate[image][populate]=*`, {
         headers: {
-            Authorization: `Bearer ${apiKey}`
+            Authorization: `Bearer ${apiKey}`,
+            "charset": "utf-8",
         }
     });
 

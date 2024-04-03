@@ -13,6 +13,7 @@ export async function getPoapsOfAddress(context: AppLoadContext, address: string
         headers: {
             accept: "application/json",
             "x-api-key": getEnv({ context }).poapApiKey,
+            "charset": "utf-8",
         }
     });
 
@@ -32,6 +33,7 @@ export async function getPoapToken(context: AppLoadContext, tokenId: string): Pr
         headers: {
             accept: "application/json",
             "x-api-key": getEnv({ context }).poapApiKey,
+            "charset": "utf-8",
         }
     });
 
