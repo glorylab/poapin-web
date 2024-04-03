@@ -11,6 +11,7 @@ declare module "@remix-run/server-runtime" {
                 SECRET_PYLON_BASE_URL: string;
                 SECRET_POAPIN_READ_API: string;
                 SECRET_POAP_API_KEY: string;
+                GA_TRACKING_ID: string;
             };
         };
     }

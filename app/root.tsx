@@ -1,6 +1,6 @@
 import baseStylesHref from "~/tailwind.css";
 import sharedStylesHref from "~/styles/shared.css";
-import type { LinksFunction } from "@remix-run/cloudflare";
+import type { AppLoadContext, LinksFunction, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { cssBundleHref } from "@remix-run/css-bundle";
 
 import {
@@ -10,9 +10,35 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  json,
+  useLoaderData,
+  useLocation,
 } from "@remix-run/react";
 import { NextUIProvider } from "@nextui-org/react";
 import FooterComponent from "./components/global/footer";
+import { useEffect } from "react";
+import * as gtag from "~/utils/gtags.client";
+import { getEnv } from "~/src/env";
+
+interface LoaderData {
+  gaTrackingId: string;
+}
+
+export const loader: LoaderFunction = async ({ context }) => {
+  const data: LoaderData = {
+    gaTrackingId: getEnv({ context }).gaTrackingId,
+  };
+  return json(data);
+};
+
+export const meta: MetaFunction = () => (
+  [
+    { title: "POAPin" },
+    { description: "POAPin helps you organize and share POAPs - the bookmarks of your life." },
+    { charSet: "utf-8" },
+    { name: "viewport", content: "width=device-width, initial-scale=1" },
+  ]
+);
 
 
 export const links: LinksFunction = () => [
@@ -26,18 +52,47 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
-
-
 export default function App() {
+
+  const location = useLocation();
+  const { gaTrackingId } = useLoaderData() as { gaTrackingId: string };
+
+  useEffect(() => {
+    if (gaTrackingId?.length) {
+      gtag.pageview(location.pathname, gaTrackingId);
+    }
+  }, [location, gaTrackingId]);
+
   return (
     <html lang="en">
       <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
       <body>
+        {process.env.NODE_ENV === "development" || !gaTrackingId ? null : (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaTrackingId}`}
+            />
+            <script
+              async
+              id="gtag-init"
+              dangerouslySetInnerHTML={{
+                __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+
+                gtag('config', '${gaTrackingId}', {
+                  page_path: window.location.pathname,
+                });
+              `,
+              }}
+            />
+          </>
+        )}
         <NextUIProvider className="bg-background">
           <main className="dot-background">
             <Outlet />

@@ -4,6 +4,7 @@ interface Env {
     pylonBaseUrl: string;
     poapinReadApiKey: string;
     poapApiKey: string;
+    gaTrackingId: string;
 }
 
 interface EnvProps {
@@ -18,5 +19,6 @@ export const getEnv = ({ context }: EnvProps): Env => {
         pylonBaseUrl: env.SECRET_PYLON_BASE_URL,
         poapinReadApiKey: env.SECRET_POAPIN_READ_API,
         poapApiKey: env.SECRET_POAP_API_KEY,
+        gaTrackingId: env.GA_TRACKING_ID,
     };
 };
