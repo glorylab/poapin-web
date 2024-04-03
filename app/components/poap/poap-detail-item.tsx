@@ -1,6 +1,6 @@
 import React from "react";
 import {
-    Chip,
+    Chip, Link
 } from "@nextui-org/react";
 
 import { cn } from "~/src/cn";
@@ -15,7 +15,7 @@ export type POAPDetailItemProps = Omit<React.HTMLAttributes<HTMLDivElement>, "id
     isPopular?: boolean;
     isLoading?: boolean;
     poap: POAPDetail;
-} & POAPDetail;
+};
 
 const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
     (
@@ -36,15 +36,23 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                 )}
                 {...props}
             >
-                <div className="group relative h-full w-full flex-none">
-                    <img
-                        alt={event.name}
-                        className="h-full w-full rounded-t-none rounded-b-full md:rounded-l-none md:rounded-r-full transition-all duration-500 ease-in-out group-hover:md:rounded-r-none group-hover:rounded-b-none"
-                        src={event.image_url}
-                    />
+                <div className="group relative md:max-w-sm md:aspect-square md:ml-8 overflow-visible p-4">
+                    <div className="relative">
+
+                        <img
+                            alt={event.name}
+                            className="h-full w-full rounded-full transition-all duration-500 ease-in-out object-cover blur-2xl group-hover:blur-lg group-active:blur-xl"
+                            src={event.image_url}
+                        />
+                        <img
+                            alt={event.name}
+                            className="absolute inset-0 h-full w-full rounded-full object-cover group-hover:p-2 group-active:p-1 transition-all duration-500 ease-in-out"
+                            src={event.image_url}
+                        />
+                    </div>
                 </div>
 
-                <div className="flex flex-col px-8 py-4">
+                <div className="flex flex-col md:max-w-sm px-8 py-4 backdrop-blur-xl">
                     <h1 className="text-3xl text-primary font-bold tracking-tight">{event.name}</h1>
                     <h2 className="sr-only">POAP information</h2>
                     <div className="my-2 flex items-center gap-2">
@@ -54,6 +62,11 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                         {event.country && <Chip variant="flat">{event.country}</Chip>}
                         {event.city && <Chip variant="flat">{event.city}</Chip>}
                         {event.year && <Chip variant="flat">{event.year}</Chip>}
+                    </div>
+                    <div className="flex py-2">
+                        {event.event_url && <Link isBlock showAnchorIcon href={event.event_url} target="_blank" color="primary">
+                            {event.event_url}
+                        </Link>}
                     </div>
 
                     <div className="mt-4">

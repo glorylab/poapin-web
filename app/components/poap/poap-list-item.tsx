@@ -10,15 +10,15 @@ export type PoapListItemColor = {
 };
 
 export type PoapListItemProps = Omit<React.HTMLAttributes<HTMLDivElement>, "id"> & {
+  poap: POAP;
   isPopular?: boolean;
-  tokenId: string;
   isLoading?: boolean;
   removeWrapper?: boolean;
-} & POAP;
+} ;
 
 const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
   (
-    { event, isLoading, removeWrapper, className, ...props },
+    { poap, isLoading, removeWrapper, className, ...props },
     ref,
   ) => {
 
@@ -54,7 +54,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
 
     return (
       <Link
-        href={`/poap/${props.tokenId}`}
+        href={`/poap/${poap.tokenId}`}
         className="w-full active:ring-0"
         style={{ textDecoration: "none" }}
       >
@@ -72,8 +72,8 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
 
           <img
             ref={imageRef}
-            alt={event.name}
-            data-src={event.image_url + "?size=medium"}
+            alt={poap.event.name}
+            data-src={poap.event.image_url + "?size=medium"}
             className="aspect-square w-full rounded-full"
             width={300}
             height={300}
@@ -97,7 +97,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
                 <div className="flex items-start justify-between gap-1">
                   <div className="relative flex flex-grow max-h-12 overflow-hidden rounded-lg px-2 pt-6">
                     <h3 className="text-small font-bold text-default-700 overflow-hidden whitespace-nowrap mask-image-gradient-to-r">
-                      {event.name}
+                      {poap.event.name}
                     </h3>
                   </div>
                 </div>

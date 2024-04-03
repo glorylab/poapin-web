@@ -92,10 +92,14 @@ export default function GrantCardComponent(props: GrantProps) {
             </CardBody>
             <CardFooter className="flex justify-between items-center px-6 py-4 font-mono">
                 <div>
-                    <p className="text-neutral-500 text-small">
-                        {new Date(props.grant.attributes.start_time).toLocaleDateString()} -{" "}
-                        {new Date(props.grant.attributes.end_time).toLocaleDateString()}
-                    </p>
+                    <div>
+                        <p className="text-neutral-500 text-small">
+                            {props.grant.attributes.start_time} - 
+                            {props.grant.attributes.end_time}
+                            {/* {new Date(props.grant.attributes.start_time).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })} -{" "}
+                            {new Date(props.grant.attributes.end_time).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })} */}
+                        </p>
+                    </div>
                 </div>
 
             </CardFooter>

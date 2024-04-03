@@ -1,8 +1,9 @@
 import { AppLoadContext } from "@remix-run/cloudflare";
 import { getEnv } from "~/src/env";
 import { POAPData } from "~/types/data";
+import { POAP, POAPDetail } from "~/types/poap";
 
-export async function getPoapsOfAddress(context: AppLoadContext, address: string) {
+export async function getPoapsOfAddress(context: AppLoadContext, address: string): Promise<POAP[]> {
     const apiKey = getEnv({ context }).poapinReadApiKey;
 
     if (!apiKey) {
@@ -18,10 +19,10 @@ export async function getPoapsOfAddress(context: AppLoadContext, address: string
     if (!res.ok) {
         throw new Error("Failed to fetch poaps");
     }
-    return await res.json<POAPData>();
+    return await res.json();
 }
 
-export async function getPoapToken(context: AppLoadContext, tokenId: string) {
+export async function getPoapToken(context: AppLoadContext, tokenId: string): Promise<POAPDetail> {
     const apiKey = getEnv({ context }).poapinReadApiKey;
 
     if (!apiKey) {
@@ -37,5 +38,5 @@ export async function getPoapToken(context: AppLoadContext, tokenId: string) {
     if (!res.ok) {
         throw new Error("Failed to fetch poap");
     }
-    return await res.json<POAPData>();
+    return await res.json();
 }

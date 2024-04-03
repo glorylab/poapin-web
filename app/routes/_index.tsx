@@ -3,7 +3,9 @@ import { MetaFunction } from "@remix-run/cloudflare";
 export const meta: MetaFunction = () => {
   return [
     { title: "POAPin" },
-    { name: "description", content: "Welcome to POAPin!" },
+    { description: "POAPin helps you organize and share POAPs - the bookmarks of your life." },
+    { charSet: "utf-8" },
+    { name: "viewport", content: "width=device-width, initial-scale=1" },
   ];
 };
 
