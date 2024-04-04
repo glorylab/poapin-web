@@ -56,6 +56,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
       <Link
         href={`/poap/${poap.tokenId}`}
         className="w-full active:ring-0"
+        target="_self"
         style={{ textDecoration: "none" }}
       >
         <div
