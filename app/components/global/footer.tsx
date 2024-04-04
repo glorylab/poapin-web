@@ -11,7 +11,7 @@ const navLinks = [
     },
     {
         name: "Explorer",
-        href: "#",
+        href: "/v",
     },
     {
         name: "Sponsors",
@@ -19,7 +19,7 @@ const navLinks = [
     },
     {
         name: "Contact",
-        href: "#",
+        href: "/contact",
     },
 ];
 
@@ -60,7 +60,7 @@ export default function FooterComponent() {
                 <Spacer y={6} />
                 <div className="flex justify-center gap-x-4">
                     {socialItems.map((item) => (
-                        <Link key={item.name} isExternal className="text-default-400" href={item.href}>
+                        <Link key={item.name} target="_self" className="text-default-400" href={item.href}>
                             <span className="sr-only">{item.name}</span>
                             <item.icon aria-hidden="true" className="w-5" />
                         </Link>

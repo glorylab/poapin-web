@@ -4,7 +4,8 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Button, Card, CardBody, CardFooter } from "@nextui-org/react";
+import {Spacer } from "@nextui-org/react";
+import AddressInputComponent from "~/components/poap/address-input";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -93,19 +94,20 @@ export default function POAPList({ className }: { className?: string }) {
     if (!poaps || !poaps.length) {
         if (error) {
             return (
-                <div className="flex items-center justify-center h-screen w-full">
-                    <Card
-                    >
-                        <CardBody className="p-16 bg-default">
-                            <p>{error}</p>
-                        </CardBody>
-                        <CardFooter className="justify-between before:bg-secondary-800  border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-                            <p className="text-tiny text-background-600">Check out other friends&apos; POAP 👉</p>
-                            <Button className="text-tiny text-white bg-secondary-400" variant="flat" color="default" radius="lg" size="sm">
-                                Explore
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                <div className="w-full flex flex-col items-center py-24">
+                    <div className="relative flex flex-col items-center max-w-md">
+
+                        <h2 className="font-medium leading-7 text-secondary-300">404</h2>
+                        <h1 className="text-4xl font-medium tracking-tight text-background-800">{error}</h1>
+                        <Spacer y={4} />
+                        <h2 className="text-large text-background-700">
+                        Check out other friends&apos; POAP 👇
+                        </h2>
+                    </div>
+                    <Spacer y={4} />
+                    <div className="relative flex flex-col items-center max-w-lg">
+                        <AddressInputComponent />
+                    </div>
                 </div>
             );
         } else {

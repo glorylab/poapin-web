@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from "react";
-import { Link, Skeleton } from "@nextui-org/react";
+import React, { useEffect, useRef, useState } from "react";
+import { Skeleton, Spinner } from "@nextui-org/react";
 
 import { cn } from "~/src/cn";
 import { POAP } from "~/types/poap";
+import { useNavigate, useNavigation } from "@remix-run/react";
 
 export type PoapListItemColor = {
   name: string;
@@ -14,7 +15,7 @@ export type PoapListItemProps = Omit<React.HTMLAttributes<HTMLDivElement>, "id">
   isPopular?: boolean;
   isLoading?: boolean;
   removeWrapper?: boolean;
-} ;
+};
 
 const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
   (
@@ -23,6 +24,9 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
   ) => {
 
     const imageRef = useRef(null);
+    const transition = useNavigation();
+    const isNavigating = transition.state === "loading";
+    const [navigatingUrl, setNavigatingUrl] = useState("");
 
     useEffect(() => {
       const observer = new IntersectionObserver(
@@ -52,12 +56,17 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
       };
     }, []);
 
+    const navigate = useNavigate();
     return (
-      <Link
-        href={`/poap/${poap.tokenId}`}
+
+      <button
         className="w-full active:ring-0"
-        target="_self"
         style={{ textDecoration: "none" }}
+        onClick={() => {
+          if(isNavigating) return;
+          setNavigatingUrl(`/poap/${poap.tokenId}`);
+          navigate(`/poap/${poap.tokenId}`);
+        }}
       >
         <div
           ref={ref}
@@ -66,6 +75,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
             {
               "rounded-none bg-background shadow-none": removeWrapper,
             },
+            { "bg-background-900 p-4 ": isNavigating && navigatingUrl === `/poap/${poap.tokenId}` },
             className,
           )}
           {...props}
@@ -98,7 +108,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
                 <div className="flex items-start justify-between gap-1">
                   <div className="relative flex flex-grow max-h-12 overflow-hidden rounded-lg px-2 pt-6">
                     <h3 className="text-small font-bold text-default-700 overflow-hidden whitespace-nowrap mask-image-gradient-to-r">
-                      {poap.event.name}
+                      {isNavigating && navigatingUrl === `/poap/${poap.tokenId}` ? `Loading...` : poap.event.name}
                     </h3>
                   </div>
                 </div>
@@ -106,7 +116,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
             )}
           </div>
         </div>
-      </Link>
+      </button>
     );
   },
 );

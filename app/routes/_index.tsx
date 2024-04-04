@@ -1,4 +1,5 @@
 import { MetaFunction } from "@remix-run/cloudflare";
+import AddressInputComponent from "~/components/poap/address-input";
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,6 +16,15 @@ export default function Index() {
       className=
       "h-screen w-full"
     >
+
+      <section
+        className="max-w-md mx-auto relative pb-8 pt-4 lg:pt-16 lg:pb-12 px-2 xs:px-8"
+      >
+        <div className="">
+          <AddressInputComponent />
+        </div>
+
+      </section>
     </div>
   );
 }

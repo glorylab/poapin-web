@@ -94,14 +94,12 @@ export default function GrantCardComponent(props: GrantProps) {
                 <div>
                     <div>
                         <p className="text-neutral-500 text-small">
-                            {props.grant.attributes.start_time} - 
-                            {props.grant.attributes.end_time}
-                            {/* {new Date(props.grant.attributes.start_time).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })} -{" "}
-                            {new Date(props.grant.attributes.end_time).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })} */}
+                            {props.grant.attributes.start_time.split('T')[0]}
+                            {' ~ '}
+                            {props.grant.attributes.end_time.split('T')[0]}
                         </p>
                     </div>
                 </div>
-
             </CardFooter>
         </Card>
     );

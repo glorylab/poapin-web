@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { Avatar, Badge, Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Link, Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle, Popover, PopoverContent, PopoverTrigger } from "@nextui-org/react";
 import { useLocation } from "@remix-run/react";
-import { isContactActive, isExploreActive, isHomeActive, isSponsorsActive } from "~/utils/location";
+import { isContactActive, isExplorerActive, isHomeActive, isSponsorsActive } from "~/utils/location";
 
 export default function NavBarComponent() {
 
@@ -26,8 +26,8 @@ export default function NavBarComponent() {
         >
             <NavbarBrand>
                 <NavbarMenuToggle
-                 className="mr-2 h-6 sm:hidden text-default"
-                 />
+                    className="mr-2 h-6 sm:hidden text-default"
+                />
                 <Link href="/" className="flex items-center gap-2">
                     <p className="font-sans text-3xl text-inherit font-extralight tracking-wider">POAP.in</p>
                 </Link>
@@ -42,9 +42,9 @@ export default function NavBarComponent() {
                         Home
                     </Link>
                 </NavbarItem>
-                <NavbarItem className="h-full px-4" isActive={isExploreActive(location.pathname)}>
-                    <Link aria-current="page" className="flex gap-2 items-centerr h-full text-inherit" href="/v">
-                        Explore
+                <NavbarItem className="h-full px-4" isActive={isExplorerActive(location.pathname)}>
+                    <Link className="flex gap-2 items-centerr h-full text-inherit" href="/v">
+                        Explorer
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="h-full px-4" isActive={isSponsorsActive(location.pathname)}>
@@ -66,9 +66,9 @@ export default function NavBarComponent() {
                         Home
                     </Link>
                 </NavbarMenuItem>
-                <NavbarMenuItem isActive={isExploreActive(location.pathname)}>
+                <NavbarMenuItem isActive={isExplorerActive(location.pathname)}>
                     <Link className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" href="/v">
-                        Explore
+                        Explorer
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>

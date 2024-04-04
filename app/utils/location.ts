@@ -2,7 +2,7 @@ export function isHomeActive(path: string) {
     return path === "/";
 }
 
-export function isExploreActive(path: string) {
+export function isExplorerActive(path: string) {
     return path.startsWith("/v") || path.startsWith("/poap") || path.startsWith("/event");
 }
 
