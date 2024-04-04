@@ -20,6 +20,7 @@ import FooterComponent from "./components/global/footer";
 import { useEffect } from "react";
 import * as gtag from "~/utils/gtags.client";
 import { getEnv } from "~/src/env";
+import NavBarComponent from "./components/global/navbar";
 
 interface LoaderData {
   gaTrackingId: string;
@@ -67,6 +68,7 @@ export default function App() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
         <Meta />
         <Links />
       </head>
@@ -95,6 +97,7 @@ export default function App() {
           </>
         )}
         <NextUIProvider className="bg-background">
+          <NavBarComponent />
           <main className="dot-background">
             <Outlet />
           </main>
