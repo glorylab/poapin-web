@@ -1,4 +1,5 @@
 import baseStylesHref from "~/tailwind.css";
+import baseStylesHref from "~/tailwind_out.css";
 import sharedStylesHref from "~/styles/shared.css";
 import type { AppLoadContext, LinksFunction, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { cssBundleHref } from "@remix-run/css-bundle";
