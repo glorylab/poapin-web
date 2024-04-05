@@ -1,5 +1,6 @@
 import baseStylesHref from "~/tailwind_out.css";
 import sharedStylesHref from "~/styles/shared.css";
+import { useAtom } from "jotai";
 import type { AppLoadContext, LinksFunction, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { cssBundleHref } from "@remix-run/css-bundle";
 
@@ -16,10 +17,11 @@ import {
 } from "@remix-run/react";
 import { NextUIProvider } from "@nextui-org/react";
 import FooterComponent from "./components/global/footer";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as gtag from "~/utils/gtags.client";
 import { getEnv } from "~/src/env";
 import NavBarComponent from "./components/global/navbar";
+import footerPositionAtom from "./atoms/footer-position-atom";
 
 interface LoaderData {
   gaTrackingId: string;
@@ -54,6 +56,8 @@ export const links: LinksFunction = () => [
 export default function App() {
 
   const location = useLocation();
+  const footerRef = useRef<HTMLElement>(null);
+  const [, setFooterPosition] = useAtom(footerPositionAtom);
   const { gaTrackingId } = useLoaderData() as { gaTrackingId: string };
 
   useEffect(() => {
@@ -61,6 +65,20 @@ export default function App() {
       gtag.pageview(location.pathname, gaTrackingId);
     }
   }, [location, gaTrackingId]);
+
+  useEffect(() => {
+    const updateFooterPosition = () => {
+      if (footerRef.current) {
+        setFooterPosition(footerRef.current.getBoundingClientRect().top);
+      }
+    };
+
+    updateFooterPosition();
+    window.addEventListener("resize", updateFooterPosition);
+    return () => {
+      window.removeEventListener("resize", updateFooterPosition);
+    };
+  }, [setFooterPosition]);
 
   return (
     <html lang="en">
@@ -102,7 +120,9 @@ export default function App() {
           <ScrollRestoration />
           <Scripts />
           <LiveReload />
-          <FooterComponent />
+          <footer ref={footerRef}>
+            <FooterComponent />
+          </footer>
         </NextUIProvider>
       </body>
     </html>

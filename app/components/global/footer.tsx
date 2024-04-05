@@ -38,7 +38,7 @@ const socialItems = [
 
 export default function FooterComponent() {
     return (
-        <footer className="flex w-full flex-col border-t-1 border-neutral-300 z-0">
+        <div className="flex w-full flex-col border-t-1 border-neutral-300 z-0">
             <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center px-6 py-12 lg:px-8">
                 <div className="flex items-center justify-center">
                     <span className="text-medium text-default font-medium">POAP.in</span>
@@ -71,6 +71,6 @@ export default function FooterComponent() {
                     &copy; 2022 - {new Date().getFullYear()} Glory Lab. All rights reserved.
                 </p>
             </div>
-        </footer>
+        </div>
     );
 }

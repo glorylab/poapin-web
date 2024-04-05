@@ -1,39 +1,46 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 import { Spinner, useInput } from "@nextui-org/react";
-import { CloseFilledIcon, PoapIcon } from "../shared/common-icons";
+import { PoapIcon, CloseFilledIcon } from "../shared/common-icons";
 import { useNavigate } from "@remix-run/react";
 
 const styles = {
     label: "text-black/50",
     mainWrapper: [
-        "bg-background-200/50",
-        "backdrop-blur-xl",
-        "backdrop-saturate-200",
-        "hover:bg-background-200/70",
-        "focus-within:!bg-background-200/50",
     ],
     input: [
         "bg-transparent",
-        "text-background",
         "placeholder:text-background-700/50",
         "text-xl",
-        "group-data-[has-value=true]:text-background-900",
+        "autofill:!text-background-500",
+        "autofill:!shadow-[inset_0_0_0px_1000px_transparent]",
+        "autofill:!bg-transparent",
+        "group-data-[has-value=true]:text-background-500",
+        "auto",
+        "[&::-webkit-search-cancel-button]:hidden",
     ],
     innerWrapper: [
         "bg-transparent",
+        "text-background",
     ],
     inputWrapper: [
-        "h-20 max-w-md",
+        "h-12 md:h-16 max-w-md lg:max-w-lg",
         "shadow-none",
-        "rounded-3xl",
-        "bg-background-200",
-        "backdrop-blur-xl",
-        "backdrop-saturate-200",
+        "rounded-t-lg rounded-b-sm md:rounded-full",
         "hover:bg-background-100",
         "focus-within:!bg-background-100",
         "active:bg-background-50",
         "group-data-[has-value=true]:shadow-none",
         "!cursor-text",
+    ],
+    clearButton: [
+        "w-8",
+        "h-full hover:py-1",
+        "flex flex-col justify-center items-center",
+        "text-background-500",
+        "hover:bg-slate-100",
+        "focus:text-background-700",
+        "active:text-background-700",
+        "group-data-[has-value=true]:text-background-500",
     ],
 };
 
@@ -45,6 +52,7 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
     const navigate = useNavigate();
+    const [isClearable, setIsClearable] = useState(props.isClearable || false);
 
     const handleKeyPress = async (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
@@ -56,7 +64,6 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
                 await navigate(`/v/${inputValue}`);
             } catch (error) {
                 setHasError(true);
-                setIsLoading(false);
             } finally {
                 setIsLoading(false);
             }
@@ -68,7 +75,7 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
         label,
         domRef,
         description,
-        isClearable,
+        // isClearable,
         startContent,
         endContent,
         shouldLabelBeOutside,
@@ -98,44 +105,61 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
 
     const inputProps = getInputProps({
         onKeyDown: handleKeyPress,
+        onChange: (event) => {
+            console.log("event.target.value", event.target);
+        },
     });
 
-    const endContentCustom = isLoading ? (
-        <Spinner color="secondary" />
-    ) : isClearable && !isLoading && !hasError ? (
-        <span {...getClearButtonProps()}>{<CloseFilledIcon />}</span>
-    ) : null;
-    
+    useEffect(() => {
+        setIsClearable(inputProps.value.length > 0);
+    }
+        , [inputProps.value]);
+
+    const endContentCustom = React.useMemo(() => {
+        if (isClearable) {
+            return (
+                <span {...getClearButtonProps()}>{
+                    <CloseFilledIcon
+                        className=""
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            if (inputProps !== undefined && inputProps.onChange !== undefined) {
+                                inputProps.onChange({ target: { value: "" } } as any);
+                                setTimeout(() => {
+                                    domRef.current?.blur();
+                                }, 0);
+                            }
+                        }}
+                    />}
+                </span>
+            );
+        } else
+            if (isLoading) {
+                return <span>isLoading</span>
+            } else {
+                return <span>??</span>;
+            }
+    }, [isLoading, getInputProps, hasError, getClearButtonProps]);
 
     const labelContent = <label {...getLabelProps()}>{label}</label>;
 
-    const end = React.useMemo(() => {
-        if (isClearable) {
-            return <span {...getClearButtonProps()}>{endContent || <CloseFilledIcon />}</span>;
-        }
-
-        return endContent;
-    }, [isClearable, endContent, getClearButtonProps]);
-
     const innerWrapper = React.useMemo(() => {
-        if (startContent || end) {
+        if (startContent) {
             return (
                 <div {...getInnerWrapperProps()}>
                     {startContent}
-                    <input {...inputProps} />
+                    <input {...getInputProps()} />
                     {endContentCustom}
-                    {end}
+
                 </div>
             );
         }
 
         return <input {...getInputProps()} />;
-    }, [startContent, end, getInputProps, getInnerWrapperProps, inputProps, endContentCustom]);
-
-
+    }, [startContent, getInputProps, getInnerWrapperProps, endContentCustom]);
 
     return (
-        <div className={`w-full h-full px-1 py-1 rounded-b-3xl rounded-t-3xl flex justify-start items-start bg-gradient-to-b from-secondary-300 to-secondary-500 text-background shadow-2xl transition-all duration-300 hover:shadow-md hover:scale-[99%]`}>
+        <div className={`z-100 max-w-md lg:max-w-lg lg:w-full md:w-full px-1 py-1 rounded-b-md rounded-t-lg md:rounded-full flex justify-start items-start bg-gradient-to-b from-secondary-300 to-secondary-500 text-background shadow-2xl transition-all duration-300 hover:shadow-md hover:scale-[99%]`}>
             <Component {...getBaseProps()}>
                 {shouldLabelBeOutside ? labelContent : null}
                 <div
