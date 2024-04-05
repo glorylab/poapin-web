@@ -1,7 +1,7 @@
 import React, { forwardRef, useEffect, useState } from "react";
 import { Spinner, useInput } from "@nextui-org/react";
 import { PoapIcon, CloseFilledIcon } from "../shared/common-icons";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate, useNavigation } from "@remix-run/react";
 
 const styles = {
     label: "text-black/50",
@@ -33,11 +33,10 @@ const styles = {
         "!cursor-text",
     ],
     clearButton: [
-        "w-8",
-        "h-full hover:py-1",
+        "hover:py-1",
         "flex flex-col justify-center items-center",
-        "text-background-500",
-        "hover:bg-slate-100",
+        "rounded-full",
+        "hover:scale-110",
         "focus:text-background-700",
         "active:text-background-700",
         "group-data-[has-value=true]:text-background-500",
@@ -49,12 +48,15 @@ type Props = { placeholder?: string; isClearable?: boolean; description?: string
 
 const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) => {
 
+    const transition = useNavigation();
+    const isNavigating = transition.state === "loading";
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
     const navigate = useNavigate();
     const [isClearable, setIsClearable] = useState(props.isClearable || false);
 
     const handleKeyPress = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+        console.log("event.key", event.key);
         if (event.key === "Enter") {
             setIsLoading(true);
             setHasError(false);
@@ -69,6 +71,12 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
             }
         }
     };
+
+
+    useEffect(() => {
+        console.log("isNavigating", isNavigating);
+        console.log("navigate", navigate);
+    }, [isNavigating, navigate]);
 
     const {
         Component,
@@ -92,7 +100,8 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
     } = useInput({
         ...props,
         ref,
-        disabled: isLoading,
+        disabled: isLoading || isNavigating,
+        onKeyDown: handleKeyPress,
         type: "search",
         placeholder: `${props.placeholder || "Search for an address"}`,
         startContent: (
@@ -116,7 +125,9 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
         , [inputProps.value]);
 
     const endContentCustom = React.useMemo(() => {
-        if (isClearable) {
+        if (isNavigating) {
+            return <Spinner color="secondary" />;
+        } else if (isClearable) {
             return (
                 <span {...getClearButtonProps()}>{
                     <CloseFilledIcon
@@ -137,9 +148,9 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
             if (isLoading) {
                 return <span>isLoading</span>
             } else {
-                return <span>??</span>;
+                return <span>👀</span>;
             }
-    }, [isLoading, getInputProps, hasError, getClearButtonProps]);
+    }, [isClearable, isLoading, isNavigating, getClearButtonProps, inputProps, domRef]);
 
     const labelContent = <label {...getLabelProps()}>{label}</label>;
 
@@ -159,7 +170,16 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
     }, [startContent, getInputProps, getInnerWrapperProps, endContentCustom]);
 
     return (
-        <div className={`z-100 max-w-md lg:max-w-lg lg:w-full md:w-full px-1 py-1 rounded-b-md rounded-t-lg md:rounded-full flex justify-start items-start bg-gradient-to-b from-secondary-300 to-secondary-500 text-background shadow-2xl transition-all duration-300 hover:shadow-md hover:scale-[99%]`}>
+        <div className={`
+            z-100 max-w-md lg:max-w-lg lg:w-full md:w-full  lg:min-w-[400px]
+            px-1 py-1 
+            rounded-b-md rounded-t-lg md:rounded-full 
+            flex justify-start items-start 
+            bg-gradient-to-b from-secondary-300 to-secondary-500 
+            text-background 
+            ${isNavigating ? 'shadow-sm scale-[90%]' : 'shadow-2xl hover:shadow-md hover:scale-[99%]'}
+            transition-all duration-300
+        `}>
             <Component {...getBaseProps()}>
                 {shouldLabelBeOutside ? labelContent : null}
                 <div

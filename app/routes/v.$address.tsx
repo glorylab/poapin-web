@@ -95,7 +95,7 @@ export default function POAPList({ className }: { className?: string }) {
         if (error) {
             return (
                 <div className="w-full flex flex-col items-center py-24">
-                    <div className="relative flex flex-col items-center max-w-md">
+                    <div className="relative flex flex-col items-center max-w-lg text-center">
 
                         <h2 className="font-medium leading-7 text-secondary-300">404</h2>
                         <h1 className="text-4xl font-medium tracking-tight text-background-800">{error}</h1>
