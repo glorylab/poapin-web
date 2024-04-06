@@ -20,20 +20,20 @@ export default function NavBarComponent() {
                     "rounded-t-none hover:rounded-t-md active:rounded-t-lg",
                     "data-[active=true]:rounded-t-md",
                 ],
-                wrapper: "px-4 sm:px-6 bg-gradient-to-b  from-background via-background/20 to-background/0",
+                wrapper: "px-4 md:px-6 bg-gradient-to-b  from-background via-background/20 to-background/0",
             }}
             height="60px"
         >
             <NavbarBrand>
                 <NavbarMenuToggle
-                    className="mr-2 h-6 sm:hidden text-default"
+                    className="mr-2 h-6 md:hidden text-default"
                 />
                 <Link href="/" className="flex items-center gap-2">
                     <p className="font-sans text-3xl text-inherit font-extralight tracking-wider">POAP.in</p>
                 </Link>
             </NavbarBrand>
             <NavbarContent
-                className="mt-4 ml-4 pt-2 pb-[0.5px] bg-background-50/20 hidden h-12 w-full max-w-fit gap-4 font-bold rounded-t-full px-12 border-[0.5px] border-secondary-200 border-b-0 sm:flex"
+                className="mt-4 ml-4 pt-2 pb-[0.5px] bg-background-50/20 hidden h-12 w-full max-w-fit gap-4 font-bold rounded-t-full px-12 border-[0.5px] border-secondary-200 border-b-0 md:flex"
                 justify="start"
             >
                 <NavbarItem
