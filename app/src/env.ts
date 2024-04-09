@@ -5,6 +5,11 @@ interface Env {
     poapinReadApiKey: string;
     poapApiKey: string;
     gaTrackingId: string;
+    farcasterConfig: {
+        url: string;
+        domain: string;
+        siweUri: string;
+    };
 }
 
 interface EnvProps {
@@ -20,5 +25,10 @@ export const getEnv = ({ context }: EnvProps): Env => {
         poapinReadApiKey: env.SECRET_POAPIN_READ_API,
         poapApiKey: env.SECRET_POAP_API_KEY,
         gaTrackingId: env.GA_TRACKING_ID,
+        farcasterConfig: {
+            url: env.FARCASTER_RPC_URL,
+            domain: env.FARCASTER_DOMAIN,
+            siweUri: env.FARCASTER_SIWE_URI,
+        },
     };
 };
