@@ -1,12 +1,13 @@
-import { POAP } from "~/types/poap";
+import { Moment, POAP } from "~/types/poap";
 import { getPoapsOfAddress } from "~/api/poap";
+import { getLastMomentsByAuthor } from "~/api/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
 import { Spacer } from "@nextui-org/react";
 import AddressInputComponent from "~/components/poap/address-input";
-import { FrameMetadata, getFrameMetadata } from '@coinbase/onchainkit/frame';
+import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
 
 export const meta: MetaFunction = ({ data }) => {
@@ -16,14 +17,14 @@ export const meta: MetaFunction = ({ data }) => {
         return [];
     }
 
-    const { title, description, keywords, poaps, address, ogImageUrl } = loaderData.meta;
+    const { title, description, keywords, address, ogimageurl } = loaderData.meta;
 
     const baseMeta = [
         { title },
         { description },
         { keywords },
         { property: "og:title", content: title },
-        { property: "og:image", content: ogImageUrl },
+        { property: "og:image", content: ogimageurl },
         { property: "og:description", content: description },
         { property: "og:site_name", content: "POAPin" },
         { property: "og:type", content: "website" },
@@ -36,7 +37,7 @@ export const meta: MetaFunction = ({ data }) => {
         { name: "X:url", content: `https://poap.in/v/${address}` },
         { name: "X:title", content: title },
         { name: "X:description", content: description },
-        { name: "X:image", ogImageUrl }
+        { name: "X:image", ogimageurl }
     ];
 
     const frameMetadata = getFrameMetadata({
@@ -47,7 +48,7 @@ export const meta: MetaFunction = ({ data }) => {
                 label: 'We love POAP',
             },
         ],
-        image: ogImageUrl,
+        image: ogimageurl,
     })
     const frameMeta = Object.entries(frameMetadata).map(([key, value]) => ({ name: key, content: value }));
 
@@ -88,16 +89,21 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             throw new Error(`Failed to fetch ogImage: ${ogResponse.statusText}`);
         }
 
-        const ogImageUrl = ogResponse.url;
+        const ogimageurl = ogResponse.url;
         const meta = {
             title: `${metaTitle}`,
             description: `${metaDescription}`,
             keywords: `${metaKeywords}`,
             poaps,
             address,
-            ogImageUrl,
+            ogimageurl,
         };
-        return json({ poaps, meta });
+
+        // Get the last moments
+        const moments = await getLastMomentsByAuthor({ context, author: address });
+        console.log('moments', moments);
+
+        return json({ poaps, moments, meta });
     } catch (error) {
         console.error(error);
         return json({ error: `Failed to fetch POAPs of ${address}` }, { status: 500 });
@@ -106,6 +112,7 @@ export const loader: LoaderFunction = async ({ context, params }) => {
 
 interface LoaderData {
     poaps: POAP[];
+    moments: Moment[];
     error: string;
     meta: {
         title: string;
@@ -117,8 +124,16 @@ interface LoaderData {
     };
 }
 
+function getMomentsCount(poap: POAP, moments: Moment[]) {
+    let momentsCount = 0;
+    if (!moments || moments.length == 0) return momentsCount;
+    // Return the number of moments for the given POAP
+    momentsCount = moments.filter((moment) => moment.drop_id === poap.event.id).length;
+    return momentsCount;
+}
+
 export default function POAPList({ className }: { className?: string }) {
-    const { poaps, error } = useLoaderData<LoaderData>();
+    const { poaps, moments, error } = useLoaderData<LoaderData>();
 
     if (!poaps || !poaps.length) {
         if (error) {
@@ -153,7 +168,7 @@ export default function POAPList({ className }: { className?: string }) {
                 )}
             >
                 {poaps.map((poap) => (
-                    <PoapListItem key={poap.tokenId} poap={poap} />
+                    <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCount(poap, moments)} />
                 ))}
             </div>
         </div>

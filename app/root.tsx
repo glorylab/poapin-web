@@ -1,7 +1,7 @@
 import baseStylesHref from "~/tailwind_out.css";
 import sharedStylesHref from "~/styles/shared.css";
 import { useAtom } from "jotai";
-import type { AppLoadContext, LinksFunction, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
+import type { LinksFunction, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { cssBundleHref } from "@remix-run/css-bundle";
 
 import {
