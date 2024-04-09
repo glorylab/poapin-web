@@ -44,3 +44,23 @@ export interface POAPActivity {
     };
     transferCount: string;
 }
+
+export interface Media {
+    mime_type: string;
+    gateways: {
+        type: string;
+        url: string;
+        moment_media_id: string;
+        id: string;
+    }[];
+    created_at: string;
+}
+
+export interface Moment {
+    id: string;
+    author: string;
+    description: string | null;
+    created_on: string;
+    drop_id: number;
+    medias: Media[];
+}

@@ -5,6 +5,7 @@ interface Env {
     poapinReadApiKey: string;
     poapApiKey: string;
     gaTrackingId: string;
+    poapGraphQLBaseUrl: string;
 }
 
 interface EnvProps {
@@ -20,5 +21,6 @@ export const getEnv = ({ context }: EnvProps): Env => {
         poapinReadApiKey: env.SECRET_POAPIN_READ_API,
         poapApiKey: env.SECRET_POAP_API_KEY,
         gaTrackingId: env.GA_TRACKING_ID,
+        poapGraphQLBaseUrl: env.SECRET_POAP_GRAPHQL_BASE_URL,
     };
 };

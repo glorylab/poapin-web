@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Skeleton, Spinner } from "@nextui-org/react";
+import { Skeleton } from "@nextui-org/react";
 
 import { cn } from "~/src/cn";
 import { POAP } from "~/types/poap";
@@ -12,14 +12,14 @@ export type PoapListItemColor = {
 
 export type PoapListItemProps = Omit<React.HTMLAttributes<HTMLDivElement>, "id"> & {
   poap: POAP;
+  momentsCount?: number;
   isPopular?: boolean;
   isLoading?: boolean;
-  removeWrapper?: boolean;
 };
 
 const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
   (
-    { poap, isLoading, removeWrapper, className, ...props },
+    { poap, momentsCount, isLoading, className, ...props },
     ref,
   ) => {
 
@@ -63,7 +63,7 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
         className="w-full active:ring-0"
         style={{ textDecoration: "none" }}
         onClick={() => {
-          if(isNavigating) return;
+          if (isNavigating) return;
           setNavigatingUrl(`/poap/${poap.tokenId}`);
           navigate(`/poap/${poap.tokenId}`);
         }}
@@ -72,10 +72,9 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
           ref={ref}
           className={cn(
             "group relative flex w-full active:bg-background-700 active:p-3 hover:cursor-pointer hover:bg-background-600 p-2 rounded-md overflow-visible flex-col transition-all duration-300 ease-in-out hover:scale-95",
-            {
-              "rounded-none bg-background shadow-none": removeWrapper,
-            },
             { "bg-background-900 p-4 ": isNavigating && navigatingUrl === `/poap/${poap.tokenId}` },
+            { "bg-transparent": !momentsCount || momentsCount === 0 },
+            { "bg-background-300": momentsCount && momentsCount > 0 },
             className,
           )}
           {...props}
