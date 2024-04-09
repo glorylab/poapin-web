@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@coinbase/onchainkit": "^0.11.0",
+    "@farcaster/auth-kit": "^0.2.1",
     "@nextui-org/react": "^2.2.10",
     "@remix-run/cloudflare": "^2.8.1",
     "@remix-run/cloudflare-pages": "^2.8.1",
@@ -24,7 +25,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^2.2.2",
-    "usehooks-ts": "^3.0.2"
+    "usehooks-ts": "^3.0.2",
+    "viem": "^2.9.15"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230518.0",
