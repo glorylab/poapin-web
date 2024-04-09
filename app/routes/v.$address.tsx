@@ -31,23 +31,25 @@ export const meta: MetaFunction = ({ data }) => {
     ];
 
     const twitterMeta = [
-        { name: "twitter:card", content: "summary" },
-        { name: "twitter:domain", content: "poap.in" },
-        { name: "twitter:url", content: `https://poap.in/v/${address}` },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", ogImageUrl }
+        { name: "X:card", content: "summary_large_image" },
+        { name: "X:domain", content: "poap.in" },
+        { name: "X:url", content: `https://poap.in/v/${address}` },
+        { name: "X:title", content: title },
+        { name: "X:description", content: description },
+        { name: "X:image", ogImageUrl }
     ];
 
-    const frameMeta = [getFrameMetadata({
+    const frameMetadata = getFrameMetadata({
         buttons: [
             {
+                action: 'link',
+                target: `https://poap.in/v/${address}`,
                 label: 'We love POAP',
             },
         ],
         image: ogImageUrl,
-        postUrl: `https://poap.in/v/${address}`,
-    })];
+    })
+    const frameMeta = Object.entries(frameMetadata).map(([key, value]) => ({ name: key, content: value }));
 
     return [...baseMeta, ...twitterMeta, ...frameMeta];
 }
@@ -65,7 +67,7 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         if (!poaps || !poaps.length) {
             return json({ error: "No POAPs found" }, { status: 404 });
         }
-        const metaTitle = `POAPs of ${address}`;
+        const metaTitle = `POAPs of ${address} | POAPin`;
         const titles = poaps.map(poap => poap.event.name).slice(0, 100);
         const metaDescription = `${address} has ${poaps.length} POAPs. POAP, short for "Proof of Attendance Protocol," allows you to mint memories as digital mementos we call "POAPs. POAPs are bookmarks for your life.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${titles.join(", ")}`;
