@@ -4,8 +4,10 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import {Spacer } from "@nextui-org/react";
+import { Spacer } from "@nextui-org/react";
 import AddressInputComponent from "~/components/poap/address-input";
+import { FrameMetadata, getFrameMetadata } from '@coinbase/onchainkit/frame';
+import { getEnv } from "~/src/env";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -14,13 +16,14 @@ export const meta: MetaFunction = ({ data }) => {
         return [];
     }
 
-    const { title, description, keywords, poaps, address } = loaderData.meta;
+    const { title, description, keywords, poaps, address, ogImageUrl } = loaderData.meta;
 
     const baseMeta = [
         { title },
         { description },
         { keywords },
         { property: "og:title", content: title },
+        { property: "og:image", content: ogImageUrl },
         { property: "og:description", content: description },
         { property: "og:site_name", content: "POAPin" },
         { property: "og:type", content: "website" },
@@ -33,14 +36,20 @@ export const meta: MetaFunction = ({ data }) => {
         { name: "twitter:url", content: `https://poap.in/v/${address}` },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
-        { name: "twitter:image", content: poaps[0].event.image_url }
+        { name: "twitter:image", ogImageUrl }
     ];
 
-    const imageMeta = poaps.map(poap => {
-        return { property: "og:image", content: poap.event.image_url };
-    }).slice(0, 7);
+    const frameMeta = [getFrameMetadata({
+        buttons: [
+            {
+                label: 'We love POAP',
+            },
+        ],
+        image: ogImageUrl,
+        postUrl: `https://poap.in/v/${address}`,
+    })];
 
-    return [...baseMeta, ...imageMeta, ...twitterMeta];
+    return [...baseMeta, ...twitterMeta, ...frameMeta];
 }
 
 export const loader: LoaderFunction = async ({ context, params }) => {
@@ -57,17 +66,34 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             return json({ error: "No POAPs found" }, { status: 404 });
         }
         const metaTitle = `POAPs of ${address}`;
-        // Get the titles of the poaps, max 100 titles
         const titles = poaps.map(poap => poap.event.name).slice(0, 100);
         const metaDescription = `${address} has ${poaps.length} POAPs. POAP, short for "Proof of Attendance Protocol," allows you to mint memories as digital mementos we call "POAPs. POAPs are bookmarks for your life.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${titles.join(", ")}`;
 
+        // Get the OG image
+        const ogResponse = await fetch(`https://og.poap.in/api/poap/v/${address}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                poaps,
+                poapapikey: getEnv({ context }).poapApiKey,
+            }),
+        });
+
+        if (!ogResponse.ok) {
+            throw new Error(`Failed to fetch ogImage: ${ogResponse.statusText}`);
+        }
+
+        const ogImageUrl = ogResponse.url;
         const meta = {
             title: `${metaTitle}`,
             description: `${metaDescription}`,
             keywords: `${metaKeywords}`,
             poaps,
             address,
+            ogImageUrl,
         };
         return json({ poaps, meta });
     } catch (error) {
@@ -85,6 +111,7 @@ interface LoaderData {
         keywords: string;
         poaps: POAP[];
         address: string;
+        ogImageUrl: string;
     };
 }
 
@@ -101,7 +128,7 @@ export default function POAPList({ className }: { className?: string }) {
                         <h1 className="text-4xl font-medium tracking-tight text-background-800">{error}</h1>
                         <Spacer y={4} />
                         <h2 className="text-large text-background-700">
-                        Check out other friends&apos; POAP 👇
+                            Check out other friends&apos; POAP 👇
                         </h2>
                     </div>
                     <Spacer y={4} />
