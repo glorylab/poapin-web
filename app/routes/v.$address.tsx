@@ -5,10 +5,16 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Spacer } from "@nextui-org/react";
+import { Button, Select, SelectItem, Spacer, useDisclosure } from "@nextui-org/react";
 import AddressInputComponent from "~/components/poap/address-input";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
+import FiltersWrapper from "~/components/poap/filters-wrapper";
+import { Icon } from "@iconify/react/dist/iconify.js";
+import SidebarDrawer from "~/components/poap/sidebar-drawer";
+import { FilterTypeEnum } from "~/types/filter";
+import type { Filter } from "app/types/filter";
+import { useState } from "react";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -142,7 +148,10 @@ function getMomentsCountOfDrop(poap: POAP, dropsWithMoments: number[]) {
 }
 
 export default function POAPList({ className }: { className?: string }) {
-    const { poaps, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
+    const { poaps, meta, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
+    const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
 
     if (!poaps || !poaps.length) {
         if (error) {
@@ -168,18 +177,220 @@ export default function POAPList({ className }: { className?: string }) {
         }
     }
 
+    const countryFilter: Filter = {
+        type: FilterTypeEnum.CheckboxGroup,
+        title: "Country",
+        options: poaps.reduce((acc: Filter["options"], poap) => {
+            const country = poap.event.country || "(None)";
+            if (acc) {
+                if (!acc.find((option) => option.value === country)) {
+                    acc.push({ title: country, value: country });
+                }
+                return acc;
+            }
+            return [{ title: country, value: country }];
+        }, []),
+    };
+
+    const cityFilter: Filter = {
+        type: FilterTypeEnum.CheckboxGroup,
+        title: "City",
+        options: poaps.reduce((acc: Filter["options"], poap) => {
+            const city = poap.event.city || "(None)";
+            if (acc) {
+                if (!acc.find((option) => option.value === city)) {
+                    acc.push({ title: city, value: city });
+                }
+                return acc;
+            }
+            return [{ title: city, value: city }];
+        }, []),
+    };
+
+    const chainFilter: Filter = {
+        type: FilterTypeEnum.CheckboxGroup,
+        title: "Chain",
+        options: poaps.reduce((acc: Filter["options"], poap) => {
+            if (acc) {
+                if (!acc.find((option) => option.value === poap.chain)) {
+                    acc.push({ title: poap.chain, value: poap.chain });
+                }
+                return acc;
+            }
+            return [{ title: poap.chain, value: poap.chain }];
+        }, []),
+    };
+
+    const yearFilter: Filter = {
+        type: FilterTypeEnum.CheckboxGroup,
+        title: "Year",
+        options: poaps.reduce((acc: Filter["options"], poap) => {
+            if (acc) {
+                if (!acc.find((option) => option.value === poap.event.year.toString())) {
+                    acc.push({ title: poap.event.year.toString(), value: poap.event.year.toString() });
+                }
+                return acc;
+            }
+            return [{ title: poap.event.year.toString(), value: poap.event.year.toString() }];
+        }, []),
+    };
+
+    const filteredPoaps = poaps.filter((poap) => {
+        return Object.entries(selectedFilters).every(([key, values]) => {
+            if (values.length === 0) return true;
+            switch (key) {
+                case "Country":
+                    return values.includes(poap.event.country || "(None)");
+                case "City":
+                    return values.includes(poap.event.city || "(None)");
+                case "Chain":
+                    return values.includes(poap.chain);
+                case "Year":
+                    return values.includes(poap.event.year.toString());
+                default:
+                    return true;
+            }
+        });
+    }).sort((a, b) => {
+        switch (selectedSort) {
+            case "collected_newest":
+                return new Date(b.created).getTime() - new Date(a.created).getTime();
+            case "collected_oldest":
+                return new Date(a.created).getTime() - new Date(b.created).getTime();
+            case "start_date_newest":
+                return new Date(b.event.start_date).getTime() - new Date(a.event.start_date).getTime();
+            case "start_date_oldest":
+                return new Date(a.event.start_date).getTime() - new Date(b.event.start_date).getTime();
+            case "most_moments":
+                return getMomentsCountOfDrop(b, dropsWithMoments) - getMomentsCountOfDrop(a, dropsWithMoments);
+            case "most_popular":
+                return b.event.supply - a.event.supply;
+            default:
+                return new Date(b.created).getTime() - new Date(a.created).getTime();
+
+        }
+    });
+
+
+    const handleFilterChange = (key: string, values: string[]) => {
+        setSelectedFilters((prevFilters) => ({
+            ...prevFilters,
+            [key]: values,
+        }));
+    };
+
     return (
-        <div className="flex flex-col items-center">
-            <div
-                className={cn(
-                    "my-auto grid max-w-7xl gap-5 p-4 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
-                    className
-                )}
-            >
-                {poaps.map((poap) => (
-                    <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} />
-                ))}
+        <div className="flex gap-x-6 mb-8">
+            <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
+                <FiltersWrapper
+                    className="md:bg-default-50 sm:ml-4 bg-transparent md:bg-opacity-30 backdrop-blur-sm min-w-64"
+                    items={[
+                        countryFilter,
+                        cityFilter,
+                        yearFilter,
+                        chainFilter,
+                    ]}
+                    scrollShadowClassName="max-h-full pb-12"
+                    showActions={false}
+                    title="Filter by"
+                    onFilterChange={handleFilterChange}
+                />
+            </SidebarDrawer>
+            <div className="w-full flex-1 flex-col">
+                <header className="relative z-20 mx-4 px-4 mt-4 flex flex-col gap-2 rounded-medium bg-default-50 bg-opacity-30 backdrop-blur-sm pb-3 pt-2 md:pt-3">
+                    <div className="flex items-center gap-1 md:hidden md:gap-2">
+                        <h1 className="text-large font-medium text-background-700">{meta.address}</h1>
+                        <span className="text-small text-background-500">({poaps.length})</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-row grow gap-2">
+                            <Button
+                                className="flex md:hidden border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800"
+                                startContent={
+                                    <Icon
+                                        className="text-background-600 hover:text-background-800 active:text-background-800"
+                                        height={16}
+                                        icon="solar:filter-linear"
+                                        width={16}
+                                    />
+                                }
+                                variant="bordered"
+                                onPress={onOpen}
+                            >
+                                Filters
+                            </Button>
+                            <div className="hidden items-center gap-1 md:flex">
+                                <h1 className="text-medium font-medium text-background-700">{meta.address}</h1>
+                                <span className="text-small text-background-500">({poaps.length})</span>
+                            </div>
+                        </div>
+                        <Select
+                            aria-label="Sort by"
+                            classNames={{
+                                base: "items-center justify-end",
+                                trigger: "border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800",
+                                label:
+                                    "hidden lg:block text-tiny whitespace-nowrap md:text-small text-background-600",
+                                mainWrapper: "max-w-xs",
+                            }}
+                            defaultSelectedKeys={[selectedSort]}
+                            onSelectionChange={(keys) => {
+                                const selectedKey = Array.from(keys)[0];
+                                if (typeof selectedKey === "string") {
+                                    setSelectedSort(selectedKey);
+                                }
+                            }}
+
+                            label="Sort by"
+                            labelPlacement="outside-left"
+                            placeholder="Select an option"
+                            variant="bordered"
+                        >
+                            <SelectItem key="collected_newest" value="collected_newest"
+                                classNames={{
+                                    title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                    description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                    selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                }}
+                            >
+                                Collected date: Newest
+                            </SelectItem>
+                            <SelectItem key="collected_oldest" value="collected_oldest">
+                                Collected date: Oldest
+                            </SelectItem>
+                            <SelectItem key="start_date_newest" value="start_date_newest">
+                                Start Date: Newest
+                            </SelectItem>
+                            <SelectItem key="start_date_oldest" value="start_date_oldest">
+                                Start Date: Oldest
+                            </SelectItem>
+                            <SelectItem key="most_popular" value="most_popular">
+                                Most Popular
+                            </SelectItem>
+                            <SelectItem key="most_moments" value="most_moments">
+                                Most Moments
+                            </SelectItem>
+                        </Select>
+                    </div>
+                </header>
+                <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2">
+                    <div className="block rounded-medium border-background-200 border-dashed border-[1px]">
+                        <div className="flex flex-col items-center">
+                            <div
+                                className={cn(
+                                    "my-auto grid max-w-7xl gap-5 p-4 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+                                    className
+                                )}
+                            >
+                                {filteredPoaps.map((poap) => (
+                                    <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </main>
             </div>
         </div>
+
     );
 }
