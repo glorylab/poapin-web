@@ -120,7 +120,7 @@ interface LoaderData {
         keywords: string;
         poaps: POAP[];
         address: string;
-        ogImageUrl: string;
+        ogimageurl: string;
     };
 }
 
