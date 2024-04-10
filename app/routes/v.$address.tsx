@@ -1,6 +1,6 @@
 import { Moment, POAP } from "~/types/poap";
 import { getPoapsOfAddress } from "~/api/poap";
-import { getLastMomentsByAuthor } from "~/api/poap-graph";
+import { getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
@@ -99,11 +99,19 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             ogimageurl,
         };
 
-        // Get the last moments
-        const moments = await getLastMomentsByAuthor({ context, author: address });
-        console.log('moments', moments);
+        let latestMoments;
+        let dropsWithMoments = [];
+        // Get moments count
+        const momentsCount = await getMomentsCountByAuthor({ context, author: address });
+        dropsWithMoments = momentsCount.uniqueDropIds;
+        if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
+            meta.description += ` ${address} created ${momentsCount.totalMoments} POAP moments.`;
+            // Get the latest moments
+            latestMoments = await getLastMomentsByAuthor({ context, author: address, limit: 10 });
+        }
 
-        return json({ poaps, moments, meta });
+
+        return json({ poaps, latestMoments, dropsWithMoments, meta });
     } catch (error) {
         console.error(error);
         return json({ error: `Failed to fetch POAPs of ${address}` }, { status: 500 });
@@ -112,7 +120,8 @@ export const loader: LoaderFunction = async ({ context, params }) => {
 
 interface LoaderData {
     poaps: POAP[];
-    moments: Moment[];
+    latestMoments: Moment[];
+    dropsWithMoments: number[];
     error: string;
     meta: {
         title: string;
@@ -124,16 +133,16 @@ interface LoaderData {
     };
 }
 
-function getMomentsCount(poap: POAP, moments: Moment[]) {
+function getMomentsCountOfDrop(poap: POAP, dropsWithMoments: number[]) {
     let momentsCount = 0;
-    if (!moments || moments.length == 0) return momentsCount;
+    if (!dropsWithMoments || dropsWithMoments.length == 0) return momentsCount;
     // Return the number of moments for the given POAP
-    momentsCount = moments.filter((moment) => moment.drop_id === poap.event.id).length;
+    momentsCount = dropsWithMoments.filter((dropId) => dropId === poap.event.id).length;
     return momentsCount;
 }
 
 export default function POAPList({ className }: { className?: string }) {
-    const { poaps, moments, error } = useLoaderData<LoaderData>();
+    const { poaps, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
 
     if (!poaps || !poaps.length) {
         if (error) {
@@ -168,7 +177,7 @@ export default function POAPList({ className }: { className?: string }) {
                 )}
             >
                 {poaps.map((poap) => (
-                    <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCount(poap, moments)} />
+                    <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} />
                 ))}
             </div>
         </div>
