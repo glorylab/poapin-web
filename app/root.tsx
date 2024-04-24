@@ -127,6 +127,8 @@ export default function App() {
 
           <FloatingBanner />
         </NextUIProvider>
+        {/* Cloudflare Web Analytics */}
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5387257fc59043ac86fa9cc73eb33541"}'></script>
       </body>
     </html>
   );
