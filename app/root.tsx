@@ -22,6 +22,7 @@ import * as gtag from "~/utils/gtags.client";
 import { getEnv } from "~/src/env";
 import NavBarComponent from "./components/global/navbar";
 import footerPositionAtom from "./atoms/footer-position-atom";
+import FloatingBanner from "./components/global/floating_banner";
 
 interface LoaderData {
   gaTrackingId: string;
@@ -123,6 +124,8 @@ export default function App() {
           <footer ref={footerRef}>
             <FooterComponent />
           </footer>
+
+          <FloatingBanner />
         </NextUIProvider>
       </body>
     </html>

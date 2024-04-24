@@ -1,9 +1,54 @@
+import { getFrameMetadata } from "@coinbase/onchainkit";
 import { Spacer, Image } from "@nextui-org/react";
-import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { json, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getGrants } from "~/api/grants";
+import BannerWithButton from "~/components/global/banner_with_button";
 import GrantCardComponent from "~/components/sponsors/grant-card";
 import { GrantData } from "~/types/data";
+
+export const meta: MetaFunction = ({ data }) => {
+
+  const metaTitle = `Sponsors of POAPin | POAPin`;
+  const metaDescription = `POAPin's Sponsor Records`;
+  const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, Gitcoin, Grants, Sponsors, Sponsor Records, GR14, GR15, Gitcoin Alpha Round, Gitcoin Beta Round, Gitcoin GG19, Gitcoin GG20, Opensource software`;
+  const metaImage = "https://nexus.glorylab.xyz/1/5/6/POA_Pin_GG_20_1608a84ea6.jpg";
+
+  const baseMeta = [
+    { title: metaTitle },
+    { description: metaDescription },
+    { keywords: metaKeywords },
+    { property: "og:title", metaTitle },
+    { property: "og:image", content: metaImage },
+    { property: "og:description", content: metaDescription },
+    { property: "og:site_name", content: metaTitle },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: `https://poap.in/sponsors` },
+  ];
+
+  const twitterMeta = [
+    { name: "X:card", content: "summary_large_image" },
+    { name: "X:domain", content: "poap.in" },
+    { name: "X:url", content: `https://poap.in/sponsors` },
+    { name: "X:title", content: metaTitle },
+    { name: "X:description", content: metaDescription },
+    { name: "X:image", metaImage }
+  ];
+
+  const frameMetadata = getFrameMetadata({
+    buttons: [
+      {
+        action: 'link',
+        target: `https://poap.in/sponsors`,
+        label: 'I like POAPin!',
+      },
+    ],
+    image: metaImage,
+  })
+  const frameMeta = Object.entries(frameMetadata).map(([key, value]) => ({ name: key, content: value }));
+
+  return [...baseMeta, ...twitterMeta, ...frameMeta];
+}
 
 export const loader: LoaderFunction = async ({ context }) => {
   try {
@@ -34,6 +79,8 @@ export default function SponsorsPage() {
   return (
     <section className="max-w-xl mx-auto relative py-8 lg:py-16 px-8">
       <h1 className="font-medium leading-7 text-secondary-300">POAPin&apos;s Sponsor Records</h1>
+
+      <BannerWithButton />
       <h2 className="text-4xl font-medium text-primary tracking-tight underline underline-offset-8 leading-relaxed decoration-wavy decoration-8 decoration-[#f0d3da]">THANKS FOR YOUR GENEROUS SUPPORT!</h2>
       <Spacer y={4} />
       <div className="flex justify-center">
