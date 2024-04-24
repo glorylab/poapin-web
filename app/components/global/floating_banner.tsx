@@ -6,7 +6,7 @@ import { Icon } from "@iconify/react";
 
 export default function FloatingBanner() {
     return (
-        <div className="pointer-events-none z-50 fixed inset-x-0 bottom-0 w-full px-2 pb-2 sm:flex sm:justify-center sm:px-4 sm:pb-4 lg:px-8 font-serif">
+        <div className="pointer-events-none z-50 fixed inset-x-0 bottom-20 w-full px-2 pb-2 sm:flex sm:justify-center sm:px-4 sm:pb-4 lg:px-8 font-serif">
             <div className="pointer-events-auto bg-secondary-600 flex items-center gap-x-3 rounded-large border-1 border-divider bg-gradient-to-r from-secondary-200 via-secondary-100 to-secondary-300 px-6 py-2 sm:px-3.5">
                 <div className="flex w-full items-center gap-x-3">
                     <p className="text-small text-foreground">
@@ -35,7 +35,7 @@ export default function FloatingBanner() {
                         }}
                         variant="bordered"
                     >
-                        Support now
+                        👀
                     </Button>
                 </div>
                 <div className="flex flex-1 justify-end">

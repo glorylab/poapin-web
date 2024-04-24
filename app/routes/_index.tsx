@@ -38,7 +38,7 @@ export default function Index() {
   }, [footerPosition]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col">
+    <div className=" min-h-[2048px] w-full flex flex-col">
       <section className="hidden max-w-lg mx-auto relative px-2 xs:px-8 flex-grow md:flex flex-col justify-center md:justify-start md:pt-16">
         <div className="md:pb-12">
           <AddressInputComponent isClearable />
