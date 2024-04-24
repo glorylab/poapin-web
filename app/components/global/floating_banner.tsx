@@ -1,17 +1,27 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button, Link } from "@nextui-org/react";
 import { Icon } from "@iconify/react";
 
 export default function FloatingBanner() {
+    const [showBanner, setShowBanner] = useState(true);
+
+    const handleCloseBanner = () => {
+        setShowBanner(false);
+    };
+
+    if (!showBanner) {
+        return null;
+    }
+
     return (
         <div className="pointer-events-none z-50 fixed inset-x-0 bottom-20 w-full px-2 pb-2 sm:flex sm:justify-center sm:px-4 sm:pb-4 lg:px-8 font-serif">
             <div className="pointer-events-auto bg-secondary-600 flex items-center gap-x-3 rounded-large border-1 border-divider bg-gradient-to-r from-secondary-200 via-secondary-100 to-secondary-300 px-6 py-2 sm:px-3.5">
                 <div className="flex w-full items-center gap-x-3">
                     <p className="text-small text-foreground">
                         <Link className="text-inherit" href="https://explorer.gitcoin.co/#/round/42161/25/53" target="_blank">
-                            POAPin is participating in Gitcoin GG20, every friend’s support matters!&nbsp;
+                            POAPin is participating in Gitcoin GG20, every friend's support matters!&nbsp;
                         </Link>
                     </p>
                     <Button
@@ -39,7 +49,14 @@ export default function FloatingBanner() {
                     </Button>
                 </div>
                 <div className="flex flex-1 justify-end">
-                    <Button isIconOnly aria-label="Close Banner" className="-m-1" size="sm" variant="light">
+                    <Button
+                        onClick={handleCloseBanner}
+                        isIconOnly
+                        aria-label="Close Banner"
+                        className="-m-1"
+                        size="sm"
+                        variant="light"
+                    >
                         <Icon aria-hidden="true" className="text-secondary-700" icon="lucide:x" width={20} />
                     </Button>
                 </div>
