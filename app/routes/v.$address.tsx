@@ -15,6 +15,8 @@ import SidebarDrawer from "~/components/poap/sidebar-drawer";
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "app/types/filter";
 import { useState } from "react";
+import { ethers } from "ethers";
+import { createAnkrProvider } from "~/src/utils/ankrProvider";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -61,6 +63,21 @@ export const meta: MetaFunction = ({ data }) => {
     return [...baseMeta, ...twitterMeta, ...frameMeta];
 }
 
+async function resolveAddress(address: string, provider: ethers.AnkrProvider): Promise<string> {
+    if (address.endsWith(".eth")) {
+        const resolvedAddress = await provider.resolveName(address);
+        if (resolvedAddress) {
+            return resolvedAddress;
+        } else {
+            throw new Error(`Could not resolve ENS name: ${address}`);
+        }
+    } else if (ethers.isAddress(address)) {
+        return address;
+    } else {
+        throw new Error(`Invalid address: ${address}`);
+    }
+}
+
 export const loader: LoaderFunction = async ({ context, params }) => {
     const address = params.address;
 
@@ -69,6 +86,10 @@ export const loader: LoaderFunction = async ({ context, params }) => {
     }
 
     try {
+
+        const provider = createAnkrProvider("mainnet", getEnv({ context }).ankrApiKey);
+        const resolvedAddress = await resolveAddress(address, provider);
+
         const poaps: POAP[] = await getPoapsOfAddress(context, address);
 
         if (!poaps || !poaps.length) {
@@ -83,11 +104,11 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         let dropsWithMoments = [];
 
         // Get moments count
-        const momentsCount = await getMomentsCountByAuthor({ context, author: address });
+        const momentsCount = await getMomentsCountByAuthor({ context, author: resolvedAddress });
         dropsWithMoments = momentsCount.uniqueDropIds;
         if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
             // Get the latest moments
-            latestMoments = await getLastMomentsByAuthor({ context, author: address, limit: 10 });
+            latestMoments = await getLastMomentsByAuthor({ context, author: resolvedAddress, limit: 10 });
         }
 
         // Get the OG image
