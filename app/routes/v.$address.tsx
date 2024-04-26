@@ -74,7 +74,16 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         if (!poaps || !poaps.length) {
             return json({ error: "No POAPs found" }, { status: 404 });
         }
-        const metaTitle = `POAPs of ${address} | POAPin`;
+
+        // Get the eth address from any of the poaps owner
+        const ethAddress = poaps[0].owner;
+
+        let metaTitle = `POAPs of ${address} | POAPin`;
+
+        if (ethAddress != address) {
+            metaTitle = `POAPs of ${address} (${ethAddress}) | POAPin`;
+        }
+
         const titles = poaps.map(poap => poap.event.name).slice(0, 100);
         const metaDescription = `${address} has ${poaps.length} POAPs. POAP, short for "Proof of Attendance Protocol," allows you to mint memories as digital mementos we call "POAPs. POAPs are bookmarks for your life.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${titles.join(", ")}`;
@@ -83,11 +92,11 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         let dropsWithMoments = [];
 
         // Get moments count
-        const momentsCount = await getMomentsCountByAuthor({ context, author: address });
+        const momentsCount = await getMomentsCountByAuthor({ context, author: ethAddress });
         dropsWithMoments = momentsCount.uniqueDropIds;
         if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
             // Get the latest moments
-            latestMoments = await getLastMomentsByAuthor({ context, author: address, limit: 10 });
+            latestMoments = await getLastMomentsByAuthor({ context, author: ethAddress, limit: 10 });
         }
 
         // Get the OG image
