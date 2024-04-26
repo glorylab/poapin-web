@@ -113,7 +113,7 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         });
 
         if (!ogResponse.ok) {
-            throw new Error(`Failed to fetch ogImage: ${ogResponse.statusText}`);
+            console.error(`Failed to fetch ogImage: ${ogResponse.statusText}`);
         }
 
         const ogimageurl = ogResponse.url;
