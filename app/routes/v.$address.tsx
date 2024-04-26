@@ -79,6 +79,17 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         const metaDescription = `${address} has ${poaps.length} POAPs. POAP, short for "Proof of Attendance Protocol," allows you to mint memories as digital mementos we call "POAPs. POAPs are bookmarks for your life.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${titles.join(", ")}`;
 
+        let latestMoments;
+        let dropsWithMoments = [];
+
+        // Get moments count
+        const momentsCount = await getMomentsCountByAuthor({ context, author: address });
+        dropsWithMoments = momentsCount.uniqueDropIds;
+        if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
+            // Get the latest moments
+            latestMoments = await getLastMomentsByAuthor({ context, author: address, limit: 10 });
+        }
+
         // Get the OG image
         const ogResponse = await fetch(`https://og.poap.in/api/poap/v/${address}`, {
             method: 'POST',
@@ -87,6 +98,7 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             },
             body: JSON.stringify({
                 poaps,
+                latestMoments,
                 poapapikey: getEnv({ context }).poapApiKey,
             }),
         });
@@ -105,17 +117,9 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             ogimageurl,
         };
 
-        let latestMoments;
-        let dropsWithMoments = [];
-        // Get moments count
-        const momentsCount = await getMomentsCountByAuthor({ context, author: address });
-        dropsWithMoments = momentsCount.uniqueDropIds;
         if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
             meta.description += ` ${address} created ${momentsCount.totalMoments} POAP moments.`;
-            // Get the latest moments
-            latestMoments = await getLastMomentsByAuthor({ context, author: address, limit: 10 });
         }
-
 
         return json({ poaps, latestMoments, dropsWithMoments, meta });
     } catch (error) {
