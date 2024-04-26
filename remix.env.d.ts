@@ -13,7 +13,6 @@ declare module "@remix-run/server-runtime" {
                 SECRET_POAP_API_KEY: string;
                 GA_TRACKING_ID: string;
                 SECRET_POAP_GRAPHQL_BASE_URL: string;
-                SECRET_ANKR_API_KEY: string;
             };
         };
     }
