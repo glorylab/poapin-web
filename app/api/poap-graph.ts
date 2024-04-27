@@ -49,7 +49,8 @@ export async function getLastMomentsByAuthor({
       query GetLastMomentsByAuthor {
         moments(
           limit: ${limit},
-          where: { author: { _eq: "${author}" } }
+          where: { author: { _eq: "${author}" } },
+          order_by: { created_on: desc }
         ) {
           id
           author
