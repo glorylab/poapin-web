@@ -61,7 +61,7 @@ export const meta: MetaFunction = ({ data }) => {
     return [...baseMeta, ...twitterMeta, ...frameMeta];
 }
 
-export const loader: LoaderFunction = async ({ context, params }) => {
+export const loader: LoaderFunction = async ({ context, params, request }) => {
     const address = params.address;
 
     if (!address) {
@@ -99,24 +99,36 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             latestMoments = await getLastMomentsByAuthor({ context, author: ethAddress, limit: 10 });
         }
 
-        // Get the OG image
-        const ogResponse = await fetch(`https://og.poap.in/api/poap/v/${address}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                poaps,
-                latestMoments,
-                poapapikey: getEnv({ context }).poapApiKey,
-            }),
-        });
+        // Get the user agent
+        const userAgent = request.headers.get("User-Agent");
 
-        if (!ogResponse.ok) {
-            console.error(`Failed to fetch ogImage: ${ogResponse.statusText}`);
+        // Check if the request is from a search engine bot
+        const isSearchEngineBot = userAgent && /Googlebot|Mediapartners|AdsBot|Bingbot|MSNBot|AdIdxBot|BingPreview|Desktop|Mobile|Yandex|DuckDuckBot|Slurp/i.test(userAgent);
+
+        let ogimageurl = "";
+
+        // If the request is not from a search engine bot, get the OG image
+        if (!isSearchEngineBot) {
+            // Get the OG image
+            const ogResponse = await fetch(`https://og.poap.in/api/poap/v/${address}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    poaps,
+                    latestMoments,
+                    poapapikey: getEnv({ context }).poapApiKey,
+                }),
+            });
+
+            if (!ogResponse.ok) {
+                console.error(`Failed to fetch ogImage: ${ogResponse.statusText}`);
+            }
+
+            ogimageurl = ogResponse.url;
         }
 
-        const ogimageurl = ogResponse.url;
         const meta = {
             title: `${metaTitle}`,
             description: `${metaDescription}`,
