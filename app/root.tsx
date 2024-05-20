@@ -22,7 +22,6 @@ import * as gtag from "~/utils/gtags.client";
 import { getEnv } from "~/src/env";
 import NavBarComponent from "./components/global/navbar";
 import footerPositionAtom from "./atoms/footer-position-atom";
-import FloatingBanner from "./components/global/floating_banner";
 
 interface LoaderData {
   gaTrackingId: string;
@@ -124,8 +123,6 @@ export default function App() {
           <footer ref={footerRef}>
             <FooterComponent />
           </footer>
-
-          <FloatingBanner />
         </NextUIProvider>
         {/* Cloudflare Web Analytics */}
         <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5387257fc59043ac86fa9cc73eb33541"}'></script>

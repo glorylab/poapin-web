@@ -3,7 +3,6 @@ import { Spacer, Image } from "@nextui-org/react";
 import { json, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getGrants } from "~/api/grants";
-import BannerWithButton from "~/components/global/banner_with_button";
 import GrantCardComponent from "~/components/sponsors/grant-card";
 import { GrantData } from "~/types/data";
 
@@ -79,8 +78,6 @@ export default function SponsorsPage() {
   return (
     <section className="max-w-xl mx-auto relative py-8 lg:py-16 px-8">
       <h1 className="font-medium leading-7 text-secondary-300">POAPin&apos;s Sponsor Records</h1>
-
-      <BannerWithButton />
       <h2 className="text-4xl font-medium text-primary tracking-tight underline underline-offset-8 leading-relaxed decoration-wavy decoration-8 decoration-[#f0d3da]">THANKS FOR YOUR GENEROUS SUPPORT!</h2>
       <Spacer y={4} />
       <div className="flex justify-center">
