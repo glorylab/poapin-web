@@ -138,11 +138,13 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
             ogimageurl,
         };
 
-        if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
-            meta.description += ` ${address} created ${momentsCount.totalMoments} POAP moments.`;
+        const totalMomentsCount = momentsCount.totalMoments;
+
+        if (momentsCount && totalMomentsCount && totalMomentsCount > 0) {
+            meta.description += ` ${address} created ${totalMomentsCount} POAP moments.`;
         }
 
-        return json({ poaps, latestMoments, dropsWithMoments, meta });
+        return json({ poaps, totalMomentsCount, latestMoments, dropsWithMoments, meta });
     } catch (error) {
         console.error(error);
         return json({ error: `Failed to fetch POAPs of ${address}` }, { status: 500 });
@@ -151,6 +153,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
 
 interface LoaderData {
     poaps: POAP[];
+    totalMomentsCount: number;
     latestMoments: Moment[];
     dropsWithMoments: number[];
     error: string;
@@ -173,7 +176,7 @@ function getMomentsCountOfDrop(poap: POAP, dropsWithMoments: number[]) {
 }
 
 export default function POAPList({ className }: { className?: string }) {
-    const { poaps, meta, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
+    const { poaps, meta, totalMomentsCount, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
@@ -326,6 +329,7 @@ export default function POAPList({ className }: { className?: string }) {
                     <div className="flex items-center gap-1 md:hidden md:gap-2">
                         <h1 className="text-large font-medium text-background-700">{meta.address}</h1>
                         <span className="text-small text-background-500">({poaps.length})</span>
+                        <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex flex-row grow gap-2">
@@ -347,55 +351,58 @@ export default function POAPList({ className }: { className?: string }) {
                             <div className="hidden items-center gap-1 md:flex">
                                 <h1 className="text-medium font-medium text-background-700">{meta.address}</h1>
                                 <span className="text-small text-background-500">({poaps.length})</span>
+                                <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
                             </div>
                         </div>
-                        <Select
-                            aria-label="Sort by"
-                            classNames={{
-                                base: "items-center justify-end",
-                                trigger: "border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800",
-                                label:
-                                    "hidden lg:block text-tiny whitespace-nowrap md:text-small text-background-600",
-                                mainWrapper: "max-w-xs",
-                            }}
-                            defaultSelectedKeys={[selectedSort]}
-                            onSelectionChange={(keys) => {
-                                const selectedKey = Array.from(keys)[0];
-                                if (typeof selectedKey === "string") {
-                                    setSelectedSort(selectedKey);
-                                }
-                            }}
-
-                            label="Sort by"
-                            labelPlacement="outside-left"
-                            placeholder="Select an option"
-                            variant="bordered"
-                        >
-                            <SelectItem key="collected_newest" value="collected_newest"
+                        <div className="flex grow">
+                            <Select
+                                aria-label="Sort by"
                                 classNames={{
-                                    title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                    description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                    selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                    base: "items-center justify-end",
+                                    trigger: "border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800",
+                                    label:
+                                        "hidden lg:block text-tiny whitespace-nowrap md:text-small text-background-600",
+                                    mainWrapper: "max-w-xs",
                                 }}
+                                defaultSelectedKeys={[selectedSort]}
+                                onSelectionChange={(keys) => {
+                                    const selectedKey = Array.from(keys)[0];
+                                    if (typeof selectedKey === "string") {
+                                        setSelectedSort(selectedKey);
+                                    }
+                                }}
+
+                                label="Sort by"
+                                labelPlacement="outside-left"
+                                placeholder="Select an option"
+                                variant="bordered"
                             >
-                                Collected date: Newest
-                            </SelectItem>
-                            <SelectItem key="collected_oldest" value="collected_oldest">
-                                Collected date: Oldest
-                            </SelectItem>
-                            <SelectItem key="start_date_newest" value="start_date_newest">
-                                Start Date: Newest
-                            </SelectItem>
-                            <SelectItem key="start_date_oldest" value="start_date_oldest">
-                                Start Date: Oldest
-                            </SelectItem>
-                            <SelectItem key="most_popular" value="most_popular">
-                                Most Popular
-                            </SelectItem>
-                            <SelectItem key="most_moments" value="most_moments">
-                                Most Moments
-                            </SelectItem>
-                        </Select>
+                                <SelectItem key="collected_newest" value="collected_newest"
+                                    classNames={{
+                                        title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                    }}
+                                >
+                                    Collected date: Newest
+                                </SelectItem>
+                                <SelectItem key="collected_oldest" value="collected_oldest">
+                                    Collected date: Oldest
+                                </SelectItem>
+                                <SelectItem key="start_date_newest" value="start_date_newest">
+                                    Start Date: Newest
+                                </SelectItem>
+                                <SelectItem key="start_date_oldest" value="start_date_oldest">
+                                    Start Date: Oldest
+                                </SelectItem>
+                                <SelectItem key="most_popular" value="most_popular">
+                                    Most Popular
+                                </SelectItem>
+                                <SelectItem key="most_moments" value="most_moments">
+                                    Most Moments
+                                </SelectItem>
+                            </Select>
+                        </div>
                     </div>
                 </header>
                 <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2">
