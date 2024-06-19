@@ -1,6 +1,7 @@
-import { Link, Spacer } from "@nextui-org/react";
+import { Spacer } from "@nextui-org/react";
 import type { IconProps } from "@iconify/react";
 import { Icon } from "@iconify/react";
+import { Link } from "@remix-run/react";
 
 type SocialIconProps = Omit<IconProps, "icon">;
 
@@ -48,10 +49,9 @@ export default function FooterComponent() {
                     {navLinks.map((item) => (
                         <Link
                             key={item.name}
-                            isExternal
                             className="text-default-500"
-                            href={item.href}
-                            size="sm"
+                            to={item.href}
+                            target="_blank"
                         >
                             {item.name}
                         </Link>
@@ -60,7 +60,10 @@ export default function FooterComponent() {
                 <Spacer y={6} />
                 <div className="flex justify-center gap-x-4">
                     {socialItems.map((item) => (
-                        <Link key={item.name} target="_self" className="text-default-400" href={item.href}>
+                        <Link
+                            key={item.name}
+                            className="text-default-400" to={item.href}
+                            target="_self">
                             <span className="sr-only">{item.name}</span>
                             <item.icon aria-hidden="true" className="w-5" />
                         </Link>

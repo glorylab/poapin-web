@@ -8,12 +8,13 @@ import {
     useDisclosure,
     BreadcrumbItem,
     Breadcrumbs,
-    Chip, Link
+    Chip
 } from "@nextui-org/react";
 
 import { cn } from "~/src/cn";
 import { POAPDetail } from "~/types/poap";
 import { POAPActivityData } from "~/types/data";
+import { Link } from "@remix-run/react";
 
 export type POAPDetailItemColor = {
     name: string;
@@ -112,7 +113,7 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                         {event.year && <Chip variant="flat">{event.year}</Chip>}
                     </div>
                     <div className="flex py-2">
-                        {event.event_url && <Link isBlock showAnchorIcon href={event.event_url} target="_blank" color="primary">
+                        {event.event_url && <Link to={event.event_url} prefetch="intent" target="_blank" color="primary">
                             {event.event_url}
                         </Link>}
                     </div>

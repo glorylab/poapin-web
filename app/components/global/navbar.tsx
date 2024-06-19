@@ -1,6 +1,5 @@
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { Avatar, Badge, Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Link, Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle, Popover, PopoverContent, PopoverTrigger } from "@nextui-org/react";
-import { useLocation } from "@remix-run/react";
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle } from "@nextui-org/react";
+import { Link, useLocation } from "@remix-run/react";
 import { isContactActive, isExplorerActive, isHomeActive, isSponsorsActive } from "~/utils/location";
 
 export default function NavBarComponent() {
@@ -28,7 +27,7 @@ export default function NavBarComponent() {
                 <NavbarMenuToggle
                     className="mr-2 h-6 md:hidden text-default"
                 />
-                <Link href="/" className="flex items-center gap-2">
+                <Link to="/" className="flex items-center gap-2">
                     <p className="font-sans text-3xl text-inherit font-extralight tracking-wider">POAP.in</p>
                 </Link>
             </NavbarBrand>
@@ -38,22 +37,22 @@ export default function NavBarComponent() {
             >
                 <NavbarItem
                     className="h-full px-4" isActive={isHomeActive(location.pathname)}>
-                    <Link className="flex gap-2 items-centerr h-full text-inherit" href="/">
+                    <Link to="/" className="flex gap-2 items-centerr h-full text-inherit" >
                         Home
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="h-full px-4" isActive={isExplorerActive(location.pathname)}>
-                    <Link className="flex gap-2 items-centerr h-full text-inherit" href="/v">
+                    <Link to="/v" className="flex gap-2 items-centerr h-full text-inherit" >
                         Explorer
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="h-full px-4" isActive={isSponsorsActive(location.pathname)}>
-                    <Link className="flex gap-2 items-centerr h-full text-inherit" href="/sponsors">
+                    <Link to="/sponsors" className="flex gap-2 items-centerr h-full text-inherit">
                         Sponsors
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="h-full px-4" isActive={isContactActive(location.pathname)}>
-                    <Link className="flex gap-2 items-centerr h-full text-inherit" href="/contact">
+                    <Link to="/contact" className="flex gap-2 items-centerr h-full text-inherit" >
                         Contact
                     </Link>
                 </NavbarItem>
@@ -62,22 +61,22 @@ export default function NavBarComponent() {
             {/* Mobile Menu */}
             <NavbarMenu className="text-default gap-0 rounded-md">
                 <NavbarMenuItem isActive={isHomeActive(location.pathname)}>
-                    <Link className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border-1 border-secondary-300 border-b-0" href="/">
+                    <Link to="/" className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border-1 border-secondary-300 border-b-0">
                         Home
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isExplorerActive(location.pathname)}>
-                    <Link className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" href="/v">
+                    <Link to="/v" className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" >
                         Explorer
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>
-                    <Link className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" href="/sponsors">
+                    <Link to="/sponsors" className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" >
                         Sponsors
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isContactActive(location.pathname)}>
-                    <Link className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" href="/contact">
+                    <Link to="/contact" className="w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" >
                         Contact
                     </Link>
                 </NavbarMenuItem>

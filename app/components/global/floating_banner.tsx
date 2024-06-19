@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Link } from "@nextui-org/react";
+import { Button } from "@nextui-org/react";
 import { Icon } from "@iconify/react";
+import { Link } from "@remix-run/react";
 
 export default function FloatingBanner() {
     const [showBanner, setShowBanner] = useState(true);
@@ -20,7 +21,7 @@ export default function FloatingBanner() {
             <div className="pointer-events-auto bg-secondary-600 flex items-center gap-x-3 rounded-large border-1 border-divider bg-gradient-to-r from-secondary-200 via-secondary-100 to-secondary-300 px-6 py-2 sm:px-3.5">
                 <div className="flex w-full items-center gap-x-3">
                     <p className="text-small text-foreground">
-                        <Link className="text-inherit" href="https://explorer.gitcoin.co/#/round/42161/25/53" target="_blank">
+                        <Link className="text-inherit" to="https://explorer.gitcoin.co/#/round/42161/25/53" target="_blank">
                             POAPin is participating in Gitcoin GG20, every friend's support matters!&nbsp;
                         </Link>
                     </p>
