@@ -43,7 +43,7 @@ export default function NavBarComponent() {
                 </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isExplorerActive(location.pathname)}>
                     <Link to="/v" className="flex items-center gap-2 h-full text-inherit" >
-                        Explorer2
+                        Explorer
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isSponsorsActive(location.pathname)}>
