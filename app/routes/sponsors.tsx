@@ -1,4 +1,4 @@
-import { getFrameMetadata } from "@coinbase/onchainkit";
+import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { Spacer, Image } from "@nextui-org/react";
 import { json, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";

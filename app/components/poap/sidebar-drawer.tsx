@@ -2,7 +2,7 @@
 
 import type { ModalProps } from "@nextui-org/react";
 
-import { TRANSITION_EASINGS } from "@nextui-org/framer-transitions";
+import { TRANSITION_EASINGS } from "@nextui-org/framer-utils"
 import React from "react";
 import { Modal, ModalBody, ModalContent } from "@nextui-org/react";
 
