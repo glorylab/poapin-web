@@ -21,7 +21,7 @@
     "framer-motion": "^11.0.21",
     "isbot": "^4.1.0",
     "jotai": "^2.7.2",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^2.2.2",
     "usehooks-ts": "^3.0.2"
@@ -30,7 +30,7 @@
     "@cloudflare/workers-types": "^4.20230518.0",
     "@iconify/react": "^5.0.1",
     "@remix-run/dev": "^2.9.2",
-    "@types/react": "^18.2.20",
+    "@types/react": "^18.3.3",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
