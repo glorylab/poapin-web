@@ -51,7 +51,6 @@ export default function FooterComponent() {
                             key={item.name}
                             className="text-default-500"
                             to={item.href}
-                            target="_blank"
                         >
                             {item.name}
                         </Link>
@@ -63,7 +62,7 @@ export default function FooterComponent() {
                         <Link
                             key={item.name}
                             className="text-default-400" to={item.href}
-                            target="_self">
+                            target="_blank">
                             <span className="sr-only">{item.name}</span>
                             <item.icon aria-hidden="true" className="w-5" />
                         </Link>
@@ -71,7 +70,7 @@ export default function FooterComponent() {
                 </div>
                 <Spacer y={4} />
                 <p className="mt-1 text-center text-small text-default-400">
-                    &copy; 2022 - {new Date().getFullYear()} Glory Lab. All rights reserved.
+                    &copy; 2021 - {new Date().getFullYear()} <Link to={"https://glorylab.xyz"} target="_blank">Glory Lab</Link>. All rights reserved.
                 </p>
             </div>
         </div>
