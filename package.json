@@ -27,7 +27,7 @@
     "usehooks-ts": "^3.0.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230518.0",
+    "@cloudflare/workers-types": "^4.20240620.0",
     "@iconify/react": "^5.0.1",
     "@remix-run/dev": "^2.9.2",
     "@types/react": "^18.3.3",
