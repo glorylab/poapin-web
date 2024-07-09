@@ -14,7 +14,7 @@
     "@coinbase/onchainkit": "^0.23.4",
     "@nextui-org/react": "^2.4.2",
     "@remix-run/cloudflare": "^2.9.2",
-    "@remix-run/cloudflare-pages": "^2.10.0",
+    "@remix-run/cloudflare-pages": "^2.10.2",
     "@remix-run/css-bundle": "^2.10.2",
     "@remix-run/react": "^2.8.1",
     "clsx": "^2.1.1",
