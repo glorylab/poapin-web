@@ -1,6 +1,6 @@
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle } from "@nextui-org/react";
 import { Link, useLocation } from "@remix-run/react";
-import { isContactActive, isExplorerActive, isHomeActive, isSponsorsActive } from "~/utils/location";
+import { isContactActive, isExplorerActive, isHomeActive, isOGActive, isSponsorsActive } from "~/utils/location";
 
 export default function NavBarComponent() {
 
@@ -46,6 +46,11 @@ export default function NavBarComponent() {
                         Explorer
                     </Link>
                 </NavbarItem>
+                <NavbarItem className="flex items-center h-full px-4" isActive={isOGActive(location.pathname)}>
+                    <Link to="/og" className="flex items-center gap-2 h-full text-inherit" >
+                        OG
+                    </Link>
+                </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isSponsorsActive(location.pathname)}>
                     <Link to="/sponsors" className="flex items-center gap-2 h-full text-inherit">
                         Sponsors
@@ -68,6 +73,11 @@ export default function NavBarComponent() {
                 <NavbarMenuItem isActive={isExplorerActive(location.pathname)}>
                     <Link to="/v" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" >
                         Explorer
+                    </Link>
+                </NavbarMenuItem>
+                <NavbarMenuItem isActive={isOGActive(location.pathname)}>
+                    <Link to="/og" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" >
+                        OG
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>

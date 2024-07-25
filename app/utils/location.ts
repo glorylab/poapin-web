@@ -6,6 +6,10 @@ export function isExplorerActive(path: string) {
     return path.startsWith("/v") || path.startsWith("/poap") || path.startsWith("/event");
 }
 
+export function isOGActive(path: string) {
+    return path.startsWith("/og");
+}
+
 export function isSponsorsActive(path: string) {
     return path.startsWith("/sponsors");
 }
