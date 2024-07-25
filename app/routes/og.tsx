@@ -1,3 +1,4 @@
+import { Button } from "@nextui-org/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CardBody, CardContainer, CardItem } from "~/components/3d-card";
@@ -9,10 +10,10 @@ const imageUrls = [
     "https://og.poap.in/api/poap/v/vitalik.eth",
 ];
 
-
 export default function OGPage() {
-
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [isCardVisible, setIsCardVisible] = useState(true);
+    const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(false);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -23,58 +24,93 @@ export default function OGPage() {
 
         return () => clearInterval(timer);
     }, []);
+
+    const handleGetStarted = () => {
+        setIsCardVisible(false);
+        setTimeout(() => setIsPlaceholderVisible(true), 500);
+    };
+
     return (
-        <div>
-            <CardContainer className="inter-var">
-                <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
-                    <CardItem
-                        translateZ="50"
-                        className="text-xl font-bold text-neutral-600 dark:text-white"
+        <div className="w-full max-w-4xl mx-auto px-4">
+            <AnimatePresence>
+                {isCardVisible && (
+                    <motion.div
+                        initial={{ opacity: 1, y: 0 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -100 }}
+                        transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
                     >
-                        Your latest POAP collection, <br />
-                        anytime, anywhere.
-                    </CardItem>
-                    <CardItem
-                        as="p"
-                        translateZ="60"
-                        className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
+                        <CardContainer className="inter-var w-full">
+                            <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl border-black/[0.1] w-full h-auto rounded-xl p-4 sm:p-6 border flex flex-col">
+                                <CardItem
+                                    translateZ="50"
+                                    className="text-lg p-4 sm:text-xl font-bold text-neutral-600 dark:text-white"
+                                >
+                                    <h1 className="text-2xl sm:text-3xl md:text-4xl transition-all">Your latest POAP collection</h1>
+                                    <h2 className="text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl transition-all mt-1 lg:mt-2">Anytime, Anywhere.</h2>
+                                </CardItem>
+                                <CardItem
+                                    as="p"
+                                    translateZ="60"
+                                    className="text-sm text-neutral-500 px-4 mt-2 dark:text-neutral-300"
+                                >
+                                    Show off your POAP collection!
+                                </CardItem>
+                                <CardItem
+                                    translateZ="100"
+                                    className="w-full mt-4 relative"
+                                    style={{
+                                        aspectRatio: "1200 / 630"
+                                    }}
+                                >
+                                    <AnimatePresence>
+                                        {imageUrls.map((url, index) => (
+                                            <motion.img
+                                                key={url}
+                                                src={url}
+                                                className="absolute inset-0 w-full h-full object-cover rounded-lg sm:rounded-xl group-hover/card:shadow-xl"
+                                                alt={`thumbnail ${index + 1}`}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: index === currentImageIndex ? 1 : 0 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.5 }}
+                                            />
+                                        ))}
+                                    </AnimatePresence>
+                                </CardItem>
+                                <div className="flex justify-center items-center mt-16">
+                                    <CardItem translateZ={20}>
+                                        <Button
+                                            variant="shadow"
+                                            size="lg"
+                                            className="text-background-600 p-8 shadow-xl active:translate-y-1 hover:shadow-gray-100 active:shadow-gray-50 shadow-gray-200 hover:bg-background-100 active:bg-background-200 text-xl tracking-wider font-bold transition-all"
+                                            onClick={handleGetStarted}
+                                        >
+                                            Get started
+                                        </Button>
+                                    </CardItem>
+                                </div>
+                            </CardBody>
+                        </CardContainer>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            <AnimatePresence>
+                {isPlaceholderVisible && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
+                        className="w-full max-w-4xl mx-auto px-4 py-8 "
                     >
-                        Show off your POAP collection!
-                    </CardItem>
-                    <CardItem translateZ="100" className="w-full mt-4 h-60 relative">
-                        <AnimatePresence>
-                            {imageUrls.map((url, index) => (
-                                <motion.img
-                                    key={url}
-                                    src={url}
-                                    className="absolute inset-0 h-full w-full object-cover rounded-xl group-hover/card:shadow-xl"
-                                    alt={`thumbnail ${index + 1}`}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: index === currentImageIndex ? 1 : 0 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                />
-                            ))}
-                        </AnimatePresence>
-                    </CardItem>
-                    <div className="flex justify-between items-center mt-20">
-                        <CardItem
-                            translateZ={20}
-                            target="__blank"
-                            className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white"
-                        >
-                            Learn more
-                        </CardItem>
-                        <CardItem
-                            translateZ={20}
-                            as="button"
-                            className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
-                        >
-                            Early trial
-                        </CardItem>
-                    </div>
-                </CardBody>
-            </CardContainer>
+                        <div className="bg-gray-100 rounded-xl shadow-lg p-8">
+                            <h2 className="text-2xl font-bold text-center">Set up your new experience</h2>
+                            <p className="text-center mt-4">Stay tuned for more updates!</p>
+                        </div>
+
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
