@@ -1,4 +1,4 @@
-import baseStylesHref from "~/tailwind_out.css";
+import baseStylesHref from "~/tailwind.css";
 import sharedStylesHref from "~/styles/shared.css";
 import { useAtom } from "jotai";
 import type { LinksFunction, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
