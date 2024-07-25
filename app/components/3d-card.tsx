@@ -27,6 +27,7 @@ export const CardContainer = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMouseEntered, setIsMouseEntered] = useState(false);
   const [isGyroEnabled, setIsGyroEnabled] = useState(false);
+  const [initialOrientation, setInitialOrientation] = useState<{ beta: number | null; gamma: number | null }>({ beta: null, gamma: null });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current || isGyroEnabled) return;
@@ -51,15 +52,26 @@ export const CardContainer = ({
     if (!containerRef.current || !isGyroEnabled) return;
     const { beta, gamma } = event;
     const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+    
     if (beta !== null && gamma !== null) {
-      // Limit the rotation to 7.2 degrees
+      let deltaX, deltaY;
+      if (initialOrientation.beta === null || initialOrientation.gamma === null) {
+        setInitialOrientation({ beta, gamma });
+        return;
+      } else {
+        deltaX = gamma - initialOrientation.gamma;
+        deltaY = beta - initialOrientation.beta;
+      }
+
+      // Limit the rotation
       const maxRotation = 7.2;
-      const x = isLandscape
-        ? Math.max(-maxRotation, Math.min(maxRotation, gamma / 5))
-        : Math.max(-maxRotation, Math.min(maxRotation, beta / 5));
+      const x = isLandscape 
+        ? Math.max(-maxRotation, Math.min(maxRotation, deltaX / 5))
+        : Math.max(-maxRotation, Math.min(maxRotation, deltaY / 5));
       const y = isLandscape
-        ? Math.max(-maxRotation, Math.min(maxRotation, beta / 5))
-        : Math.max(-maxRotation, Math.min(maxRotation, gamma / 5));
+        ? Math.max(-maxRotation, Math.min(maxRotation, deltaY / 5))
+        : Math.max(-maxRotation, Math.min(maxRotation, -deltaX / 5));
+
       containerRef.current.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
     }
   };
@@ -79,9 +91,13 @@ export const CardContainer = ({
     };
 
     if (isGyroEnabled) {
+      setInitialOrientation({ beta: null, gamma: null });
       initiate();
     } else {
       window.removeEventListener('deviceorientation', handleOrientation);
+      if (containerRef.current) {
+        containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;
+      }
     }
 
     return () => {
