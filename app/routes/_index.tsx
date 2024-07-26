@@ -2,7 +2,10 @@ import { MetaFunction } from "@remix-run/cloudflare";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import footerPositionAtom from "~/atoms/footer-position-atom";
+import { Boxes } from "~/components/background-boxes";
+import { BackgroundGradientAnimation } from "~/components/background-gradient-animation";
 import AddressInputComponent from "~/components/poap/address-input";
+import { cn } from "~/src/cn";
 
 export const meta: MetaFunction = () => {
   return [
@@ -39,9 +42,21 @@ export default function Index() {
 
   return (
     <div className=" min-h-[2048px] w-full flex flex-col">
+      <div className="h-96 relative w-full overflow-hidden bg-slate-900 flex flex-col items-center justify-center rounded-none [mask-image:linear-gradient(0deg,rgba(0,0,0,0),#000)]">
+        <BackgroundGradientAnimation>
+          <div className="absolute z-50 inset-0 flex items-center justify-center text-white font-bold px-4 pointer-events-none text-3xl text-center md:text-4xl lg:text-7xl">
+            <p className="drop-shadow-2xl text-shadow">
+              Dive into the world of POAP
+            </p>
+          </div>
+        </BackgroundGradientAnimation>
+      </div>
+
       <section className="hidden max-w-lg mx-auto relative px-2 xs:px-8 flex-grow md:flex flex-col justify-center md:justify-start md:pt-16">
         <div className="md:pb-12">
           <AddressInputComponent isClearable />
+
+
         </div>
       </section>
       <div className="flex-grow"></div>
