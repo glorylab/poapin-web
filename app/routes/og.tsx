@@ -1,4 +1,5 @@
-import { Button } from "@nextui-org/react";
+import { Icon } from "@iconify/react/dist/iconify.js";
+import { Button, Input } from "@nextui-org/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CardBody, CardContainer, CardItem } from "~/components/3d-card";
@@ -14,6 +15,10 @@ export default function OGPage() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isCardVisible, setIsCardVisible] = useState(true);
     const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(false);
+    const [walletAddress, setWalletAddress] = useState("");
+    const [isValidAddress, setIsValidAddress] = useState(true);
+    const [showAddressBox, setShowAddressBox] = useState(false);
+    const [copySuccess, setCopySuccess] = useState(false);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -28,6 +33,33 @@ export default function OGPage() {
     const handleGetStarted = () => {
         setIsCardVisible(false);
         setTimeout(() => setIsPlaceholderVisible(true), 500);
+    };
+
+    const isValidEthAddress = (address) => {
+        return /^0x[a-fA-F0-9]{40}$/.test(address);
+    };
+
+    const isValidEns = (address) => {
+        return /^[a-zA-Z0-9-]+\.eth$/.test(address);
+    };
+
+    const handleWalletAddressChange = (e) => {
+        const address = e.target.value;
+        setWalletAddress(address);
+        setIsValidAddress(isValidEthAddress(address) || isValidEns(address));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (isValidAddress) {
+            setShowAddressBox(true);
+        }
+    };
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(`https://og.poap.in/api/poap/${walletAddress}`);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
     };
 
     return (
@@ -101,13 +133,71 @@ export default function OGPage() {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
-                        className="w-full max-w-4xl mx-auto px-4 py-8 "
+                        className="w-full max-w-4xl mx-auto px-4 py-8"
                     >
                         <div className="bg-gray-100 rounded-xl shadow-lg p-8">
-                            <h2 className="text-2xl font-bold text-center">Set up your new experience</h2>
-                            <p className="text-center mt-4">Stay tuned for more updates!</p>
+                            <h2 className="text-2xl font-bold text-center mb-6">Showcase your POAP collection</h2>
+                            <form onSubmit={handleSubmit} className="space-y-4 flex flex-col justify-center">
+                                <Input
+                                    type="text"
+                                    label="Where you store your POAPs"
+                                    placeholder="ETH address or ENS"
+                                    value={walletAddress}
+                                    labelPlacement="outside"
+                                    onChange={handleWalletAddressChange}
+                                    classNames={{ 
+                                        input: "text-lg !text-gray-800",
+                                        label: "!text-gray-800",
+                                        inputWrapper: "text-gray-800",
+                                     }}
+                                    errorMessage={!isValidAddress && "Please enter a valid ETH address or ENS"}
+                                />
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    disabled={!isValidAddress || !walletAddress}
+                                    className="bg-green-500 tracking-wider text-white  px-8 text-2xl py-4 font-bold w-auto mx-auto"
+                                >
+                                    Go
+                                </Button>
+                            </form>
+                            <AnimatePresence>
+                                {showAddressBox && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="mt-6 bg-white p-4 rounded-lg shadow flex items-center justify-between"
+                                    >
+                                        <p className="text-lg truncate text-green-700 flex-grow mr-2 font-mono">
+                                            https://og.poap.in/api/poap/v/{walletAddress}
+                                        </p>
+                                        <Button
+                                            isIconOnly
+                                            className="text-gray-500"
+                                            aria-label="Copy"
+                                            onClick={handleCopy}
+                                        >
+                                            <Icon icon="akar-icons:copy" width="20" height="20" />
+                                        </Button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                            <AnimatePresence>
+                                {copySuccess && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="text-green-600 text-center mt-2"
+                                    >
+                                        Copied successfully!
+                                    </motion.p>
+                                )}
+                            </AnimatePresence>
                         </div>
-
                     </motion.div>
                 )}
             </AnimatePresence>
