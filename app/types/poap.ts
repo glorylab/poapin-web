@@ -62,5 +62,6 @@ export interface Moment {
     description: string | null;
     created_on: string;
     drop_id: number;
-    medias: Media[];
+    media: Media[];
+    drop: POAPEvent;
 }

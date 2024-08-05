@@ -44,6 +44,7 @@ export async function getLastMomentsByAuthor({
     const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
 
     console.log('poapGraphQLBaseUrl:', poapGraphQLBaseUrl);
+    console.log('author:', author);
 
     const query = `
       query GetLastMomentsByAuthor {
@@ -57,7 +58,10 @@ export async function getLastMomentsByAuthor({
           description
           created_on
           drop_id
-          medias {
+          drop {
+            image_url
+          }
+          media {
             mime_type
             gateways {
               type
