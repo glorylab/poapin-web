@@ -44,6 +44,7 @@ export default function Index() {
 
   return (
     <div className=" min-h-[2048px] w-full flex flex-col">
+      
       <motion.div
         className="h-96 relative w-full overflow-hidden bg-slate-900 flex flex-col items-center justify-center rounded-none [mask-image:linear-gradient(0deg,rgba(0,0,0,0),#000)]"
         initial={{ opacity: 0, y: -50 }}
