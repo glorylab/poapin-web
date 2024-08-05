@@ -5,7 +5,7 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Button, Select, SelectItem, Spacer, useDisclosure } from "@nextui-org/react";
+import { Button, Select, SelectItem, Image, Spacer, useDisclosure } from "@nextui-org/react";
 import AddressInputComponent from "~/components/poap/address-input";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
@@ -15,6 +15,7 @@ import SidebarDrawer from "~/components/poap/sidebar-drawer";
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "app/types/filter";
 import { useState } from "react";
+import { MagicCard } from "~/components/shared/magic-card";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -97,6 +98,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
             // Get the latest moments
             latestMoments = await getLastMomentsByAuthor({ context, author: ethAddress, limit: 10 });
+            console.log('latestMoments:', latestMoments);
         }
 
         // Get the user agent
@@ -174,6 +176,61 @@ function getMomentsCountOfDrop(poap: POAP, dropsWithMoments: number[]) {
     momentsCount = dropsWithMoments.filter((dropId) => dropId === poap.event.id).length;
     return momentsCount;
 }
+
+
+const MomentWithPOAP = ({ moment }: { moment: Moment }) => {
+    const formatDescription = (description: string) => {
+        const twitterRegex = /https?:\/\/(www\.)?(x\.com|twitter\.com)\/([a-zA-Z0-9_]+)(\/status\/\d+)?/;
+        const match = description.match(twitterRegex);
+
+        if (match) {
+            const username = match[3];
+            return (
+                <div className="flex items-center space-x-2">
+                    <Icon
+                        icon="simple-icons:x"
+                        width="2rem"
+                        height="2rem"
+                        className="group-hover:opacity-80 group-active:opacity-70 transition-all duration-200"
+                    />
+                    <span className="font-mono">@{username}</span>
+                </div>
+            );
+        }
+
+        return description;
+    };
+
+    return (
+        <div className="relative">
+            {moment.media && moment.media.length > 0 && <Image
+                src={moment.media[0].gateways[0].url}
+                alt={moment.description ?? ""}
+                className="rounded-medium w-full h-auto"
+            />}
+            <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                <Image
+                    src={moment.drop.image_url}
+                    alt={`POAP for drop ${moment.drop_id}`}
+                    classNames={{
+                        wrapper: "w-full h-full",
+                        img: "w-full h-full object-cover"
+                    }}
+                />
+            </div>
+            {moment.description && (
+                <MagicCard
+                    className="w-full min-h-36 px-4 py-6 transition-all group cursor-pointer flex-col items-start justify-start hover:shadow-2xl active:shadow-md whitespace-nowrap text-base overflow-hidden text-start"
+                    gradientColor={"#9C00FF22"}
+                    border="border-[#9C00FF] border-2 border-solid border-opacity-10 hover:border-opacity-0 transition-all"
+                >
+                    {formatDescription(moment.description)}
+                </MagicCard>
+            )}
+        </div>
+    );
+};
+
 
 export default function POAPList({ className }: { className?: string }) {
     const { poaps, meta, totalMomentsCount, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
@@ -406,6 +463,17 @@ export default function POAPList({ className }: { className?: string }) {
                     </div>
                 </header>
                 <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2">
+                    {latestMoments && latestMoments.length > 0 && (
+                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium">
+                            <h2 className="text-medium font-medium text-background-700">Latest Moments</h2>
+                            <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                                {latestMoments.map((moment) => (
+                                    <MomentWithPOAP key={moment.id} moment={moment} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    <Spacer y={4} />
                     <div className="block rounded-medium border-background-200 border-dashed border-[1px]">
                         <div className="flex flex-col items-center">
                             <div
