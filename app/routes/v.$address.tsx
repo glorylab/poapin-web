@@ -1,6 +1,6 @@
 import { Moment, POAP } from "~/types/poap";
 import { getPoapsOfAddress } from "~/api/poap";
-import { getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
+import { Collection, getCollectionsByDropIds, getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
@@ -14,7 +14,7 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import SidebarDrawer from "~/components/poap/sidebar-drawer";
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "app/types/filter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MagicCard } from "~/components/shared/magic-card";
 import Marquee from "~/components/shared/marquee";
 
@@ -250,11 +250,48 @@ const MomentWithPOAP = ({ moment }: { moment: Moment }) => {
     );
 };
 
+const CollectionWithPOAP = ({ collection }: { collection: Collection }) => {
+    return (
+        <div className="relative h-40 w-64 flex flex-col">
+            <MagicCard
+                className="h-40 w-full px-0 py-0 transition-all group cursor-pointer flex flex-col justify-start overflow-hidden text-start hover:scale-95 active:scale-90"
+                gradientColor={"#00FF9C22"}
+                border="border-[#00FF9C] border-2 border-solid border-opacity-10 hover:border-opacity-0 transition-all"
+            >
+                <Link to={`https://collections.poap.xyz/${collection.slug}`} target="_blank" className="h-full w-full flex flex-col justify-start items-center">
+                    <div className="h-20 w-full overflow-hidden">
+                        {collection.banner_image_url ? <Image
+                            src={collection.banner_image_url}
+                            alt={collection.title}
+                            className="h-20 w-auto object-cover rounded-none"
+                        /> : <div className="h-20 w-auto bg-background-200 flex justify-center items-center rounded-md">
+                            <Image
+                                src={collection.logo_image_url}
+                                alt={collection.title}
+                                className="h-16 w-auto object-cover"
+                            />
+                        </div>}
+                    </div>
+                    <div className="mt-2 text-lg font-medium truncate w-full h-12 text-center">
+                        {collection.title}
+                    </div>
+                    <div className="text-xs text-background-500 truncate">
+                        {collection.collections_items.length == 1 && <span>1 POAP</span>}
+                        {collection.collections_items.length > 1 && <span>{collection.collections_items.length} POAPs</span>}
+                    </div>
+                </Link>
+            </MagicCard>
+        </div>
+    );
+};
+
 export default function POAPList({ className }: { className?: string }) {
     const { poaps, meta, totalMomentsCount, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
+
+    const [collections, setCollections] = useState<Collection[]>([]);
 
     if (!poaps || !poaps.length) {
         if (error) {
@@ -279,6 +316,25 @@ export default function POAPList({ className }: { className?: string }) {
             return <div className="info">No POAPs found</div>;
         }
     }
+
+    useEffect(() => {
+        const fetchCollections = async () => {
+            const dropIds = poaps.map(poap => poap.event.id);
+            const queryParams = new URLSearchParams({ dropIds: dropIds.join(',') });
+            try {
+                const response = await fetch(`/api/collections?${queryParams}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch collections');
+                }
+                const data: Collection[] = await response.json();
+                setCollections(data);
+            } catch (error) {
+                console.error('Error fetching collections:', error);
+            }
+        };
+
+        fetchCollections();
+    }, [poaps]);
 
     const countryFilter: Filter = {
         type: FilterTypeEnum.CheckboxGroup,
@@ -482,7 +538,7 @@ export default function POAPList({ className }: { className?: string }) {
                 </header>
                 <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
                     {latestMoments && latestMoments.length > 0 && (
-                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto">
+                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
                             <h2 className="text-medium font-medium text-background-700">Latest Moments</h2>
                             <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
                                 <Marquee pauseOnHover>
@@ -493,7 +549,18 @@ export default function POAPList({ className }: { className?: string }) {
                             </div>
                         </div>
                     )}
-                    <Spacer y={4} />
+                    {collections && collections.length > 0 && (
+                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
+                            <h2 className="text-medium font-medium text-background-700">Collections</h2>
+                            <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
+                                <Marquee pauseOnHover>
+                                    {collections.map((collection) => (
+                                        <CollectionWithPOAP key={collection.id} collection={collection} />
+                                    ))}
+                                </Marquee>
+                            </div>
+                        </div>
+                    )}
                     <div className="block rounded-medium border-background-200 border-dashed border-[1px]">
                         <div className="flex flex-col items-center">
                             <div

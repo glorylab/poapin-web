@@ -36,6 +36,34 @@ interface MomentsCountResult {
     totalMoments: number;
     uniqueDropIds: number[];
 }
+
+export interface Collection {
+    id: number;
+    title: string;
+    description: string;
+    slug: string;
+    logo_image_url: string;
+    banner_image_url: string;
+    created_by: string;
+    created_on: string;
+    updated_on: string;
+    owner_address: string;
+    collections_items: {
+        drop_id: number;
+    }[];
+}
+
+export interface GetCollectionsByDropIdsResponse {
+    collections: Collection[];
+}
+
+export interface FetchGetCollectionsByDropIdsProps {
+    context: AppLoadContext;
+    dropIds: number[];
+    limit?: number;
+    offset?: number;
+}
+
 export async function getLastMomentsByAuthor({
     context,
     author,
@@ -140,6 +168,82 @@ export async function getMomentsCountByAuthor({
         };
     } catch (error) {
         console.error('Failed to retrieve data:', error);
+        throw error;
+    }
+}
+
+export async function getCollectionsByDropIds({
+    context,
+    dropIds,
+    limit = 12,
+    offset = 0,
+}: FetchGetCollectionsByDropIdsProps): Promise<Collection[]> {
+    const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
+
+    const query = `
+      query FilteredCollections($limit: Int!, $offset: Int!, $dropIds: [bigint!]) {
+        collections(
+          limit: $limit, 
+          offset: $offset, 
+          order_by: {id: desc}, 
+          where: {
+            collections_items: {
+              drop_id: {_in: $dropIds}
+            }
+          }
+        ) {
+          id
+          title
+          description
+          slug
+          logo_image_url
+          banner_image_url
+          created_by
+          created_on
+          updated_on
+          owner_address
+          collections_items(where: {drop_id: {_in: $dropIds}}) {
+            drop_id
+          }
+        }
+      }
+    `;
+
+    console.log('poapGraphQLBaseUrl:', poapGraphQLBaseUrl);
+    console.log('dropIds:', dropIds);
+    console.log('limit:', limit);
+    console.log('offset:', offset);
+    console.log('query:', query);
+
+    try {
+        const response = await fetch(poapGraphQLBaseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query,
+                variables: {
+                    limit,
+                    offset,
+                    dropIds: dropIds.map(String), // Convert numbers to strings for bigint
+                },
+            }),
+        });
+
+        console.log('response:', response);
+        console.log('response.ok:', response.ok);
+
+        if (!response.ok) {
+            console.error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const { data } = await response.json() as GraphQLResponse<GetCollectionsByDropIdsResponse>;
+        console.log('data:', data);
+        return data.collections;
+    } catch (error) {
+        console.error('Failed to retrieve collections:', error);
         throw error;
     }
 }
