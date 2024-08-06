@@ -258,7 +258,11 @@ const CollectionWithPOAP = ({ collection }: { collection: Collection }) => {
                 gradientColor={"#00FF9C22"}
                 border="border-[#00FF9C] border-2 border-solid border-opacity-10 hover:border-opacity-0 transition-all"
             >
-                <Link to={`https://collections.poap.xyz/${collection.slug}`} target="_blank" className="h-full w-full flex flex-col justify-start items-center">
+                <Link
+                    to={`https://collections.poap.xyz/${collection.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="h-full w-full flex flex-col justify-start items-center">
                     <div className="h-20 w-full overflow-hidden">
                         {collection.banner_image_url ? <Image
                             src={collection.banner_image_url}
@@ -293,6 +297,28 @@ export default function POAPList({ className }: { className?: string }) {
 
     const [collections, setCollections] = useState<Collection[]>([]);
 
+    useEffect(() => {
+        
+        if (!poaps || !poaps.length) return;
+
+        const fetchCollections = async () => {
+            const dropIds = poaps.map(poap => poap.event.id);
+            const queryParams = new URLSearchParams({ dropIds: dropIds.join(',') });
+            try {
+                const response = await fetch(`/api/collections?${queryParams}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch collections');
+                }
+                const data: Collection[] = await response.json();
+                setCollections(data);
+            } catch (error) {
+                console.error('Error fetching collections:', error);
+            }
+        };
+
+        fetchCollections();
+    }, [poaps]);
+
     if (!poaps || !poaps.length) {
         if (error) {
             return (
@@ -316,25 +342,6 @@ export default function POAPList({ className }: { className?: string }) {
             return <div className="info">No POAPs found</div>;
         }
     }
-
-    useEffect(() => {
-        const fetchCollections = async () => {
-            const dropIds = poaps.map(poap => poap.event.id);
-            const queryParams = new URLSearchParams({ dropIds: dropIds.join(',') });
-            try {
-                const response = await fetch(`/api/collections?${queryParams}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch collections');
-                }
-                const data: Collection[] = await response.json();
-                setCollections(data);
-            } catch (error) {
-                console.error('Error fetching collections:', error);
-            }
-        };
-
-        fetchCollections();
-    }, [poaps]);
 
     const countryFilter: Filter = {
         type: FilterTypeEnum.CheckboxGroup,

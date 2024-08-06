@@ -42,13 +42,13 @@ export async function getPoapToken(context: AppLoadContext, tokenId: string): Pr
     return await res.json();
 }
 
-export async function getPoapActivity(context: AppLoadContext, eventId: number): Promise<POAPActivity> {
+export async function getPoapActivity(context: AppLoadContext, eventId: number, offset: number, limit: number): Promise<POAPActivity> {
     const apiKey = getEnv({ context }).poapinReadApiKey;
 
     if (!apiKey) {
         throw new Error("API key not found");
     }
-    const res = await fetch(`https://api.poap.tech/event/${eventId}/poaps`, {
+    const res = await fetch(`https://api.poap.tech/event/${eventId}/poaps?offset=${offset}&limit=${limit}`, {
         headers: {
             accept: "application/json",
             "x-api-key": getEnv({ context }).poapApiKey,

@@ -43,6 +43,8 @@ export const meta: MetaFunction = ({ data }) => {
 interface LoaderData {
     poap: POAPDetail;
     poapActivityData: POAPActivityData;
+    frontQuantity: number;
+    backQuantity: number;
     error: string;
     meta: {
         title: string;
@@ -81,9 +83,37 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             poap,
         };
 
-        const poapActivityData = {data:await getPoapActivity(context, poap.event.id)};
+        const order = poap.supply.order;
+        const supply = poap.supply.total;
+        const reserveOrder = supply - order;
 
-        return json({ poap, poapActivityData, meta });
+        let offset = 0;
+
+        // Try to make the current POAP the 5th out of 9 POAPs. 
+        // If the total supply is less than ten, then the offset is 0.
+        if (supply > 9) {
+            offset = Math.max(0, reserveOrder - 5);
+        }
+
+        // Based on supply, order, and the current displayed quantity, 
+        // calculate how many POAPs are in front and behind.
+        let frontQuantity = 0;
+        let backQuantity = 0;
+
+        if (supply > 9) {
+            frontQuantity = Math.max(0, supply - order - 5);
+            backQuantity = Math.max(0, order - 4);
+        }
+
+        const poapActivityData = { data: await getPoapActivity(context, poap.event.id, offset, 9) };
+
+        return json({
+            poap,
+            poapActivityData,
+            frontQuantity,
+            backQuantity,
+            meta
+        });
     } catch (error) {
         console.error(error);
         return json({ error: "Failed to fetch grants" }, { status: 500 });
@@ -91,8 +121,8 @@ export const loader: LoaderFunction = async ({ context, params }) => {
 };
 
 export default function POAPDetailPage() {
-    const { poap, poapActivityData } = useLoaderData<LoaderData>();
-    
+    const { poap, poapActivityData, frontQuantity, backQuantity } = useLoaderData<LoaderData>();
+
 
     if (!poap || !poap) {
         return <div className="loading">Loading POAP...</div>;
@@ -102,7 +132,12 @@ export default function POAPDetailPage() {
 
     return (
         <div className="flex flex-col items-center">
-            <POAPDetailItem poap={poap} poapActivityData={poapActivityData} />
+            <POAPDetailItem
+                poap={poap}
+                poapActivityData={poapActivityData}
+                frontQuantity={frontQuantity}
+                backQuantity={backQuantity}
+            />
         </div>
     );
 }

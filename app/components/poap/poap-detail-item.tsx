@@ -28,6 +28,8 @@ export type POAPDetailItemProps = Omit<React.HTMLAttributes<HTMLDivElement>, "id
     isLoading?: boolean;
     poap: POAPDetail;
     poapActivityData: POAPActivityData;
+    frontQuantity: number;
+    backQuantity: number;
 };
 
 const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
@@ -35,6 +37,8 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
         {
             poap: { event, supply, owner, tokenId },
             poapActivityData,
+            frontQuantity,
+            backQuantity,
             className,
             ...props
         },
@@ -52,7 +56,6 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
         const shortOwner = owner.startsWith("0x")
             ? `${owner.slice(0, 6)}...${owner.slice(-4)}`
             : owner;
-
 
         function isNavigatingToAddress(address: string) {
             return navigation.state === "loading" && navigation.location.pathname === `/v/${address}`;
@@ -121,9 +124,15 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                         {event.year && <Chip variant="flat">{event.year}</Chip>}
                     </div>
                     <div className="flex py-2">
-                        {event.event_url && <Link to={event.event_url} prefetch="intent" target="_blank" color="primary">
-                            {event.event_url}
-                        </Link>}
+                        {event.event_url &&
+                            <Link
+                                to={event.event_url}
+                                rel="noreferrer"
+                                className="text-primary hover:opacity-80 transition-all duration-200 flex flex-row items-center gap-2 hover:underline"
+                                prefetch="intent" target="_blank" color="primary">
+                                <Icon icon="akar-icons:link" width="1rem" height="1rem" className="inline-block" />
+                                {event.event_url}
+                            </Link>}
                     </div>
 
                     <div className="mt-4">
@@ -144,14 +153,22 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                     <ModalContent>
                         {(onClose) => (
                             <>
-                                <ModalHeader className="flex flex-col gap-1 border-b-1 border-neutral-200"> Who owns this POAP?</ModalHeader>
+                                <ModalHeader className="flex flex-col gap-1 border-b-1 border-neutral-200">{poapActivityData.data.total} POAPs</ModalHeader>
                                 <ModalBody>
-                                    <div className="mt-10">
+                                    {frontQuantity > 0 && (
+                                        <div className="flex flex-col justify-center items-center bg-neutral-50 border border-neutral-300 rounded-md p-2">
+                                            <p><span className="font-mono font-bold ">{frontQuantity}</span> friends also got it</p>
+                                            <p className="text-neutral-400 text-sm">after <span className="font-mono">{poapActivityData.data.tokens[0].created}</span>.</p>
+                                        </div>
+                                    )}
+                                    <div className="my-0">
 
                                         {poapActivityData.data.tokens.map((activity, index) => (
                                             <Link
+                                                key={index}
                                                 to={`/v/${activity.owner.ens ? activity.owner.ens : activity.owner.id}`}
-                                            ><div key={index} className="flex flex-row items-center cursor-pointer text-ellipsis overflow-hidden font-mono gap-2 p-2 max-w-xl mb-2 rounded-xl shadow-sm hover:shadow-md active:shadow-none transition-all duration-200 border-dashed border-1.5 hover:border-solid">
+                                            >
+                                                <div key={index} className="flex flex-row items-center cursor-pointer text-ellipsis overflow-hidden font-mono gap-2 p-2 max-w-xl mb-2 rounded-xl shadow-sm hover:shadow-md active:shadow-none transition-all duration-200 border-dashed border-1.5 hover:border-solid">
                                                     {activity.owner.ens && <Icon icon="token:ens" width="1.2rem" height="1.2rem" className="inline-block opacity-60" />}
                                                     {!isNavigatingToAddress(activity.owner.ens ? activity.owner.ens : activity.owner.id) && <span className="text-ellipsis">{activity.owner.ens ? activity.owner.ens : activity.owner.id}</span>}
                                                     {isNavigatingToAddress(activity.owner.ens ? activity.owner.ens : activity.owner.id) && <span className="text-secondary-600">Loading...</span>}
@@ -159,6 +176,12 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                                             </Link>
                                         ))}
                                     </div>
+                                    {backQuantity > 0 && (
+                                        <div className="flex flex-col justify-center items-center bg-neutral-50 border border-neutral-300 rounded-md p-2">
+                                            <p className="text-neutral-400 text-sm">Before <span className="font-mono ">{poapActivityData.data.tokens[poapActivityData.data.tokens.length - 1].created}</span></p>
+                                            <p><span className="font-mono font-bold ">{backQuantity}</span> people shared the same memory.</p>
+                                        </div>
+                                    )}
                                 </ModalBody>
                                 {/* <ModalFooter className="border-t-1 border-neutral-100">
                                     <Button
