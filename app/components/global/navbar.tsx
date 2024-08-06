@@ -8,20 +8,26 @@ export default function NavBarComponent() {
     const location = useLocation();
     const navigation = useNavigation();
     const [isNavigating, setIsNavigating] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         if (navigation.state === "loading") {
             setIsNavigating(true);
+            setIsMenuOpen(false); // Close menu when navigation starts
         } else {
-            // Add a small delay before setting isNavigating to false
-            // This allows the animation to complete
-            const timer = setTimeout(() => setIsNavigating(false), 300);
+            const timer = setTimeout(() => setIsNavigating(false), 600);
             return () => clearTimeout(timer);
         }
     }, [navigation.state]);
 
+    const handleMenuItemClick = () => {
+        setIsMenuOpen(false);
+    };
+
     return (
         <Navbar
+            isMenuOpen={isMenuOpen}
+            onMenuOpenChange={setIsMenuOpen}
             classNames={{
                 base: `z-50 lg:backdrop-blur-lg lg:backdrop-filter flex-col border-b-1 border-secondary-200 transition-all ${isNavigating ? 'navigating shadow-xl' : 'shadow-md'}`,
                 item: [
@@ -40,6 +46,7 @@ export default function NavBarComponent() {
             <NavbarBrand>
                 <NavbarMenuToggle
                     className="mr-2 h-6 md:hidden text-default"
+                    aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                 />
                 <Link to="/" className="flex items-center gap-2">
                     <p className="font-sans text-3xl text-inherit font-extralight tracking-wider text-white">POAP.in</p>
@@ -80,27 +87,27 @@ export default function NavBarComponent() {
             {/* Mobile Menu */}
             <NavbarMenu className="text-default gap-0 rounded-md">
                 <NavbarMenuItem isActive={isHomeActive(location.pathname)}>
-                    <Link to="/" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border border-secondary-300 border-b-0">
+                    <Link to="/" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
                         Home
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isExplorerActive(location.pathname)}>
-                    <Link to="/v" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" >
+                    <Link to="/v" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
                         Explorer
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isOGActive(location.pathname)}>
-                    <Link to="/og" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" >
+                    <Link to="/og" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
                         OG
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>
-                    <Link to="/sponsors" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" >
+                    <Link to="/sponsors" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
                         Sponsors
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isContactActive(location.pathname)}>
-                    <Link to="/contact" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" >
+                    <Link to="/contact" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" onClick={handleMenuItemClick}>
                         Contact
                     </Link>
                 </NavbarMenuItem>
