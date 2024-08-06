@@ -10,13 +10,35 @@
 
 @keyframes rotate {
         from {
-          transform: rotate(0deg);
+                transform: rotate(0deg);
         }
+
         to {
-          transform: rotate(360deg);
+                transform: rotate(360deg);
         }
 }
-      
+
 .rotating {
         animation: rotate 2s linear infinite;
+}
+
+@keyframes gradientFlow {
+
+        0%,
+        100% {
+                border-image: linear-gradient(to right, #8DCD39, #FFFFFF, #bbff00) 1;
+        }
+
+        33% {
+                border-image: linear-gradient(to right, #FFFFFF, #bbff00, #8DCD39) 1;
+        }
+
+        66% {
+                border-image: linear-gradient(to right, #bbff00, #8DCD39, #FFFFFF) 1;
+        }
+}
+
+.navigating {
+        animation: gradientFlow 3s linear infinite;
+        border-image-slice: 1;
 }

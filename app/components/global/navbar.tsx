@@ -1,15 +1,29 @@
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle } from "@nextui-org/react";
-import { Link, useLocation } from "@remix-run/react";
+import { Link, useLocation, useNavigation } from "@remix-run/react";
+import { useEffect, useState } from "react";
 import { isContactActive, isExplorerActive, isHomeActive, isOGActive, isSponsorsActive } from "~/utils/location";
 
 export default function NavBarComponent() {
 
     const location = useLocation();
+    const navigation = useNavigation();
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        if (navigation.state === "loading") {
+            setIsNavigating(true);
+        } else {
+            // Add a small delay before setting isNavigating to false
+            // This allows the animation to complete
+            const timer = setTimeout(() => setIsNavigating(false), 300);
+            return () => clearTimeout(timer);
+        }
+    }, [navigation.state]);
 
     return (
         <Navbar
             classNames={{
-                base: "z-50 lg:backdrop-blur-lg lg:backdrop-filter border-b-1 border-secondary-200 flex-col shadow-md ",
+                base: `z-50 lg:backdrop-blur-lg lg:backdrop-filter flex-col border-b-1 border-secondary-200 transition-all ${isNavigating ? 'navigating shadow-xl' : 'shadow-md'}`,
                 item: [
                     "transition-all duration-300",
                     "text-background-600 hover:text-background-900 active:text-secondary-900",
@@ -19,7 +33,7 @@ export default function NavBarComponent() {
                     "rounded-t-none hover:rounded-t-md active:rounded-t-lg",
                     "data-[active=true]:rounded-t-md",
                 ],
-                wrapper: "px-4 md:px-6 bg-gradient-to-b  from-background via-background/20 to-background/0",
+                wrapper: "px-4 md:px-6 bg-gradient-to-b from-background via-background/20 to-background/0",
             }}
             height="60px"
         >
