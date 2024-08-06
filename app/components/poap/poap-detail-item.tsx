@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     Modal,
     ModalBody,
@@ -8,13 +8,15 @@ import {
     useDisclosure,
     BreadcrumbItem,
     Breadcrumbs,
-    Chip
+    Chip,
+    Button
 } from "@nextui-org/react";
 
 import { cn } from "~/src/cn";
 import { POAPDetail } from "~/types/poap";
 import { POAPActivityData } from "~/types/data";
-import { Link } from "@remix-run/react";
+import { Link, useNavigation } from "@remix-run/react";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 export type POAPDetailItemColor = {
     name: string;
@@ -40,6 +42,7 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
     ) => {
 
         const { isOpen, onOpen, onClose } = useDisclosure();
+        const navigation = useNavigation();
 
         const handleOpen = () => {
             onOpen();
@@ -49,6 +52,11 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
         const shortOwner = owner.startsWith("0x")
             ? `${owner.slice(0, 6)}...${owner.slice(-4)}`
             : owner;
+
+
+        function isNavigatingToAddress(address: string) {
+            return navigation.state === "loading" && navigation.location.pathname === `/v/${address}`;
+        }
 
         return (
             <div
@@ -105,7 +113,7 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                     <div className="flex gap-2 pb-1 pt-2">
                         {<Chip
                             onClick={() => handleOpen()}
-                            className="font-mono"
+                            className="font-mono cursor-pointer hover:bg-secondary-100 hover:text-secondary-700 transition-all duration-200 hover:shadow-lg hover:scale-[0.96] active:scale-[0.94]"
                             variant="flat">{supply.order}/{supply.total}</Chip>
                         }
                         {event.country && <Chip variant="flat">{event.country}</Chip>}
@@ -123,23 +131,43 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                         <p className="text-medium text-default-500 whitespace-pre-wrap">{event.description}</p>
                     </div>
                 </div>
-                <Modal backdrop={"blur"} isOpen={isOpen} onClose={onClose}>
+                <Modal
+                    classNames={{
+                        base: "max-h-[90vh] h-auto",
+                        body: "max-h-[calc(90vh-130px)] overflow-y-auto",
+                    }}
+                    backdrop={"blur"}
+                    isOpen={isOpen}
+                    isDismissable
+                    hideCloseButton
+                    onClose={onClose}>
                     <ModalContent>
                         {(onClose) => (
                             <>
-                                <ModalHeader className="flex flex-col gap-1"> Who owns this POAP?</ModalHeader>
+                                <ModalHeader className="flex flex-col gap-1 border-b-1 border-neutral-200"> Who owns this POAP?</ModalHeader>
                                 <ModalBody>
                                     <div className="mt-10">
 
                                         {poapActivityData.data.tokens.map((activity, index) => (
-                                            <div key={index} className="flex-auto cursor-default font-mono p-2 max-w-xl mb-4 rounded-2xl overflow-clip shadow-sm hover:shadow-xl transition-all duration-200 border-dashed border-1.5 hover:border-dotted">
-                                                <span>{activity.owner.ens ? activity.owner.ens : activity.owner.id}</span>
-                                            </div>
+                                            <Link
+                                                to={`/v/${activity.owner.ens ? activity.owner.ens : activity.owner.id}`}
+                                            ><div key={index} className="flex flex-row items-center cursor-pointer text-ellipsis overflow-hidden font-mono gap-2 p-2 max-w-xl mb-2 rounded-xl shadow-sm hover:shadow-md active:shadow-none transition-all duration-200 border-dashed border-1.5 hover:border-solid">
+                                                    {activity.owner.ens && <Icon icon="token:ens" width="1.2rem" height="1.2rem" className="inline-block opacity-60" />}
+                                                    {!isNavigatingToAddress(activity.owner.ens ? activity.owner.ens : activity.owner.id) && <span className="text-ellipsis">{activity.owner.ens ? activity.owner.ens : activity.owner.id}</span>}
+                                                    {isNavigatingToAddress(activity.owner.ens ? activity.owner.ens : activity.owner.id) && <span className="text-secondary-600">Loading...</span>}
+                                                </div>
+                                            </Link>
                                         ))}
                                     </div>
                                 </ModalBody>
-                                <ModalFooter>
-                                </ModalFooter>
+                                {/* <ModalFooter className="border-t-1 border-neutral-100">
+                                    <Button
+                                        variant="shadow"
+                                        className="w-full bg-background-100 text-base font-medium tracking-wide text-background-600 hover:bg-background-200 hover:text-background-900"
+                                    >
+                                        Load more
+                                    </Button>
+                                </ModalFooter> */}
                             </>
                         )}
                     </ModalContent>
