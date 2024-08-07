@@ -133,7 +133,7 @@ export default function Index() {
           bottom: isFooterVisible ? undefined : 0,
         }}
       >
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-secondary-100 to-transparent backdrop-filter backdrop-blur-lg z-0"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-secondary-100 to-transparent backdrop-filter backdrop-blur-lg z-0 [mask-image:linear-gradient(180deg,rgba(0,0,0,0),#000)]"></div>
         <div className="w-full max-w-md z-10">
           <AddressInputComponent isClearable />
         </div>
