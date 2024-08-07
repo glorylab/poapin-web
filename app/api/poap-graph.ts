@@ -51,6 +51,11 @@ export interface Collection {
     collections_items: {
         drop_id: number;
     }[];
+    collections_items_aggregate: {
+        aggregate: {
+            count: number;
+        };
+    };
 }
 
 export interface GetCollectionsByDropIdsResponse {
@@ -204,6 +209,11 @@ export async function getCollectionsByDropIds({
           owner_address
           collections_items(where: {drop_id: {_in: $dropIds}}) {
             drop_id
+          }
+          collections_items_aggregate {
+            aggregate {
+                count
+            }
           }
         }
       }
