@@ -29,7 +29,10 @@ export default function NavBarComponent() {
             isMenuOpen={isMenuOpen}
             onMenuOpenChange={setIsMenuOpen}
             classNames={{
-                base: `z-50 lg:backdrop-blur-lg lg:backdrop-filter flex-col border-b-1 border-secondary-200 transition-all ${isNavigating ? 'navigating shadow-xl' : 'shadow-md'}`,
+                base: `z-50 lg:backdrop-blur-lg lg:backdrop-filter flex-col border-secondary-200 transition-all bg-gradient-to-b  ${isNavigating
+                    ? 'navigating shadow-2xl border-b-2 bg-background-200/50 from-background via-background/20 to-background/0'
+                    : 'shadow-md border-b-1 bg-background/50 from-background via-background/20 to-background/0'
+                    }`,
                 item: [
                     "transition-all duration-300",
                     "text-background-600 hover:text-background-900 active:text-secondary-900",
@@ -39,11 +42,12 @@ export default function NavBarComponent() {
                     "rounded-t-none hover:rounded-t-md active:rounded-t-lg",
                     "data-[active=true]:rounded-t-md",
                 ],
-                wrapper: "px-4 md:px-6 bg-gradient-to-b from-background via-background/20 to-background/0",
+                wrapper: `px-4 md:px-6`,
             }}
             height="60px"
         >
-            <NavbarBrand>
+            <NavbarBrand
+            >
                 <NavbarMenuToggle
                     className="mr-2 h-6 md:hidden text-default"
                     aria-label={isMenuOpen ? "Close menu" : "Open menu"}
@@ -53,7 +57,7 @@ export default function NavBarComponent() {
                 </Link>
             </NavbarBrand>
             <NavbarContent
-                className="mt-4 ml-4 pt-2 pb-[0.5px] bg-background-50/20 hidden h-12 w-full max-w-fit gap-4 font-bold rounded-t-full px-12 border-[0.5px] border-secondary-200 border-b-0 md:flex"
+                className="mt-4 ml-4 pt-2 mb-1 pb-[0.5px] bg-background-50/20 hidden h-12 w-full max-w-fit gap-4 font-bold rounded-t-full px-12 border-[0.5px] border-secondary-200 border-b-0 md:flex"
                 justify="start"
             >
                 <NavbarItem
