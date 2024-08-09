@@ -2,6 +2,7 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getPoapActivity, getPoapToken } from "~/api/poap";
 import POAPDetailItem from "~/components/poap/poap-detail-item";
+import { POAPOwnerList } from "~/components/poap/poap-owner-list";
 import { POAPActivityData } from "~/types/data";
 import { POAPDetail } from "~/types/poap";
 
@@ -92,7 +93,7 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         // Try to make the current POAP the 5th out of 9 POAPs. 
         // If the total supply is less than ten, then the offset is 0.
         if (supply > 9) {
-            offset = Math.max(0, reserveOrder - 5);
+            offset = Math.max(0, reserveOrder - 4);
         }
 
         // Based on supply, order, and the current displayed quantity, 
@@ -101,8 +102,8 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         let backQuantity = 0;
 
         if (supply > 9) {
-            frontQuantity = Math.max(0, supply - order - 5);
-            backQuantity = Math.max(0, order - 4);
+            frontQuantity = Math.max(0, supply - order - 4);
+            backQuantity = Math.max(0, order - 5);
         }
 
         const poapActivityData = { data: await getPoapActivity(context, poap.event.id, offset, 9) };
@@ -128,8 +129,6 @@ export default function POAPDetailPage() {
         return <div className="loading">Loading POAP...</div>;
     }
 
-
-
     return (
         <div className="flex flex-col items-center">
             <POAPDetailItem
@@ -138,6 +137,11 @@ export default function POAPDetailPage() {
                 frontQuantity={frontQuantity}
                 backQuantity={backQuantity}
             />
+
+            <POAPOwnerList
+                poapActivityData={poapActivityData}
+                frontQuantity={frontQuantity}
+                backQuantity={backQuantity} />
         </div>
     );
 }

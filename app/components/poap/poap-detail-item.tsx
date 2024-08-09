@@ -70,7 +70,7 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                 )}
                 {...props}
             >
-                <div className="group relative md:max-w-sm md:aspect-square md:ml-8 overflow-visible p-4">
+                <div className="group relative md:max-w-sm md:aspect-square md:ml-8 overflow-visible p-4 md:sticky md:top-20">
                     <div className="relative">
 
                         <img
