@@ -57,7 +57,7 @@ export default function OGPage() {
     };
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(`https://og.poap.in/api/poap/${walletAddress}`);
+        navigator.clipboard.writeText(`https://og.poap.in/api/poap/v/${walletAddress}`);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
     };
