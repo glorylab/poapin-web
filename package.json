@@ -33,7 +33,7 @@
     "@cloudflare/workers-types": "^4.20240806.0",
     "@iconify/react": "^5.0.2",
     "@remix-run/dev": "^2.11.1",
-    "@types/react": "^18.3.3",
+    "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.0.1",
     "@typescript-eslint/parser": "^8.0.1",
