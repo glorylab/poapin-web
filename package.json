@@ -11,7 +11,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@coinbase/onchainkit": "^0.33.4",
+    "@coinbase/onchainkit": "^0.33.5",
     "@nextui-org/react": "^2.4.8",
     "@remix-run/cloudflare": "^2.12.1",
     "@remix-run/cloudflare-pages": "^2.12.1",
