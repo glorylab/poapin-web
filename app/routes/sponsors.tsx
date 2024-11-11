@@ -4,7 +4,7 @@ import { json, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { getGrants } from "~/api/grants";
 import GrantCardComponent from "~/components/sponsors/grant-card";
-import { GrantData } from "~/types/data";
+import { GrantsResponse } from '~/types/grant';
 
 export const meta: MetaFunction = ({ data }) => {
 
@@ -51,30 +51,29 @@ export const meta: MetaFunction = ({ data }) => {
 
 export const loader: LoaderFunction = async ({ context }) => {
   try {
-    const grants = await getGrants(context);
-    return json(grants);
+      const grants = await getGrants(context) as GrantsResponse;
+      return json(grants);
   } catch (error) {
-    console.error(error);
-    return json({ error: "Failed to fetch grants" }, { status: 500 });
+      console.error(error);
+      return json({ error: "Failed to fetch grants" }, { status: 500 });
   }
 };
 
-
 export default function SponsorsPage() {
 
-  const grantsData = useLoaderData<GrantData>();
-  if (grantsData.error) {
-    return <div>{grantsData.error}</div>;
-  }
+  const { data: grants, error } = useLoaderData<GrantsResponse>();
 
-  if (!grantsData || !grantsData.data) {
-    return <div className="loading">Loading grants...</div>;
-  }
+    if (error) {
+        return <div>{error}</div>;
+    }
 
-  const sortedGrants = grantsData.data.sort((a, b) => {
-    return new Date(b.attributes.start_time).getTime() - new Date(a.attributes.start_time).getTime();
-  });
+    if (!grants) {
+        return <div className="loading">Loading grants...</div>;
+    }
 
+    const sortedGrants = grants.sort((a, b) => {
+        return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
+    });
   return (
     <section className="max-w-xl mx-auto relative py-8 lg:py-16 px-8">
       <h1 className="font-medium leading-7 text-secondary-300">POAPin&apos;s Sponsor Records</h1>

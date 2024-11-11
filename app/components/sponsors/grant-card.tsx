@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardBody, Image, CardHeader, CardFooter } from "@nextui-org/react";
 import { m, useMotionValue, domAnimation, LazyMotion, useMotionTemplate } from "framer-motion";
-import { Grant } from "~/types/grant";
 import ScrollingBanner from "../shared/scrolling-banner";
+import { Grant } from "~/types/grant";
 
 interface GrantProps {
     grant: Grant;
@@ -12,8 +12,7 @@ export default function GrantCardComponent(props: GrantProps) {
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
-    const imageRatio = props.grant.attributes.image.file.data.attributes.width / props.grant.attributes.image.file.data.attributes.height;
-
+    const imageRatio = props.grant.image.width / props.grant.image.height;
     const [bannerHeight, setBannerHeight] = useState<number>(0);
     const cardRef = React.useRef<HTMLDivElement>(null);
 
@@ -62,9 +61,9 @@ export default function GrantCardComponent(props: GrantProps) {
             <CardHeader className={`relative h-[${bannerHeight}px] p-0`}>
                 <Image
                     removeWrapper
-                    alt={props.grant.attributes.title}
+                    alt={props.grant.title}
                     className={`w-full rounded-none h-[${bannerHeight}px] object-cover`}
-                    src={props.grant.attributes.image.file.data.attributes.url}
+                    src={props.grant.image.url}
                     style={{
                         WebkitMaskImage: "linear-gradient(to bottom, #000 70%, transparent 100%)",
                     }}
@@ -72,18 +71,18 @@ export default function GrantCardComponent(props: GrantProps) {
             </CardHeader>
             <CardBody className="px-6 pb-8 pt-4">
                 <div className="flex flex-col gap-2 mb-8">
-                    <p className="text-xl text-neutral-800">{props.grant.attributes.title}</p>
+                    <p className="text-xl text-neutral-800">{props.grant.title}</p>
                     <p className="text-small text-neutral-700">
-                        {props.grant.attributes.description}
+                        {props.grant.description}
                     </p>
                 </div>
-                {props.grant.attributes.grants ? <ScrollingBanner shouldPauseOnHover gap="40px">
-                    {props.grant.attributes.grants.map((grant) => (
-                        grant.amount[0] ?
-                            <div key={grant.id} className="flex items-center gap-2 text-xl whitespace-nowrap">
-                                <h6 className="text-neutral-800 text-3xl">{grant.title}</h6>
+                {props.grant.rounds ? <ScrollingBanner shouldPauseOnHover gap="40px">
+                    {props.grant.rounds.map((round) => (
+                        round.grant_rounds_id.amount[0] ?
+                            <div key={round.grant_rounds_id.id} className="flex items-center gap-2 text-xl whitespace-nowrap">
+                                <h6 className="text-neutral-800 text-3xl">{round.grant_rounds_id.title}</h6>
                                 <p className="text-3xl text-green-700">
-                                    {grant.amount[0].number} {grant.amount[0].quantity}
+                                    {round.grant_rounds_id.amount[0].amount_id.number} {round.grant_rounds_id.amount[0].amount_id.quantity}
                                 </p>
                             </div> : <></>
                     ))}
@@ -94,9 +93,9 @@ export default function GrantCardComponent(props: GrantProps) {
                 <div>
                     <div>
                         <p className="text-neutral-500 text-small">
-                            {props.grant.attributes.start_time.split('T')[0]}
+                            {props.grant.start_time.split('T')[0]}
                             {' ~ '}
-                            {props.grant.attributes.end_time.split('T')[0]}
+                            {props.grant.end_time.split('T')[0]}
                         </p>
                     </div>
                 </div>
