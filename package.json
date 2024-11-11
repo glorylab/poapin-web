@@ -16,7 +16,7 @@
     "@nextui-org/react": "^2.4.8",
     "@remix-run/cloudflare": "^2.12.1",
     "@remix-run/cloudflare-pages": "^2.12.1",
-    "@remix-run/css-bundle": "^2.12.1",
+    "@remix-run/css-bundle": "^2.14.0",
     "@remix-run/react": "^2.12.1",
     "@tsparticles/engine": "^3.5.0",
     "@tsparticles/react": "^3.0.0",
