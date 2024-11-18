@@ -1,11 +1,11 @@
 import { Moment, POAP } from "~/types/poap";
 import { getPoapsOfAddress } from "~/api/poap";
-import { Collection, getCollectionsByDropIds, getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
+import { Collection, getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Button, Select, SelectItem, Image, Spacer, useDisclosure } from "@nextui-org/react";
+import { Button, Select, SelectItem, Spacer, useDisclosure } from "@nextui-org/react";
 import AddressInputComponent from "~/components/poap/address-input";
 import { getEnv } from "~/src/env";
 import FiltersWrapper from "~/components/poap/filters-wrapper";
@@ -15,7 +15,6 @@ import SidebarDrawer from "~/components/poap/sidebar-drawer";
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "app/types/filter";
 import { useEffect, useState } from "react";
-import { MagicCard } from "~/components/shared/magic-card";
 import Marquee from "~/components/shared/marquee";
 import { MomentCard } from "~/components/poap/moment-card";
 import { CollectionCard } from "~/components/poap/collection-card";
@@ -101,7 +100,6 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
             // Get the latest moments
             latestMoments = await getLastMomentsByAuthor({ context, author: ethAddress, limit: 10 });
-            console.log('latestMoments:', latestMoments);
         }
 
         // Get the user agent
@@ -394,7 +392,7 @@ export default function POAPList({ className }: { className?: string }) {
                                     mainWrapper: "max-w-xs",
                                 }}
                                 defaultSelectedKeys={[selectedSort]}
-                                onSelectionChange={(keys) => {
+                                onSelectionChange={(keys: string[]) => {
                                     const selectedKey = Array.from(keys)[0];
                                     if (typeof selectedKey === "string") {
                                         setSelectedSort(selectedKey);

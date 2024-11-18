@@ -76,14 +76,14 @@ export async function getLastMomentsByAuthor({
 }: FetchGetLastMomentsByAuthorProps): Promise<Moment[]> {
     const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
 
-    console.log('poapGraphQLBaseUrl:', poapGraphQLBaseUrl);
-    console.log('author:', author);
-
     const query = `
       query GetLastMomentsByAuthor {
         moments(
           limit: ${limit},
-          where: { author: { _eq: "${author}" } },
+          where: { 
+                author: { _eq: "${author}" },
+                drop_id: { _is_null: false } 
+          },
           order_by: { created_on: desc }
         ) {
           id
@@ -122,12 +122,18 @@ export async function getLastMomentsByAuthor({
             return [];
         }
 
-        const { data } = await response.json() as GraphQLResponse<GetLastMomentsByAuthorResponse>;
+        const result = await response.json();
 
-        return data.moments;
+        if (result.errors) {
+            console.error('GraphQL errors:', result.errors);
+            return [];
+        }
+
+        const { data } = result as GraphQLResponse<GetLastMomentsByAuthorResponse>;
+        return data?.moments || [];
     } catch (error) {
         console.error('Failed to retrieve data:', error);
-        throw error;
+        return [];
     }
 }
 
@@ -219,12 +225,6 @@ export async function getCollectionsByDropIds({
       }
     `;
 
-    console.log('poapGraphQLBaseUrl:', poapGraphQLBaseUrl);
-    console.log('dropIds:', dropIds);
-    console.log('limit:', limit);
-    console.log('offset:', offset);
-    console.log('query:', query);
-
     try {
         const response = await fetch(poapGraphQLBaseUrl, {
             method: 'POST',
@@ -241,16 +241,13 @@ export async function getCollectionsByDropIds({
             }),
         });
 
-        console.log('response:', response);
-        console.log('response.ok:', response.ok);
-
         if (!response.ok) {
             console.error(`HTTP error! status: ${response.status}`);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const { data } = await response.json() as GraphQLResponse<GetCollectionsByDropIdsResponse>;
-        console.log('data:', data);
+
         return data.collections;
     } catch (error) {
         console.error('Failed to retrieve collections:', error);
