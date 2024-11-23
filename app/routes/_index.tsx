@@ -153,13 +153,12 @@ export default function Index() {
                   height={210}
                   className="h-full"
                   key={hightlight.address}
-                  src={hightlight.og_image_url}
+                  src={hightlight.og_image_url + "/default"}
                   alt={hightlight.address} />
               ))}
             </Marquee>
             <Marquee
               className="h-full"
-              reverse
               pauseOnHover>
               {hightlights.map((hightlight) => (
                 <Image
@@ -167,7 +166,7 @@ export default function Index() {
                   height={210}
                   className="h-full"
                   key={hightlight.address}
-                  src={hightlight.og_image_url}
+                  src={hightlight.og_image_url + "/letter"}
                   alt={hightlight.address} />
               ))}
             </Marquee>
