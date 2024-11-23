@@ -1,15 +1,19 @@
-import { MetaFunction } from "@remix-run/cloudflare";
+import { json, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
 import { motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
+import { getHighLights } from "~/api/og";
 import footerPositionAtom from "~/atoms/footer-position-atom";
-import { Boxes } from "~/components/background-boxes";
 import { BackgroundGradientAnimation } from "~/components/background-gradient-animation";
 import AddressInputComponent from "~/components/poap/address-input";
 import { HighLightPoaps, HighLightPoapsProps } from "~/components/poap/high-light-poaps";
 import BlurFade from "~/components/shared/blur-fade";
 import { SparklesCore } from "~/components/sparkles";
-import { cn } from "~/src/cn";
+import { HighLightsResponse } from "~/types/og";
+import Marquee from "~/components/shared/marquee";
+import { Image } from "@nextui-org/react";
+
 
 export const meta: MetaFunction = () => {
   return [
@@ -43,7 +47,19 @@ const highlightPoaps: HighLightPoapsProps[] = [
   },
 ];
 
+export const loader: LoaderFunction = async ({ context }) => {
+  try {
+    const hightlights = await getHighLights(context) as HighLightsResponse;
+    return json(hightlights);
+  } catch (error) {
+    console.error(error);
+    return json({ error: "Failed to fetch hightlights" }, { status: 500 });
+  }
+};
+
 export default function Index() {
+
+  const { data: hightlights } = useLoaderData<HighLightsResponse>();
 
   const [footerPosition] = useAtom(footerPositionAtom);
   const inputWrapperRef = useRef<HTMLDivElement>(null);
@@ -117,12 +133,46 @@ export default function Index() {
       </section>
       <section className="w-full mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-0">
         <div className="md:pb-8">
-          <BlurFade delay={1.55} inView>
-            <HighLightPoaps data={highlightPoaps}
-            />
+          <BlurFade delay={0.55} inView>
+            <HighLightPoaps data={highlightPoaps} />
           </BlurFade>
         </div>
       </section>
+
+      {hightlights && hightlights.length > 0 &&
+
+        <section className="w-full mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-0 h-[256px]">
+          <div className="h-full">
+
+            <Marquee
+              className="h-full"
+              pauseOnHover>
+              {hightlights.map((hightlight) => (
+                <Image
+                  width={400}
+                  height={210}
+                  className="h-full"
+                  key={hightlight.address}
+                  src={hightlight.og_image_url}
+                  alt={hightlight.address} />
+              ))}
+            </Marquee>
+            <Marquee
+              className="h-full"
+              reverse
+              pauseOnHover>
+              {hightlights.map((hightlight) => (
+                <Image
+                  width={400}
+                  height={210}
+                  className="h-full"
+                  key={hightlight.address}
+                  src={hightlight.og_image_url}
+                  alt={hightlight.address} />
+              ))}
+            </Marquee>
+          </div>
+        </section>}
 
       <div className="flex-grow"></div>
       <div
