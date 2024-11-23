@@ -434,7 +434,7 @@ export default function POAPList({ className }: { className?: string }) {
                 </header>
                 <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
                     {/* OG Image */}
-                    {meta.ogimageurl && (
+                    {meta.address && (
                         <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
                             <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
                             <div className="flex flex-col md:flex-row gap-4">
