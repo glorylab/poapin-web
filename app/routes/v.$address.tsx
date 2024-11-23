@@ -5,7 +5,7 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Button, Select, SelectItem, Spacer, useDisclosure } from "@nextui-org/react";
+import { Button, Select, SelectItem, Image, Spacer, useDisclosure } from "@nextui-org/react";
 import AddressInputComponent from "~/components/poap/address-input";
 import { getEnv } from "~/src/env";
 import FiltersWrapper from "~/components/poap/filters-wrapper";
@@ -187,7 +187,7 @@ export default function POAPList({ className }: { className?: string }) {
     const [collections, setCollections] = useState<Collection[]>([]);
 
     useEffect(() => {
-        
+
         if (!poaps || !poaps.length) return;
 
         const fetchCollections = async () => {
@@ -433,6 +433,32 @@ export default function POAPList({ className }: { className?: string }) {
                     </div>
                 </header>
                 <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
+                    {/* OG Image */}
+                    {meta.ogimageurl && (
+                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
+                            <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="relative w-full aspect-[1200/630] rounded-lg overflow-hidden">
+                                    <Image
+                                        src={`https://og.poap.in/api/poap/v/${meta.address}/default`}
+                                        alt={`${meta.address} default card`}
+                                        classNames={{
+                                            img: "object-cover w-full h-full"
+                                        }}
+                                    />
+                                </div>
+                                <div className="relative w-full aspect-[1200/630] rounded-lg overflow-hidden">
+                                    <Image
+                                        src={`https://og.poap.in/api/poap/v/${meta.address}/letter`}
+                                        alt={`${meta.address} letter card`}
+                                        classNames={{
+                                            img: "object-cover w-full h-full"
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {latestMoments && latestMoments.length > 0 && (
                         <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
                             <h2 className="text-medium font-medium text-background-700">Latest Moments</h2>
