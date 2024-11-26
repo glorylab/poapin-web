@@ -126,7 +126,7 @@ export default function Index() {
         </BackgroundGradientAnimation>
       </motion.div>
 
-      <section className="hidden max-w-lg mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-16">
+      <section className="max-w-lg mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-16">
         <div className="md:pb-8">
           <BlurFade delay={0.25} inView><AddressInputComponent isClearable /></BlurFade>
         </div>
@@ -174,19 +174,6 @@ export default function Index() {
         </section>}
 
       <div className="flex-grow"></div>
-      <div
-        ref={inputWrapperRef}
-        className="md:hidden p-4 flex flex-col justify-center items-center w-full transition-all duration-300"
-        style={{
-          position: isFooterVisible ? 'relative' : 'fixed',
-          bottom: isFooterVisible ? undefined : 0,
-        }}
-      >
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-secondary-100 to-transparent backdrop-filter backdrop-blur-lg z-0 [mask-image:linear-gradient(180deg,rgba(0,0,0,0),#000)]"></div>
-        <div className="w-full max-w-md z-10">
-          <AddressInputComponent isClearable />
-        </div>
-      </div>
     </div>
   );
 }
