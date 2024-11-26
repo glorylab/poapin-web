@@ -46,7 +46,6 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 
                 abortControllerRef.current = new AbortController();
 
-                console.log(`[${theme}] Fetching status...`);
                 const response = await fetch(
                     `https://og.poap.in/api/poap/status/${address}/${theme}`,
                     { 
@@ -60,19 +59,16 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 }
 
                 const data: OGImageStatus = await response.json();
-                console.log(`[${theme}] Response:`, data);
 
                 if (!isMountedRef.current) return;
 
                 if (data.status === "completed" && data.url) {
-                    console.log(`[${theme}] Completed with URL:`, data.url);
                     setState({
                         status: "completed",
                         url: data.url,
                         retryCount: 0
                     });
                 } else if (data.status === "not_found") {
-                    console.log(`[${theme}] Not found, triggering generation...`);
                     const triggerUrl = `https://og.poap.in/api/poap/v/${address}/${theme}`;
                     await fetch(triggerUrl);
                     setState(prev => ({
@@ -91,7 +87,6 @@ function useOGImage(address: string, theme: "default" | "letter") {
                         }
                     }, RETRY_INTERVAL);
                 } else if (data.status === "pending" && state.retryCount < MAX_RETRIES) {
-                    console.log(`[${theme}] Pending, retry count:`, state.retryCount);
                     setState(prev => ({
                         status: "pending",
                         url: data.placeholder_url || `https://og.poap.in/api/poap/v/${address}/${theme}`,
@@ -108,7 +103,6 @@ function useOGImage(address: string, theme: "default" | "letter") {
                         }
                     }, RETRY_INTERVAL);
                 } else {
-                    console.log(`[${theme}] Max retries reached or unknown status`);
                     setState({
                         status: "not_found",
                         url: `https://og.poap.in/api/poap/v/${address}/${theme}`,
@@ -117,10 +111,8 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 }
             } catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') {
-                    console.log(`[${theme}] Request aborted`);
                     return;
                 }
-                console.error(`[${theme}] Error:`, error);
                 setState({
                     status: "not_found",
                     url: `https://og.poap.in/api/poap/v/${address}/${theme}`,
