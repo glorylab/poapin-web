@@ -51,11 +51,11 @@ export const meta: MetaFunction = ({ data }) => {
 
 export const loader: LoaderFunction = async ({ context }) => {
   try {
-      const grants = await getGrants(context) as GrantsResponse;
-      return json(grants);
+    const grants = await getGrants(context) as GrantsResponse;
+    return json(grants);
   } catch (error) {
-      console.error(error);
-      return json({ error: "Failed to fetch grants" }, { status: 500 });
+    console.error(error);
+    return json({ error: "Failed to fetch grants" }, { status: 500 });
   }
 };
 
@@ -63,17 +63,32 @@ export default function SponsorsPage() {
 
   const { data: grants, error } = useLoaderData<GrantsResponse>();
 
-    if (error) {
-        return <div>{error}</div>;
-    }
+  if (error) {
+    return (
+      <section className="max-w-xl mx-auto relative py-8 lg:py-16 px-8 text-center bg-red-100">
+        <h1 className="text-2xl font-medium text-red-400 mb-4">Oops! Something went wrong</h1>
+        <p className="text-gray-400">{error}</p>
+        <div className='flex justify-center'>
+          <Image
+            src="https://nexus.glorylab.xyz/3/4/Bowing_person_emoji_4c1eabd350.png"
+            alt="Error"
+            width={120}
+            height={120}
+            className="mx-auto mt-8"
+          />
+        </div>
+      </section>
+    );
+  }
 
-    if (!grants) {
-        return <div className="loading">Loading grants...</div>;
-    }
+  if (!grants) {
+    return <div className="loading">Loading grants...</div>;
+  }
 
-    const sortedGrants = grants.sort((a, b) => {
-        return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
-    });
+  const sortedGrants = grants.sort((a, b) => {
+    return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
+  });
+
   return (
     <section className="max-w-xl mx-auto relative py-8 lg:py-16 px-8">
       <h1 className="font-medium leading-7 text-secondary-300">POAPin&apos;s Sponsor Records</h1>
