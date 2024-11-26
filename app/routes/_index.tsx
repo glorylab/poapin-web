@@ -61,28 +61,6 @@ export default function Index() {
 
   const { data: hightlights } = useLoaderData<HighLightsResponse>();
 
-  const [footerPosition] = useAtom(footerPositionAtom);
-  const inputWrapperRef = useRef<HTMLDivElement>(null);
-
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const viewportHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-
-      setIsFooterVisible(documentHeight - footerPosition >= documentHeight - scrollTop - viewportHeight);
-    };
-
-    handleScroll();
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [footerPosition]);
-
   return (
     <div className=" min-h-[2048px] w-full flex flex-col">
 
