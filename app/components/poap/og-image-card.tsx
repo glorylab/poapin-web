@@ -43,14 +43,19 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 if (abortControllerRef.current) {
                     abortControllerRef.current.abort();
                 }
-                
+
                 abortControllerRef.current = new AbortController();
 
+                const timestamp = new Date().getTime();
                 const response = await fetch(
-                    `https://og.poap.in/api/poap/status/${address}/${theme}`,
-                    { 
+                    `https://og.poap.in/api/poap/status/${address}/${theme}?_=${timestamp}`,
+                    {
                         signal: abortControllerRef.current.signal,
-                        cache: 'no-store'
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
                     }
                 );
 
@@ -63,9 +68,12 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 if (!isMountedRef.current) return;
 
                 if (data.status === "completed" && data.url) {
+                    const imageUrl = new URL(data.url);
+                    imageUrl.searchParams.set('_t', timestamp.toString());
+
                     setState({
                         status: "completed",
-                        url: data.url,
+                        url: imageUrl.toString(),
                         retryCount: 0
                     });
                 } else if (data.status === "not_found") {
@@ -73,14 +81,14 @@ function useOGImage(address: string, theme: "default" | "letter") {
                     await fetch(triggerUrl);
                     setState(prev => ({
                         status: "pending",
-                        url: `https://og.poap.in/api/poap/v/${address}/${theme}`,
+                        url: `${triggerUrl}?_t=${timestamp}`,
                         retryCount: 0
                     }));
-                    
+
                     if (timeoutIdRef.current) {
                         clearTimeout(timeoutIdRef.current);
                     }
-                    
+
                     timeoutIdRef.current = setTimeout(() => {
                         if (isMountedRef.current) {
                             checkImageStatus();
@@ -89,35 +97,29 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 } else if (data.status === "pending" && state.retryCount < MAX_RETRIES) {
                     setState(prev => ({
                         status: "pending",
-                        url: data.placeholder_url || `https://og.poap.in/api/poap/v/${address}/${theme}`,
+                        url: data.placeholder_url ? `${data.placeholder_url}?_t=${timestamp}` : `${triggerUrl}?_t=${timestamp}`,
                         retryCount: prev.retryCount + 1
                     }));
-                    
+
                     if (timeoutIdRef.current) {
                         clearTimeout(timeoutIdRef.current);
                     }
-                    
+
                     timeoutIdRef.current = setTimeout(() => {
                         if (isMountedRef.current && state.status === "pending") {
                             checkImageStatus();
                         }
                     }, RETRY_INTERVAL);
-                } else {
-                    setState({
-                        status: "not_found",
-                        url: `https://og.poap.in/api/poap/v/${address}/${theme}`,
-                        retryCount: 0
-                    });
                 }
             } catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') {
                     return;
                 }
-                setState({
+                setState(prev => ({
                     status: "not_found",
-                    url: `https://og.poap.in/api/poap/v/${address}/${theme}`,
+                    url: `https://og.poap.in/api/poap/v/${address}/${theme}?_t=${Date.now()}`,
                     retryCount: 0
-                });
+                }));
             }
         };
 
