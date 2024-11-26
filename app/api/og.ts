@@ -22,7 +22,9 @@ export async function getHighLights(context: AppLoadContext) {
 
         const { highlights } = await client.query<{ highlights: HighLight[] }>(`
             query {
-                highlights {
+                highlights(
+                    filter: { status: { _eq: "published" } }
+                ) {
                     address
                     og_image_url
                     theme
