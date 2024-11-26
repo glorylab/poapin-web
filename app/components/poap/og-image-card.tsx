@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image } from "@nextui-org/react";
 import { useAtom } from 'jotai';
 import { createOGImageAtom, ogImageAtomsMap } from '../../atoms/og-image-atom';
@@ -142,10 +142,16 @@ function useOGImage(address: string, theme: "default" | "letter") {
 
 export function OGImageCard({ address, theme, className }: OGImageCardProps) {
     const imageUrl = useOGImage(address, theme);
+    const [key, setKey] = useState(Date.now());
+
+    useEffect(() => {
+        setKey(Date.now());
+    }, [imageUrl]);
 
     return (
         <div className={`relative w-full aspect-[1200/630] rounded-lg overflow-hidden ${className}`}>
             <Image
+                key={key}
                 src={imageUrl}
                 alt={`${address} ${theme} card`}
                 classNames={{
