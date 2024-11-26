@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import Marquee from "~/components/shared/marquee";
 import { MomentCard } from "~/components/poap/moment-card";
 import { CollectionCard } from "~/components/poap/collection-card";
+import { OGImageCard } from "~/components/poap/og-image-card";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -103,10 +104,10 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         }
 
         // Get the user agent
-        const userAgent = request.headers.get("User-Agent");
+        // const userAgent = request.headers.get("User-Agent");
 
         // Check if the request is from a search engine bot
-        const isSearchEngineBot = userAgent && /Googlebot|Mediapartners|AdsBot|Bingbot|MSNBot|AdIdxBot|BingPreview|Desktop|Mobile|Yandex|DuckDuckBot|Slurp/i.test(userAgent);
+        const isSearchEngineBot = false; // TODO: Add search engine bot detection
 
         let ogimageurl = "";
 
@@ -438,22 +439,16 @@ export default function POAPList({ className }: { className?: string }) {
                         <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
                             <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
                             <div className="flex flex-col md:flex-row gap-4">
-                                <div className="relative w-full aspect-[1200/630] rounded-lg overflow-hidden">
-                                    <Image
-                                        src={`https://og.poap.in/api/poap/v/${meta.address}/default`}
-                                        alt={`${meta.address} default card`}
-                                        classNames={{
-                                            img: "object-cover w-full h-full"
-                                        }}
+                                <div className="flex-1">
+                                    <OGImageCard
+                                        address={meta.address}
+                                        theme="default"
                                     />
                                 </div>
-                                <div className="relative w-full aspect-[1200/630] rounded-lg overflow-hidden">
-                                    <Image
-                                        src={`https://og.poap.in/api/poap/v/${meta.address}/letter`}
-                                        alt={`${meta.address} letter card`}
-                                        classNames={{
-                                            img: "object-cover w-full h-full"
-                                        }}
+                                <div className="flex-1">
+                                    <OGImageCard
+                                        address={meta.address}
+                                        theme="letter"
                                     />
                                 </div>
                             </div>
