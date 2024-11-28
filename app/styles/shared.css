@@ -1,3 +1,8 @@
+img {
+    color-scheme: srgb;
+    -webkit-forced-color-adjust: none;
+}
+
 .dot-background {
         width: 100%;
         background-image: radial-gradient(#ffffff66 1px, transparent 1px);
