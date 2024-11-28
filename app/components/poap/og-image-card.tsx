@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Image } from "@nextui-org/react";
 import { useAtom } from 'jotai';
 import { createOGImageAtom, ogImageAtomsMap } from '../../atoms/og-image-atom';
+import { WobbleCard } from "../global/wobble-card";
 
 interface OGImageStatus {
     status: "completed" | "not_found" | "pending";
@@ -136,7 +137,7 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 abortControllerRef.current.abort();
             }
         };
-    }, [address, theme, state.status, state.retryCount]);
+    }, [address, theme, state.status, state.retryCount, setState]);
 
     return state.url;
 }
@@ -150,7 +151,7 @@ export function OGImageCard({ address, theme, className }: OGImageCardProps) {
     }, [imageUrl]);
 
     return (
-        <div className={`relative w-full aspect-[1200/630] rounded-lg overflow-hidden ${className}`}>
+        <WobbleCard className={`relative w-full aspect-[1200/630] rounded-lg overflow-hidden ${className}`}>
             <Image
                 key={key}
                 src={imageUrl}
@@ -159,6 +160,6 @@ export function OGImageCard({ address, theme, className }: OGImageCardProps) {
                     img: "object-cover w-full h-full"
                 }}
             />
-        </div>
+        </WobbleCard>
     );
 }
