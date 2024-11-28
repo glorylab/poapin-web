@@ -119,7 +119,7 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 }
                 setState(prev => ({
                     status: "not_found",
-                    url: `https://og.poap.in/api/poap/v/${address}/${theme}}`,
+                    url: `https://og.poap.in/api/poap/v/${address}/${theme}`,
                     retryCount: 0
                 }));
             }
