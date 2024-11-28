@@ -48,7 +48,7 @@ function useOGImage(address: string, theme: "default" | "letter") {
 
                 const timestamp = new Date().getTime();
                 const response = await fetch(
-                    `https://og.poap.in/api/poap/status/${address}/${theme}?_=${timestamp}`,
+                    `https://og.poap.in/api/poap/status/${address}/${theme}`,
                     {
                         signal: abortControllerRef.current.signal,
                         cache: 'no-store',
@@ -81,7 +81,7 @@ function useOGImage(address: string, theme: "default" | "letter") {
                     await fetch(triggerUrl);
                     setState(prev => ({
                         status: "pending",
-                        url: `${triggerUrl}?_t=${timestamp}`,
+                        url: `${triggerUrl}`,
                         retryCount: 0
                     }));
 
@@ -95,9 +95,10 @@ function useOGImage(address: string, theme: "default" | "letter") {
                         }
                     }, RETRY_INTERVAL);
                 } else if (data.status === "pending" && state.retryCount < MAX_RETRIES) {
+                    const triggerUrl = `https://og.poap.in/api/poap/v/${address}/${theme}`;
                     setState(prev => ({
                         status: "pending",
-                        url: data.placeholder_url ? `${data.placeholder_url}?_t=${timestamp}` : `${triggerUrl}?_t=${timestamp}`,
+                        url: data.placeholder_url ? `${data.placeholder_url}` : `${triggerUrl}`,
                         retryCount: prev.retryCount + 1
                     }));
 
@@ -117,7 +118,7 @@ function useOGImage(address: string, theme: "default" | "letter") {
                 }
                 setState(prev => ({
                     status: "not_found",
-                    url: `https://og.poap.in/api/poap/v/${address}/${theme}?_t=${Date.now()}`,
+                    url: `https://og.poap.in/api/poap/v/${address}/${theme}}`,
                     retryCount: 0
                 }));
             }
