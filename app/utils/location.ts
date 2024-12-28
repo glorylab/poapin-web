@@ -10,6 +10,10 @@ export function isOGActive(path: string) {
     return path.startsWith("/og");
 }
 
+export function isCardActive(path: string) {
+    return path.startsWith("/card");
+}
+
 export function isSponsorsActive(path: string) {
     return path.startsWith("/sponsors");
 }

@@ -35,21 +35,21 @@ export default function OGPage() {
         setTimeout(() => setIsPlaceholderVisible(true), 500);
     };
 
-    const isValidEthAddress = (address) => {
-        return /^0x[a-fA-F0-9]{40}$/.test(address);
+    const isValidEthAddress = (address: string) => {
+        return /^0x[a-fA-F0-9]{40}$/.tests(address);
     };
 
-    const isValidEns = (address) => {
+    const isValidEns = (address: string) => {
         return /^[a-zA-Z0-9-]+\.eth$/.test(address);
     };
 
-    const handleWalletAddressChange = (e) => {
+    const handleWalletAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const address = e.target.value;
         setWalletAddress(address);
         setIsValidAddress(isValidEthAddress(address) || isValidEns(address));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (isValidAddress) {
             setShowAddressBox(true);
@@ -145,11 +145,11 @@ export default function OGPage() {
                                     value={walletAddress}
                                     labelPlacement="outside"
                                     onChange={handleWalletAddressChange}
-                                    classNames={{ 
+                                    classNames={{
                                         input: "text-lg !text-gray-800",
                                         label: "!text-gray-800",
                                         inputWrapper: "text-gray-800",
-                                     }}
+                                    }}
                                     errorMessage={!isValidAddress && "Please enter a valid ETH address or ENS"}
                                 />
                                 <Button

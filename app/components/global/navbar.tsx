@@ -1,7 +1,7 @@
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle } from "@nextui-org/react";
 import { Link, useLocation, useNavigation } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { isContactActive, isExplorerActive, isHomeActive, isOGActive, isSponsorsActive } from "~/utils/location";
+import { isCardActive, isContactActive, isExplorerActive, isHomeActive, isOGActive, isSponsorsActive } from "~/utils/location";
 
 export default function NavBarComponent() {
 
@@ -71,9 +71,9 @@ export default function NavBarComponent() {
                         Explorer
                     </Link>
                 </NavbarItem>
-                <NavbarItem className="flex items-center h-full px-4" isActive={isOGActive(location.pathname)}>
-                    <Link to="/og" className="flex items-center gap-2 h-full text-inherit" >
-                        OG
+                <NavbarItem className="flex items-center h-full px-4" isActive={isCardActive(location.pathname)}>
+                    <Link to="/card" className="flex items-center gap-2 h-full text-inherit" >
+                        Card
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isSponsorsActive(location.pathname)}>
@@ -100,9 +100,9 @@ export default function NavBarComponent() {
                         Explorer
                     </Link>
                 </NavbarMenuItem>
-                <NavbarMenuItem isActive={isOGActive(location.pathname)}>
-                    <Link to="/og" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
-                        OG
+                <NavbarMenuItem isActive={isCardActive(location.pathname)}>
+                    <Link to="/card" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
+                        Card
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>
