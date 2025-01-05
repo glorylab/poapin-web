@@ -22,12 +22,26 @@ import * as gtag from "~/utils/gtags.client";
 import { getEnv } from "~/src/env";
 import NavBarComponent from "./components/global/navbar";
 import footerPositionAtom from "./atoms/footer-position-atom";
+import { getSubdomain } from "./utils/subdomain.server";
+import { redirect } from "@remix-run/cloudflare";
 
 interface LoaderData {
   gaTrackingId: string;
 }
 
-export const loader: LoaderFunction = async ({ context }) => {
+export const loader: LoaderFunction = async ({ request, context }) => {
+
+  const subdomain = getSubdomain(request);
+  
+  // If there is a subdomain, redirect to the corresponding path
+  if (subdomain) {
+    const url = new URL(request.url);
+    // Check if we are already on the correct path to avoid infinite redirects
+    if (!url.pathname.startsWith(`/v/${subdomain}.eth`)) {
+      return redirect(`/v/${subdomain}.eth${url.pathname}`);
+    }
+  }
+  
   const data: LoaderData = {
     gaTrackingId: getEnv({ context }).gaTrackingId,
   };
