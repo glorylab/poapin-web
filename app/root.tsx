@@ -38,7 +38,9 @@ export const loader: LoaderFunction = async ({ request, context }) => {
     const url = new URL(request.url);
     // Check if we are already on the correct path to avoid infinite redirects
     if (!url.pathname.startsWith(`/v/${subdomain}.eth`)) {
-      return redirect(`/v/${subdomain}.eth${url.pathname}`);
+      const redirectUrl = new URL(`https://poap.in/v/${subdomain}.eth${url.pathname}`);
+      redirectUrl.search = url.search;
+      return redirect(redirectUrl.toString());
     }
   }
   

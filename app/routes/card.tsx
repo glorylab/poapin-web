@@ -36,7 +36,7 @@ export default function OGPage() {
     };
 
     const isValidEthAddress = (address: string) => {
-        return /^0x[a-fA-F0-9]{40}$/.tests(address);
+        return /^0x[a-fA-F0-9]{40}$/.test(address);
     };
 
     const isValidEns = (address: string) => {
