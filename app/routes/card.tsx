@@ -43,7 +43,7 @@ export default function OGPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
-            <div className="border-x-1 md:border-x-2 lg:border-x-4 border-yellow-400 border-solid shadow-2xl">
+            <div className="max-w-2xl w-full mx-auto border-x-1 md:border-x-2 lg:border-x-4 border-yellow-400 border-solid shadow-2xl">
 
                 <AnimatePresence>
                     {isPlaceholderVisible && (
