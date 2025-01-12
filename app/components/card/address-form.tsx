@@ -1,5 +1,6 @@
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input, Card, Tooltip } from "@nextui-org/react";
 import { useState } from "react";
+import { Icon } from "@iconify/react";
 
 interface AddressFormProps {
     onSubmit: (address: string) => void;
@@ -30,30 +31,71 @@ export function AddressForm({ onSubmit }: AddressFormProps) {
         }
     };
 
+    const getInputColor = () => {
+        if (!walletAddress) return "default";
+        return isValidAddress ? "success" : "danger";
+    };
+
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 flex flex-col justify-center">
-            <Input
-                type="text"
-                label="Where you store your POAPs"
-                placeholder="ETH address or ENS"
-                value={walletAddress}
-                labelPlacement="outside"
-                onChange={handleWalletAddressChange}
-                classNames={{
-                    input: "text-lg !text-gray-800",
-                    label: "!text-gray-800",
-                    inputWrapper: "text-gray-800",
-                }}
-                errorMessage={!isValidAddress && "Please enter a valid ETH address or ENS"}
-            />
-            <Button
-                type="submit"
-                size="lg"
-                disabled={!isValidAddress || !walletAddress}
-                className="bg-green-500 tracking-wider text-white px-8 text-2xl py-4 font-bold w-auto mx-auto"
-            >
-                Go
-            </Button>
+        <form onSubmit={handleSubmit} className="flex flex-col max-w-2xl mx-auto">
+            <Card
+                shadow="none"
+                className="p-4 rounded-none bg-transparent">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                        <Icon icon="heroicons:wallet-20-solid" className="w-5 h-5 text-gray-600" />
+                        <h3 className="text-lg font-semibold text-gray-700">Where is your POAP?</h3>
+                    </div>
+                    <Input
+                        type="text"
+                        placeholder="ETH address (0x...) or ENS (...eth)"
+                        value={walletAddress}
+                        labelPlacement="outside"
+                        onChange={handleWalletAddressChange}
+                        color={getInputColor()}
+                        variant="bordered"
+                        size="lg"
+                        startContent={
+                            <Icon icon="cryptocurrency:eth" className="w-5 h-5 text-gray-400" />
+                        }
+                        endContent={
+                            walletAddress && (
+                                <Tooltip content={isValidAddress ? "Valid address" : "Invalid address"}>
+                                    <Icon
+                                        icon={isValidAddress ? "heroicons:check-circle-20-solid" : "heroicons:exclamation-circle-20-solid"}
+                                        className={`w-5 h-5 ${isValidAddress ? 'text-green-500' : 'text-red-500'}`}
+                                    />
+                                </Tooltip>
+                            )
+                        }
+                        classNames={{
+                            label: "text-gray-600 font-medium",
+                            input: "text-lg",
+                            inputWrapper: [
+                                "shadow-sm",
+                                "backdrop-blur-sm",
+                                "backdrop-saturate-200",
+                                "hover:bg-white/80",
+                                "group-data-[focused=true]:bg-white/80",
+                            ],
+                        }}
+                        errorMessage={!isValidAddress && walletAddress && "Please enter a valid ETH address or ENS name"}
+                    />
+                    <div className="flex justify-center mt-8">
+                        <Button
+                            type="submit"
+                            size="lg"
+                            color="secondary"
+                            variant="shadow"
+                            disabled={!isValidAddress || !walletAddress}
+                            className="w-full sm:w-auto font-bold tracking-wide cursor-pointer rounded-lg px-6 py-4"
+                            startContent={<Icon icon="fluent:flash-sparkle-24-filled" className="w-5 h-5" />}
+                        >
+                            Get Exclusive Card
+                        </Button>
+                    </div>
+                </div>
+            </Card>
         </form>
     );
 }

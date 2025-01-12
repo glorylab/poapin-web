@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button, Card } from "@nextui-org/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CardBody, CardContainer, CardItem } from "~/components/3d-card";
@@ -29,7 +29,7 @@ export function PreviewCard({ onGetStarted }: PreviewCardProps) {
 
     return (
         <CardContainer className="inter-var w-full">
-            <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl border-black/[0.1] w-full h-auto rounded-xl p-4 sm:p-6 border flex flex-col">
+            <CardBody className="bg-gray-50 relative group/card shadow-2xl border-black/[0.4] w-full h-auto rounded-xl p-4 sm:p-6 border flex flex-col">
                 <CardItem
                     translateZ="50"
                     className="text-lg p-4 sm:text-xl font-bold text-neutral-600 dark:text-white"
@@ -56,7 +56,7 @@ export function PreviewCard({ onGetStarted }: PreviewCardProps) {
                             <motion.img
                                 key={url}
                                 src={url}
-                                className="absolute inset-0 w-full h-full object-cover rounded-lg sm:rounded-xl group-hover/card:shadow-xl"
+                                className="absolute bg-white border border-yellow-200 inset-0 w-full h-full object-cover rounded-lg sm:rounded-xl shadow-md group-hover/card:shadow-xl group-hover/card:rounded-sm transition-all"
                                 alt={`thumbnail ${index + 1}`}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: index === currentImageIndex ? 1 : 0 }}
