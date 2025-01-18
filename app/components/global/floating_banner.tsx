@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { Link } from "@remix-run/react";
 
@@ -40,7 +40,7 @@ export default function FloatingBanner() {
                         target="_blank"
                         style={{
                             border: "solid 2px transparent",
-                            backgroundImage: `linear-gradient(hsl(var(--nextui-danger-50)), hsl(var(--nextui-danger-50))), linear-gradient(to right, #F871A0, #9353D3)`,
+                            backgroundImage: `linear-gradient(hsl(var(--heroui-danger-50)), hsl(var(--heroui-danger-50))), linear-gradient(to right, #F871A0, #9353D3)`,
                             backgroundOrigin: "border-box",
                             backgroundClip: "padding-box, border-box",
                         }}

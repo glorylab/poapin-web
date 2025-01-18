@@ -1,4 +1,4 @@
-import { Button, Card } from "@nextui-org/react";
+import { Button, Card } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CardBody, CardContainer, CardItem } from "~/components/3d-card";

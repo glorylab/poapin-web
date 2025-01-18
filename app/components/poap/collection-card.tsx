@@ -1,7 +1,7 @@
 import { Collection } from "~/api/poap-graph";
 import { MagicCard } from "../shared/magic-card";
 import { Link } from "@remix-run/react";
-import { Image } from "@nextui-org/react";
+import { Image } from "@heroui/react";
 
 export const CollectionCard = ({ collection }: { collection: Collection }) => {
     const collectionAllCount = collection.collections_items_aggregate.aggregate.count;

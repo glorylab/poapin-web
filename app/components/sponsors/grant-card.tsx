@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardBody, Image, CardHeader, CardFooter } from "@nextui-org/react";
+import { Card, CardBody, Image, CardHeader, CardFooter } from "@heroui/react";
 import { m, useMotionValue, domAnimation, LazyMotion, useMotionTemplate } from "framer-motion";
 import ScrollingBanner from "../shared/scrolling-banner";
 import { Grant } from "~/types/grant";

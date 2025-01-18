@@ -15,7 +15,7 @@ import {
   useLoaderData,
   useLocation,
 } from "@remix-run/react";
-import { NextUIProvider } from "@nextui-org/react";
+import { HeroUIProvider } from "@heroui/react";
 import FooterComponent from "./components/global/footer";
 import { useEffect, useRef } from "react";
 import * as gtag from "~/utils/gtags.client";
@@ -128,7 +128,7 @@ export default function App() {
             />
           </>
         )}
-        <NextUIProvider className="bg-background">
+        <HeroUIProvider className="bg-background">
           <NavBarComponent />
           <main className="dot-background">
             <Outlet />
@@ -139,7 +139,7 @@ export default function App() {
           <footer ref={footerRef}>
             <FooterComponent />
           </footer>
-        </NextUIProvider>
+        </HeroUIProvider>
         {/* Cloudflare Web Analytics */}
         <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5387257fc59043ac86fa9cc73eb33541"}'></script>
       </body>

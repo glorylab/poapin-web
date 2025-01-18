@@ -14,7 +14,7 @@ import {
     Switch,
     Tab,
     Tabs,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import { cn } from "app/src/cn";

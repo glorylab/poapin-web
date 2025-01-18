@@ -1,7 +1,7 @@
-import type { ScrollShadowProps } from "@nextui-org/react";
+import type { ScrollShadowProps } from "@heroui/react";
 
 import React from "react";
-import { ScrollShadow } from "@nextui-org/react";
+import { ScrollShadow } from "@heroui/react";
 
 import { cn } from "~/src/cn";
 

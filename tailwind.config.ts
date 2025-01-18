@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import { nextui } from "@nextui-org/react";
+import { heroui } from "@heroui/react";
 
 const {
   default: flattenColorPalette,
@@ -8,7 +8,7 @@ const {
 export default {
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
     'group/line',
@@ -83,7 +83,7 @@ export default {
   darkMode: "class",
   plugins: [
     addVariablesForColors,
-    nextui(
+    heroui(
       {
         themes: {
           light: {

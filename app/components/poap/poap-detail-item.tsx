@@ -10,7 +10,7 @@ import {
     Breadcrumbs,
     Chip,
     Button
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import { cn } from "~/src/cn";
 import { POAPDetail } from "~/types/poap";

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Image } from "@nextui-org/react";
+import { Image } from "@heroui/react";
 import { useAtom } from 'jotai';
 import { createOGImageAtom, ogImageAtomsMap } from '../../atoms/og-image-atom';
 import { WobbleCard } from "../global/wobble-card";

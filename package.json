@@ -13,7 +13,7 @@
   "dependencies": {
     "@coinbase/onchainkit": "^0.33.4",
     "@directus/sdk": "^18.0.0",
-    "@nextui-org/react": "^2.4.8",
+    "@heroui/react": "2.7.2",
     "@remix-run/cloudflare": "^2.12.1",
     "@remix-run/cloudflare-pages": "^2.12.1",
     "@remix-run/css-bundle": "^2.12.1",

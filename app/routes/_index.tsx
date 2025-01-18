@@ -12,7 +12,7 @@ import BlurFade from "~/components/shared/blur-fade";
 import { SparklesCore } from "~/components/sparkles";
 import { HighLightsResponse } from "~/types/og";
 import Marquee from "~/components/shared/marquee";
-import { Image } from "@nextui-org/react";
+import { Image } from "@heroui/react";
 
 
 export const meta: MetaFunction = () => {

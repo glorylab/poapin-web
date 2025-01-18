@@ -2,7 +2,7 @@ import { Link, useNavigate, useNavigation } from "@remix-run/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useState } from "react";
 import { cn } from "~/src/cn";
-import { Spinner } from "@nextui-org/react";
+import { Spinner } from "@heroui/react";
 
 interface AddressInfo {
     eth: string;

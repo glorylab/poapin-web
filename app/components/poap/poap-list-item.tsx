@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Skeleton } from "@nextui-org/react";
+import { Skeleton } from "@heroui/react";
 
 import { cn } from "~/src/cn";
 import { POAP } from "~/types/poap";

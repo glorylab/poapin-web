@@ -1,4 +1,4 @@
-import { Button, Input, Card, Tooltip } from "@nextui-org/react";
+import { Button, Input, Card, Tooltip } from "@heroui/react";
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 

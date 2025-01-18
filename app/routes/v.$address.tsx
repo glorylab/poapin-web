@@ -5,7 +5,7 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Button, Select, SelectItem, Image, Spacer, useDisclosure } from "@nextui-org/react";
+import { Button, Select, SelectItem, Image, Spacer, useDisclosure } from "@heroui/react";
 import AddressInputComponent from "~/components/poap/address-input";
 import { getEnv } from "~/src/env";
 import FiltersWrapper from "~/components/poap/filters-wrapper";

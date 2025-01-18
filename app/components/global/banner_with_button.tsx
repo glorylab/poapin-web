@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardFooter, Image, Button, Link } from "@nextui-org/react";
+import { Card, CardFooter, Image, Button, Link } from "@heroui/react";
 
 export default function BannerWithButton() {
     return (

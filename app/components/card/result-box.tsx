@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { Button, Card, Image } from "@nextui-org/react";
+import { Button, Card, Image } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 

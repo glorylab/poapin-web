@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useState } from "react";
-import { Spinner, useInput } from "@nextui-org/react";
+import { Spinner, useInput } from "@heroui/react";
 import { PoapIcon, CloseFilledIcon } from "../shared/common-icons";
 import { useNavigate, useNavigation } from "@remix-run/react";
 

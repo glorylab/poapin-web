@@ -1,5 +1,5 @@
 import { Moment } from "~/types/poap";
-import { Image } from "@nextui-org/react";
+import { Image } from "@heroui/react";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { MagicCard } from "../shared/magic-card";
 import { Link } from "@remix-run/react";
