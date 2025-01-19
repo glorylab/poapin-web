@@ -15,6 +15,10 @@ const navLinks = [
         href: "/v",
     },
     {
+        name: "Card",
+        href: "/card",
+    },
+    {
         name: "Sponsors",
         href: "/sponsors",
     },
