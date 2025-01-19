@@ -1,15 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
+import { useAtom } from "jotai";
 import { PreviewCard } from "~/components/card/preview-card";
 import { AddressForm } from "~/components/card/address-form";
 import { ResultBox } from "~/components/card/result-box";
+import { AddressDisplay } from "~/components/card/address-display";
+import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
 
 export default function OGPage() {
     const [isCardVisible, setIsCardVisible] = useState(true);
     const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(false);
-    const [showAddressBox, setShowAddressBox] = useState(false);
-    const [walletAddress, setWalletAddress] = useState("");
-    const [copySuccess, setCopySuccess] = useState(false);
+    const [walletAddress, setWalletAddress] = useAtom(walletAddressAtom);
+    const [showResults, setShowResults] = useAtom(showResultsAtom);
 
     const handleGetStarted = () => {
         setIsCardVisible(false);
@@ -18,13 +20,7 @@ export default function OGPage() {
 
     const handleAddressSubmit = (address: string) => {
         setWalletAddress(address);
-        setShowAddressBox(true);
-    };
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(`https://og.poap.in/api/poap/v/${walletAddress}`);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        setShowResults(true);
     };
 
     return (
@@ -36,15 +32,13 @@ export default function OGPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -100 }}
                         transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
-                        className="w-full max-w-2xl  mx-auto px-4 pt-4 pb-8"
-
+                        className="w-full max-w-2xl mx-auto px-4 pt-4 pb-8"
                     >
                         <PreviewCard onGetStarted={handleGetStarted} />
                     </motion.div>
                 )}
             </AnimatePresence>
             <div className="max-w-2xl w-full mx-auto border-x-1 md:border-x-2 lg:border-x-4 border-yellow-400 border-solid shadow-2xl">
-
                 <AnimatePresence>
                     {isPlaceholderVisible && (
                         <motion.div
@@ -55,14 +49,14 @@ export default function OGPage() {
                         >
                             <div className="bg-neutral-50 p-8">
                                 <h2 className="text-2xl font-bold text-center mb-6">Showcase your POAP collection</h2>
-                                <AddressForm onSubmit={handleAddressSubmit} />
-                                <AnimatePresence>
-                                    {showAddressBox && (
-                                        <ResultBox
-                                            walletAddress={walletAddress}
-                                            onCopy={handleCopy}
-                                            copySuccess={copySuccess}
-                                        />
+                                <AnimatePresence mode="wait">
+                                    {!showResults ? (
+                                        <AddressForm onSubmit={handleAddressSubmit} />
+                                    ) : (
+                                        <>
+                                            <AddressDisplay />
+                                            <ResultBox walletAddress={walletAddress} />
+                                        </>
                                     )}
                                 </AnimatePresence>
                             </div>
@@ -70,6 +64,6 @@ export default function OGPage() {
                     )}
                 </AnimatePresence>
             </div>
-        </div >
+        </div>
     );
 }

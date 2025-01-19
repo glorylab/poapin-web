@@ -1,81 +1,78 @@
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { Button, Card, Image } from "@heroui/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { Card, Image } from "@heroui/react";
+import { motion } from "framer-motion";
 
 interface ResultBoxProps {
     walletAddress: string;
-    onCopy: () => void;
-    copySuccess: boolean;
 }
 
-export function ResultBox({ walletAddress, onCopy, copySuccess }: ResultBoxProps) {
+export function ResultBox({ walletAddress }: ResultBoxProps) {
     const imageUrl = `https://og.poap.in/api/poap/v/${walletAddress}`;
     const imageUrl2 = `https://og.poap.in/api/poap/v/${walletAddress}/letter`;
 
     return (
-        <>
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="mt-6 space-y-4"
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="mt-6 space-y-4"
+        >
+            <Card 
+                className="relative overflow-hidden bg-white"
+                radius="lg"
+                shadow="sm"
             >
-                <Card className="bg-white p-4 shadow flex items-center justify-between">
-                    <p className="text-lg truncate text-green-700 flex-grow mr-2 font-mono">
-                        {imageUrl}
-                    </p>
-                    <Button
-                        isIconOnly
-                        className="text-gray-500"
-                        aria-label="Copy"
-                        onClick={onCopy}
-                    >
-                        <Icon icon="akar-icons:copy" width="20" height="20" />
-                    </Button>
-                </Card>
+                <div className="p-4 border-b border-gray-100">
+                    <p className="text-gray-900 font-medium">Default</p>
+                    <p className="text-gray-500 text-sm mt-1">Visualize your POAP collection in a beautiful way</p>
+                </div>
+                <Image
+                    src={imageUrl}
+                    radius="none"
+                    alt="Default Card"
+                    classNames={{
+                        wrapper: "w-full aspect-[1200/630]",
+                        img: "object-cover w-full h-full"
+                    }}
+                />
+            </Card>
 
-                <Card 
-                    className="relative overflow-hidden bg-gray-50"
-                    radius="lg"
-                    shadow="md"
-                >
-                    <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-                    <Image
-                        src={imageUrl}
-                        radius="none"
-                        alt="POAP Collection Preview"
-                        classNames={{
-                            wrapper: "w-full aspect-[1200/630]",
-                            img: "object-cover w-full h-full"
-                        }}
-                    />
-                    <Image
-                        src={imageUrl2}
-                        radius="none"
-                        alt="POAP Collection Preview"
-                        classNames={{
-                            wrapper: "w-full aspect-[1200/630]",
-                            img: "object-cover w-full h-full"
-                        }}
-                    />
-                </Card>
-            </motion.div>
-            
-            <AnimatePresence>
-                {copySuccess && (
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-green-600 text-center mt-2"
-                    >
-                        Copied successfully!
-                    </motion.p>
-                )}
-            </AnimatePresence>
-        </>
+            <Card 
+                className="relative overflow-hidden bg-white"
+                radius="lg"
+                shadow="sm"
+            >
+                <div className="p-4 border-b border-gray-100">
+                    <p className="text-gray-900 font-medium">Letter</p>
+                    <p className="text-gray-500 text-sm mt-1">Draw POAP on elegant letter paper</p>
+                </div>
+                <Image
+                    src={imageUrl2}
+                    radius="none"
+                    alt="POAP Collection Letter View"
+                    classNames={{
+                        wrapper: "w-full aspect-[1200/630]",
+                        img: "object-cover w-full h-full"
+                    }}
+                />
+            </Card>
+
+            <Card 
+                className="relative overflow-hidden bg-white"
+                radius="lg"
+                shadow="sm"
+            >
+                <div className="p-4 border-b border-gray-100">
+                    <p className="text-gray-900 font-medium">More</p>
+                    <p className="text-gray-500 text-sm mt-1">More visualization styles coming soon</p>
+                </div>
+                <div className="w-full aspect-[1200/630] bg-gray-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <p className="text-gray-400 text-lg font-medium">Coming Soon</p>
+                        <p className="text-gray-400 text-sm mt-2">More visualization styles will be available here</p>
+                    </div>
+                </div>
+            </Card>
+        </motion.div>
     );
 }
