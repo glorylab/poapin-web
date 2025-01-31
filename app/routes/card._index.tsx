@@ -1,17 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { useAtom } from "jotai";
+import { useNavigate } from "@remix-run/react";
 import { PreviewCard } from "~/components/card/preview-card";
 import { AddressForm } from "~/components/card/address-form";
-import { ResultBox } from "~/components/card/result-box";
-import { AddressDisplay } from "~/components/card/address-display";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
 
-export default function OGPage() {
+export default function CardIndexPage() {
     const [isCardVisible, setIsCardVisible] = useState(true);
     const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(false);
-    const [walletAddress, setWalletAddress] = useAtom(walletAddressAtom);
-    const [showResults, setShowResults] = useAtom(showResultsAtom);
+    const [, setWalletAddress] = useAtom(walletAddressAtom);
+    const [, setShowResults] = useAtom(showResultsAtom);
+    const navigate = useNavigate();
 
     const handleGetStarted = () => {
         setIsCardVisible(false);
@@ -21,6 +21,7 @@ export default function OGPage() {
     const handleAddressSubmit = (address: string) => {
         setWalletAddress(address);
         setShowResults(true);
+        navigate(`/card/${address}`);
     };
 
     return (
@@ -50,14 +51,9 @@ export default function OGPage() {
                             <div className="bg-neutral-50 p-8">
                                 <h2 className="text-2xl font-bold text-center mb-6">Showcase your POAP collection</h2>
                                 <AnimatePresence mode="wait">
-                                    {!showResults ? (
-                                        <AddressForm onSubmit={handleAddressSubmit} />
-                                    ) : (
-                                        <>
-                                            <AddressDisplay />
-                                            <ResultBox walletAddress={walletAddress} />
-                                        </>
-                                    )}
+
+                                    <AddressForm onSubmit={handleAddressSubmit} />
+
                                 </AnimatePresence>
                             </div>
                         </motion.div>
