@@ -7,18 +7,21 @@ import { cn } from "~/src/cn";
 interface PreviewImageCardProps {
     title: string;
     description: string;
+    address?: string;
     imageUrl: string;
     altText: string;
+    ogEnabled?: boolean;
 }
 
-export function PreviewImageCard({ title, description, imageUrl, altText }: PreviewImageCardProps) {
+export function PreviewImageCard({ title, description, address, imageUrl, altText, ogEnabled }: PreviewImageCardProps) {
     const [isShareExpanded, setIsShareExpanded] = useState(false);
-    const [copySuccess, setCopySuccess] = useState<'markdown' | 'html' | null>(null);
+    const [copySuccess, setCopySuccess] = useState<'markdown' | 'html' | 'og' | null>(null);
 
     const markdownCode = `![${altText}](${imageUrl})`;
     const htmlCode = `<img src="${imageUrl}" alt="${altText}" />`;
+    const ogCode = `https://poap.in/v/${address}`;
 
-    const handleCopy = async (text: string, type: 'markdown' | 'html') => {
+    const handleCopy = async (text: string, type: 'markdown' | 'html' | 'og') => {
         await navigator.clipboard.writeText(text);
         setCopySuccess(type);
         setTimeout(() => setCopySuccess(null), 2000);
@@ -142,6 +145,45 @@ export function PreviewImageCard({ title, description, imageUrl, altText }: Prev
                                 </div>
                                 <p className="text-xs text-gray-400 mt-2">Anywhere that supports HTML code</p>
                             </div>
+                            {ogEnabled && (<div className="flex flex-col bg-gray-50 p-2 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-shrink-0">
+                                        <Icon
+                                            icon="garden:image-fill-12"
+                                            width="24"
+                                            height="24"
+                                        />
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <ScrollShadow
+                                            hideScrollBar
+                                            orientation="horizontal">
+                                            <code className="font-mono text-sm text-gray-600 whitespace-nowrap">
+                                                {ogCode}
+                                            </code>
+                                        </ScrollShadow>
+                                    </div>
+
+                                    <div className="flex-shrink-0">
+                                        <Button
+                                            isIconOnly
+                                            size="sm"
+                                            variant="light"
+                                            className="text-gray-500"
+                                            onPress={() => handleCopy(ogCode, 'og')}
+                                            aria-label="Copy HTML"
+                                        >
+                                            <Icon
+                                                icon={copySuccess === 'og' ? "mingcute:check-fill" : "mingcute:copy-2-fill"}
+                                                width="20"
+                                                height="20"
+                                            />
+                                        </Button>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2">Anywhere that supports webpage previews, such as Warpcast, X, Telegram, Facebook, Instagram, etc.</p>
+                            </div>)}
                         </motion.div>
                     )}
                 </AnimatePresence>

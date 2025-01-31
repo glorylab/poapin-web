@@ -21,13 +21,16 @@ export function ResultBox({ walletAddress }: ResultBoxProps) {
             <PreviewImageCard
                 title="Default"
                 description="Visualize your POAP collection in a beautiful way"
+                address={walletAddress}
                 imageUrl={imageUrl}
+                ogEnabled
                 altText={`POAP | ${walletAddress}`}
             />
 
             <PreviewImageCard
                 title="Letter"
                 description="Draw POAP on elegant letter paper"
+                address={walletAddress}
                 imageUrl={imageUrl2}
                 altText={`POAP | ${walletAddress}`}
             />
