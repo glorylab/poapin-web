@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
@@ -19,11 +19,16 @@ export default function CardAddressPage() {
     const { address } = useLoaderData<typeof loader>();
     const [, setWalletAddress] = useAtom(walletAddressAtom);
     const [, setShowResults] = useAtom(showResultsAtom);
+    const navigate = useNavigate();
 
     useEffect(() => {
         setWalletAddress(address);
         setShowResults(true);
     }, [address, setWalletAddress, setShowResults]);
+
+    const handleBack = () => {
+        navigate("/card");
+    };
 
     return (
         <div className="w-full mx-auto px-2 md:px-4 lg:px-8">
@@ -35,7 +40,7 @@ export default function CardAddressPage() {
                     className="bg-neutral-50 p-8"
                 >
                     <h2 className="text-2xl font-bold text-center mb-6">Showcase your POAP collection</h2>
-                    <AddressDisplay />
+                    <AddressDisplay onBack={handleBack} />
                     <ResultBox walletAddress={address} />
                 </motion.div>
             </div>

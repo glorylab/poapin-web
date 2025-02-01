@@ -2,14 +2,25 @@ import { Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useAtom } from "jotai";
 import { motion } from "framer-motion";
+import { useNavigate } from "@remix-run/react";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
 
-export function AddressDisplay() {
+interface AddressDisplayProps {
+    onBack?: () => void;
+}
+
+export function AddressDisplay({ onBack }: AddressDisplayProps) {
     const [walletAddress] = useAtom(walletAddressAtom);
     const [, setShowResults] = useAtom(showResultsAtom);
+    const navigate = useNavigate();
 
     const handleBack = () => {
         setShowResults(false);
+        if (onBack) {
+            onBack();
+        } else {
+            navigate("/card");
+        }
     };
 
     return (
@@ -25,7 +36,7 @@ export function AddressDisplay() {
                     isIconOnly
                     variant="light"
                     className="text-gray-500"
-                    onClick={handleBack}
+                    onPress={handleBack}
                     aria-label="Back"
                 >
                     <Icon icon="heroicons:arrow-left" width="20" height="20" />
