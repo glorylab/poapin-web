@@ -31,7 +31,7 @@ const navLinks = [
 const socialItems = [
     {
         name: "Twitter",
-        href: "https://twitter.com/glorylaboratory",
+        href: "https://x.com/glorylaboratory",
         icon: (props: SocialIconProps) => <Icon {...props} icon="fontisto:twitter" />,
     },
     {
