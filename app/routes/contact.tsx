@@ -46,7 +46,7 @@ export default function ContactPage() {
                 >
                     <Link
                         className="w-full h-full flex flex-col items-center justify-center"
-                        to="https://twitter.com/glorylaboratory" target="_blank" rel="noreferrer">
+                        to="https://x.com/glorylaboratory" target="_blank" rel="noreferrer">
                         <div className="flex flex-row justify-center items-center gap-4 group-hover:translate-x-1 lg:group-hover:translate-y-1 transition-all">
                             <Icon
                                 icon="simple-icons:x"
