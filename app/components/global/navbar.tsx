@@ -1,7 +1,7 @@
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle } from "@heroui/react";
 import { Link, useLocation, useNavigation } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { isCardActive, isContactActive, isExplorerActive, isHomeActive, isOGActive, isSponsorsActive } from "~/utils/location";
+import { isCardActive, isContactActive, isExplorerActive, isHomeActive, isSponsorsActive } from "~/utils/location";
 
 export default function NavBarComponent() {
 

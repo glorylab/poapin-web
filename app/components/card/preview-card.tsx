@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { AnimatePresence, motion, cubicBezier } from "framer-motion";
+import { motion, cubicBezier } from "framer-motion";
 import { useEffect, useState } from "react";
 import { CardBody, CardContainer, CardItem } from "~/components/3d-card";
 

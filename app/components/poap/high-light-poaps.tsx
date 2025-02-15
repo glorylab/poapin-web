@@ -1,4 +1,4 @@
-import { Link, useNavigate, useNavigation } from "@remix-run/react";
+import { useNavigate, useNavigation } from "@remix-run/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useState } from "react";
 import { cn } from "~/src/cn";

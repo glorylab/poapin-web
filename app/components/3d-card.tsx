@@ -28,7 +28,7 @@ export const CardContainer = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMouseEntered, setIsMouseEntered] = useState(false);
-  const [isGyroEnabled, setIsGyroEnabled] = useState(false);
+  const [isGyroEnabled] = useState(false);
   const [initialOrientation, setInitialOrientation] = useState<{ beta: number | null; gamma: number | null }>({ beta: null, gamma: null });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -40,11 +40,11 @@ export const CardContainer = ({
     containerRef.current.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
   };
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseEnter = () => {
     setIsMouseEntered(true);
   };
 
-  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseLeave = () => {
     if (!containerRef.current) return;
     setIsMouseEntered(false);
     containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;

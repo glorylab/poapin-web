@@ -51,7 +51,7 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
     const transition = useNavigation();
     const isNavigating = transition.state === "loading";
     const [isLoading, setIsLoading] = useState(false);
-    const [hasError, setHasError] = useState(false);
+    const [, setHasError] = useState(false);
     const navigate = useNavigate();
     const [isClearable, setIsClearable] = useState(props.isClearable || false);
 
@@ -85,7 +85,6 @@ const AddressInputComponent = forwardRef<HTMLInputElement, Props>((props, ref) =
         description,
         // isClearable,
         startContent,
-        endContent,
         shouldLabelBeOutside,
         shouldLabelBeInside,
         errorMessage,

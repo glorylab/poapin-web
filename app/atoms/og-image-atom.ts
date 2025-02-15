@@ -7,7 +7,6 @@ export interface OGImageState {
 }
 
 export const createOGImageAtom = (address: string, theme: "default" | "letter") => {
-    const key = `${address}-${theme}`;
     return atom<OGImageState>({
         status: "pending",
         url: `https://og.poap.in/api/poap/v/${address}/${theme}`,

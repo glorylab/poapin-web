@@ -1,6 +1,6 @@
 import { AppLoadContext } from "@remix-run/cloudflare";
 import { getEnv } from "~/src/env";
-import { createDirectus, graphql, readItems, staticToken } from '@directus/sdk';
+import { createDirectus, graphql, staticToken } from '@directus/sdk';
 import { Grant } from "~/types/grant";
 
 interface Schema {
