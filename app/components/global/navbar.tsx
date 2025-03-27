@@ -53,7 +53,21 @@ export default function NavBarComponent() {
                     aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                 />
                 <Link to="/" className="flex items-center gap-2">
-                    <p className="font-sans text-3xl text-inherit font-extralight tracking-wider text-white">POAP.in</p>
+                    <div className="relative">
+                        <img 
+                            src="/images/title_poapin_s.png" 
+                            alt="POAP.in" 
+                            className="h-8 w-auto object-contain opacity-90" 
+                            style={{ maxHeight: '32px' }}
+                        />
+                        <span 
+                            className="absolute top-0 left-0 w-0 h-0 overflow-hidden" 
+                            aria-hidden="true"
+                            role="presentation"
+                        >
+                            POAP.in
+                        </span>
+                    </div>
                 </Link>
             </NavbarBrand>
             <NavbarContent
