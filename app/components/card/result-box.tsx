@@ -1,6 +1,7 @@
 import { Card } from "@heroui/react";
 import { motion } from "framer-motion";
 import { PreviewImageCard } from "./preview-image-card";
+import { PreviewBadgeCard } from "./preview-badge-card";
 
 interface ResultBoxProps {
     walletAddress: string;
@@ -9,6 +10,9 @@ interface ResultBoxProps {
 export function ResultBox({ walletAddress }: ResultBoxProps) {
     const imageUrl = `https://og.poap.in/api/poap/v/${walletAddress}`;
     const imageUrl2 = `https://og.poap.in/api/poap/v/${walletAddress}/letter`;
+    const badgeUrlSm = `/badge/${walletAddress}/sm`;
+    const badgeUrlMd = `/badge/${walletAddress}/md`;
+    const badgeUrlLg = `/badge/${walletAddress}/lg`;
 
     return (
         <motion.div
@@ -18,6 +22,7 @@ export function ResultBox({ walletAddress }: ResultBoxProps) {
             transition={{ duration: 0.3 }}
             className="mt-6 space-y-4"
         >
+
             <PreviewImageCard
                 title="Default"
                 description="Visualize your POAP collection in a beautiful way"
@@ -35,7 +40,18 @@ export function ResultBox({ walletAddress }: ResultBoxProps) {
                 altText={`POAP | ${walletAddress}`}
             />
 
-            <Card 
+            <PreviewBadgeCard
+                title="Badge"
+                description="Visualize your POAP collection as a badge"
+                address={walletAddress}
+                badgeUrlSm={badgeUrlSm}
+                badgeUrlMd={badgeUrlMd}
+                badgeUrlLg={badgeUrlLg}
+                ogEnabled
+                altText={`POAP Badge | ${walletAddress}`}
+            />
+
+            <Card
                 className="relative overflow-hidden bg-white"
                 radius="lg"
                 shadow="sm"
