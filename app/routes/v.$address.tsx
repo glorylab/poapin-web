@@ -43,10 +43,12 @@ export const meta: MetaFunction = ({ data }) => {
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "ItemList",
+        "name": `${loaderData.meta.address}'s POAP Collection`,
+        "description": `Collection of POAPs (Proof of Attendance Protocol) owned by ${loaderData.meta.address}`,
         "itemListElement": topPoaps.map((poap, index) => ({
             "@type": "ListItem",
             "position": index + 1,
-            "url": `https://poap.in/v/${address}`,
+            "url": `https://poap.in/poap/${poap.tokenId}`,
             "name": poap.event.name,
             "image": poap.event.image_url
         }))
@@ -216,10 +218,12 @@ export default function POAPList({ className }: { className?: string }) {
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "ItemList",
+        "name": `${meta.address}'s POAP Collection`,
+        "description": `Collection of POAPs (Proof of Attendance Protocol) owned by ${meta.address}`,
         "itemListElement": poaps.slice(0, 10).map((poap, index) => ({
             "@type": "ListItem",
             "position": index + 1,
-            "url": `https://poap.in/v/${meta.address}`,
+            "url": `https://poap.in/poap/${poap.tokenId}`,
             "name": poap.event.name,
             "image": poap.event.image_url
         }))
