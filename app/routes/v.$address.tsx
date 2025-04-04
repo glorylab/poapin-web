@@ -64,8 +64,10 @@ export const meta: MetaFunction = ({ data }) => {
         { property: "og:url", content: `https://poap.in/v/${address}` },
         // Add canonical link tag
         { tagName: "link", rel: "canonical", href: canonicalUrl },
-        // Add JSON-LD structured data
-        { tagName: "script", type: "application/ld+json", children: JSON.stringify(jsonLd) }
+        // Add JSON-LD structured data - fix for Remix v2
+        { 
+            "script:ld+json": JSON.stringify(jsonLd)
+        }
     ];
 
     const twitterMeta = [
