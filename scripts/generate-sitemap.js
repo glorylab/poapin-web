@@ -162,6 +162,9 @@ async function fetchAndGenerateSitemaps(totalLimit = 100000, requestBatchSize = 
   let minPoapsOwned = Infinity;
   let maxPoapsOwned = 0;
   
+  // Null address to exclude
+  const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
+  
   // Ensure the sitemaps directory exists
   ensureSitemapsDir();
   
@@ -216,18 +219,22 @@ async function fetchAndGenerateSitemaps(totalLimit = 100000, requestBatchSize = 
       // Get the actual number of holders returned in this batch
       const actualBatchSize = holders.length;
       
+      // Filter out the null address
+      const filteredHolders = holders.filter(holder => holder.address.toLowerCase() !== NULL_ADDRESS.toLowerCase());
+      console.log(`Filtered out ${holders.length - filteredHolders.length} null addresses`);
+      
       // Update min and max POAP counts for this batch
-      const batchMinPoaps = Math.min(...holders.map(h => h.poaps_owned));
-      const batchMaxPoaps = Math.max(...holders.map(h => h.poaps_owned));
+      const batchMinPoaps = Math.min(...filteredHolders.map(h => h.poaps_owned));
+      const batchMaxPoaps = Math.max(...filteredHolders.map(h => h.poaps_owned));
       minPoapsOwned = Math.min(minPoapsOwned, batchMinPoaps);
       maxPoapsOwned = Math.max(maxPoapsOwned, batchMaxPoaps);
       
       // Log batch results
-      console.log(`Fetched ${actualBatchSize} holders in batch ${batchNumber}`);
+      console.log(`Fetched ${actualBatchSize} holders, kept ${filteredHolders.length} after filtering in batch ${batchNumber}`);
       console.log(`POAP counts in this batch: ${batchMinPoaps} to ${batchMaxPoaps}`);
       
       // Add to collected addresses
-      collectedAddresses = [...collectedAddresses, ...holders];
+      collectedAddresses = [...collectedAddresses, ...filteredHolders];
       console.log(`Total collected addresses: ${collectedAddresses.length}`);
       
       // If we've collected 10,000 addresses or reached the end, save to files

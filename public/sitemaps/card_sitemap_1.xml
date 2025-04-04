@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://poap.in/card/0x0000000000000000000000000000000000000000</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://poap.in/card/0x96e99a4ce092406b8c54fed16806a7d6e4c028e6</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
