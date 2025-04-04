@@ -28,18 +28,18 @@ export const meta: MetaFunction = ({ data }) => {
     }
 
     const { title, description, keywords, address, ogimageurl } = loaderData.meta;
-    
+
     // Get the ETH address from the loader data for the canonical URL
-    const ethAddress = loaderData.poaps && loaderData.poaps.length > 0 
-        ? loaderData.poaps[0].owner 
+    const ethAddress = loaderData.poaps && loaderData.poaps.length > 0
+        ? loaderData.poaps[0].owner
         : address;
-    
+
     const canonicalUrl = `https://poap.in/v/${ethAddress}`;
 
     // Create JSON-LD structured data for rich results with multiple images
     const poaps = loaderData.poaps || [];
     const topPoaps = poaps.slice(0, 10); // Get top 10 POAPs for the carousel
-    
+
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "ItemList",
@@ -64,10 +64,6 @@ export const meta: MetaFunction = ({ data }) => {
         { property: "og:url", content: `https://poap.in/v/${address}` },
         // Add canonical link tag
         { tagName: "link", rel: "canonical", href: canonicalUrl },
-        // Add JSON-LD structured data - fix for Remix v2
-        { 
-            "script:ld+json": JSON.stringify(jsonLd)
-        }
     ];
 
     const twitterMeta = [
@@ -215,6 +211,19 @@ export default function POAPList({ className }: { className?: string }) {
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
 
     const [collections, setCollections] = useState<Collection[]>([]);
+
+    // Create JSON-LD data
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListElement": poaps.slice(0, 10).map((poap, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "url": `https://poap.in/v/${meta.address}`,
+            "name": poap.event.name,
+            "image": poap.event.image_url
+        }))
+    };
 
     useEffect(() => {
 
@@ -365,167 +374,174 @@ export default function POAPList({ className }: { className?: string }) {
     };
 
     return (
-        <div className="flex gap-x-6 mb-8">
-            <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
-                <FiltersWrapper
-                    className="md:bg-default-50 sm:ml-4 bg-transparent md:bg-opacity-30 backdrop-blur-sm min-w-64"
-                    items={[
-                        countryFilter,
-                        cityFilter,
-                        yearFilter,
-                        chainFilter,
-                    ]}
-                    scrollShadowClassName="max-h-full pb-12"
-                    showActions={false}
-                    title="Filter by"
-                    onFilterChange={handleFilterChange}
-                />
-            </SidebarDrawer>
-            <div className="w-full flex-1 flex-col">
-                <header className="relative z-20 mx-4 px-4 mt-4 flex flex-col gap-2 rounded-medium bg-default-50 bg-opacity-30 backdrop-blur-sm pb-3 pt-2 md:pt-3">
-                    <div className="flex items-center gap-1 md:hidden md:gap-2">
-                        <h1 className="text-large font-medium text-background-700">{meta.address}</h1>
-                        <span className="text-small text-background-500">({poaps.length})</span>
-                        <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="flex flex-row grow gap-2">
-                            <Button
-                                className="flex md:hidden border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800"
-                                startContent={
-                                    <Icon
-                                        className="text-background-600 hover:text-background-800 active:text-background-800"
-                                        height={16}
-                                        icon="solar:filter-linear"
-                                        width={16}
-                                    />
-                                }
-                                variant="bordered"
-                                onPress={onOpen}
-                            >
-                                Filters
-                            </Button>
-                            <div className="hidden items-center gap-1 md:flex">
-                                <h1 className="text-medium font-medium text-background-700">{meta.address}</h1>
-                                <span className="text-small text-background-500">({poaps.length})</span>
-                                <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
-                            </div>
+        <>
+            {/* Add JSON-LD script tag directly */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <div className="flex gap-x-6 mb-8">
+                <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
+                    <FiltersWrapper
+                        className="md:bg-default-50 sm:ml-4 bg-transparent md:bg-opacity-30 backdrop-blur-sm min-w-64"
+                        items={[
+                            countryFilter,
+                            cityFilter,
+                            yearFilter,
+                            chainFilter,
+                        ]}
+                        scrollShadowClassName="max-h-full pb-12"
+                        showActions={false}
+                        title="Filter by"
+                        onFilterChange={handleFilterChange}
+                    />
+                </SidebarDrawer>
+                <div className="w-full flex-1 flex-col">
+                    <header className="relative z-20 mx-4 px-4 mt-4 flex flex-col gap-2 rounded-medium bg-default-50 bg-opacity-30 backdrop-blur-sm pb-3 pt-2 md:pt-3">
+                        <div className="flex items-center gap-1 md:hidden md:gap-2">
+                            <h1 className="text-large font-medium text-background-700">{meta.address}</h1>
+                            <span className="text-small text-background-500">({poaps.length})</span>
+                            <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
                         </div>
-                        <div className="flex grow">
-                            <Select
-                                aria-label="Sort by"
-                                classNames={{
-                                    base: "items-center justify-end",
-                                    trigger: "border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800",
-                                    label:
-                                        "hidden lg:block text-tiny whitespace-nowrap md:text-small text-background-600",
-                                    mainWrapper: "max-w-xs",
-                                }}
-                                defaultSelectedKeys={[selectedSort]}
-                                onSelectionChange={(keys: string[]) => {
-                                    const selectedKey = Array.from(keys)[0];
-                                    if (typeof selectedKey === "string") {
-                                        setSelectedSort(selectedKey);
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex flex-row grow gap-2">
+                                <Button
+                                    className="flex md:hidden border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800"
+                                    startContent={
+                                        <Icon
+                                            className="text-background-600 hover:text-background-800 active:text-background-800"
+                                            height={16}
+                                            icon="solar:filter-linear"
+                                            width={16}
+                                        />
                                     }
-                                }}
-
-                                label="Sort by"
-                                labelPlacement="outside-left"
-                                placeholder="Select an option"
-                                variant="bordered"
-                            >
-                                <SelectItem key="collected_newest" value="collected_newest"
-                                    classNames={{
-                                        title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                    }}
+                                    variant="bordered"
+                                    onPress={onOpen}
                                 >
-                                    Collected date: Newest
-                                </SelectItem>
-                                <SelectItem key="collected_oldest" value="collected_oldest">
-                                    Collected date: Oldest
-                                </SelectItem>
-                                <SelectItem key="start_date_newest" value="start_date_newest">
-                                    Start Date: Newest
-                                </SelectItem>
-                                <SelectItem key="start_date_oldest" value="start_date_oldest">
-                                    Start Date: Oldest
-                                </SelectItem>
-                                <SelectItem key="most_popular" value="most_popular">
-                                    Most Popular
-                                </SelectItem>
-                                <SelectItem key="most_moments" value="most_moments">
-                                    Most Moments
-                                </SelectItem>
-                            </Select>
-                        </div>
-                    </div>
-                </header>
-                <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
-                    {/* OG Image */}
-                    {meta.address && (
-                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                            <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <div className="flex-1">
-                                    <OGImageCard
-                                        address={meta.address}
-                                        theme="default"
-                                        className="bg-[#d4dbe0]"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <OGImageCard
-                                        address={meta.address}
-                                        theme="letter"
-                                        className="bg-[#E8E4D8]"
-                                    />
+                                    Filters
+                                </Button>
+                                <div className="hidden items-center gap-1 md:flex">
+                                    <h1 className="text-medium font-medium text-background-700">{meta.address}</h1>
+                                    <span className="text-small text-background-500">({poaps.length})</span>
+                                    <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
                                 </div>
                             </div>
+                            <div className="flex grow">
+                                <Select
+                                    aria-label="Sort by"
+                                    classNames={{
+                                        base: "items-center justify-end",
+                                        trigger: "border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800",
+                                        label:
+                                            "hidden lg:block text-tiny whitespace-nowrap md:text-small text-background-600",
+                                        mainWrapper: "max-w-xs",
+                                    }}
+                                    defaultSelectedKeys={[selectedSort]}
+                                    onSelectionChange={(keys: string[]) => {
+                                        const selectedKey = Array.from(keys)[0];
+                                        if (typeof selectedKey === "string") {
+                                            setSelectedSort(selectedKey);
+                                        }
+                                    }}
+
+                                    label="Sort by"
+                                    labelPlacement="outside-left"
+                                    placeholder="Select an option"
+                                    variant="bordered"
+                                >
+                                    <SelectItem key="collected_newest" value="collected_newest"
+                                        classNames={{
+                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        }}
+                                    >
+                                        Collected date: Newest
+                                    </SelectItem>
+                                    <SelectItem key="collected_oldest" value="collected_oldest">
+                                        Collected date: Oldest
+                                    </SelectItem>
+                                    <SelectItem key="start_date_newest" value="start_date_newest">
+                                        Start Date: Newest
+                                    </SelectItem>
+                                    <SelectItem key="start_date_oldest" value="start_date_oldest">
+                                        Start Date: Oldest
+                                    </SelectItem>
+                                    <SelectItem key="most_popular" value="most_popular">
+                                        Most Popular
+                                    </SelectItem>
+                                    <SelectItem key="most_moments" value="most_moments">
+                                        Most Moments
+                                    </SelectItem>
+                                </Select>
+                            </div>
                         </div>
-                    )}
-                    {latestMoments && latestMoments.length > 0 && (
-                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                            <h2 className="text-medium font-medium text-background-700">Latest Moments</h2>
-                            <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
-                                <Marquee pauseOnHover>
-                                    {latestMoments.map((moment) => (
-                                        <MomentCard key={moment.id} moment={moment} />
+                    </header>
+                    <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
+                        {/* OG Image */}
+                        {meta.address && (
+                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
+                                <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="flex-1">
+                                        <OGImageCard
+                                            address={meta.address}
+                                            theme="default"
+                                            className="bg-[#d4dbe0]"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <OGImageCard
+                                            address={meta.address}
+                                            theme="letter"
+                                            className="bg-[#E8E4D8]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {latestMoments && latestMoments.length > 0 && (
+                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
+                                <h2 className="text-medium font-medium text-background-700">Latest Moments</h2>
+                                <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
+                                    <Marquee pauseOnHover>
+                                        {latestMoments.map((moment) => (
+                                            <MomentCard key={moment.id} moment={moment} />
+                                        ))}
+                                    </Marquee>
+                                </div>
+                            </div>
+                        )}
+                        {collections && collections.length > 0 && (
+                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
+                                <h2 className="text-medium font-medium text-background-700">Collections</h2>
+                                <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
+                                    <Marquee pauseOnHover>
+                                        {collections.map((collection) => (
+                                            <CollectionCard key={collection.id} collection={collection} />
+                                        ))}
+                                    </Marquee>
+                                </div>
+                            </div>
+                        )}
+                        <div className="block rounded-medium border-background-200 border-dashed border-[1px]">
+                            <div className="flex flex-col items-center">
+                                <div
+                                    className={cn(
+                                        "my-auto grid max-w-7xl gap-5 p-4 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+                                        className
+                                    )}
+                                >
+                                    {filteredPoaps.map((poap) => (
+                                        <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} />
                                     ))}
-                                </Marquee>
+                                </div>
                             </div>
                         </div>
-                    )}
-                    {collections && collections.length > 0 && (
-                        <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                            <h2 className="text-medium font-medium text-background-700">Collections</h2>
-                            <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
-                                <Marquee pauseOnHover>
-                                    {collections.map((collection) => (
-                                        <CollectionCard key={collection.id} collection={collection} />
-                                    ))}
-                                </Marquee>
-                            </div>
-                        </div>
-                    )}
-                    <div className="block rounded-medium border-background-200 border-dashed border-[1px]">
-                        <div className="flex flex-col items-center">
-                            <div
-                                className={cn(
-                                    "my-auto grid max-w-7xl gap-5 p-4 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
-                                    className
-                                )}
-                            >
-                                {filteredPoaps.map((poap) => (
-                                    <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </main>
+                    </main>
+                </div>
             </div>
-        </div>
+        </>
 
     );
 }
