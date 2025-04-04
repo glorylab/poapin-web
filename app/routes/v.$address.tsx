@@ -29,6 +29,13 @@ export const meta: MetaFunction = ({ data }) => {
 
     const { title, description, keywords, address, ogimageurl } = loaderData.meta;
 
+    // Get the ETH address for canonical URL
+    const ethAddress = loaderData.poaps && loaderData.poaps.length > 0 
+        ? loaderData.poaps[0].owner 
+        : address;
+
+    const canonicalUrl = `https://poap.in/v/${ethAddress}`;
+
     const baseMeta = [
         { title },
         { description },
@@ -39,6 +46,7 @@ export const meta: MetaFunction = ({ data }) => {
         { property: "og:site_name", content: "POAPin" },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `https://poap.in/v/${address}` },
+        { tagName: "link", rel: "canonical", href: canonicalUrl },
     ];
 
     const twitterMeta = [
