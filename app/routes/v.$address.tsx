@@ -28,13 +28,29 @@ export const meta: MetaFunction = ({ data }) => {
     }
 
     const { title, description, keywords, address, ogimageurl } = loaderData.meta;
-
-    // Get the ETH address for canonical URL
+    
+    // Get the ETH address from the loader data for the canonical URL
     const ethAddress = loaderData.poaps && loaderData.poaps.length > 0 
         ? loaderData.poaps[0].owner 
         : address;
-
+    
     const canonicalUrl = `https://poap.in/v/${ethAddress}`;
+
+    // Create JSON-LD structured data for rich results with multiple images
+    const poaps = loaderData.poaps || [];
+    const topPoaps = poaps.slice(0, 10); // Get top 10 POAPs for the carousel
+    
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListElement": topPoaps.map((poap, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "url": `https://poap.in/v/${address}`,
+            "name": poap.event.name,
+            "image": poap.event.image_url
+        }))
+    };
 
     const baseMeta = [
         { title },
@@ -46,7 +62,10 @@ export const meta: MetaFunction = ({ data }) => {
         { property: "og:site_name", content: "POAPin" },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `https://poap.in/v/${address}` },
+        // Add canonical link tag
         { tagName: "link", rel: "canonical", href: canonicalUrl },
+        // Add JSON-LD structured data
+        { tagName: "script", type: "application/ld+json", children: JSON.stringify(jsonLd) }
     ];
 
     const twitterMeta = [
@@ -96,9 +115,9 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
             metaTitle = `POAPs of ${address} (${ethAddress}) | POAPin`;
         }
 
-        const titles = poaps.map(poap => poap.event.name).slice(0, 100);
-        const metaDescription = `${address} has ${poaps.length} POAPs. POAP, short for "Proof of Attendance Protocol," allows you to mint memories as digital mementos we call "POAPs. POAPs are bookmarks for your life.`;
-        const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${titles.join(", ")}`;
+        const poapTitles = poaps.slice(0, 3).map(poap => poap.event.name).join(", ");
+        const metaDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 3 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
+        const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${poapTitles}`;
 
         let latestMoments;
         let dropsWithMoments = [];
