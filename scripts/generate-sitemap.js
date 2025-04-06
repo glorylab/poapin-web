@@ -1,4 +1,4 @@
-// Script to generate sitemap with top 100,000 POAP holders from Gnosis Chain
+// Script to generate sitemap with top 2,000,000 POAP holders from Gnosis Chain
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -148,7 +148,7 @@ function generateMainSitemap(sitemapPaths) {
 }
 
 // Function to fetch POAP holders in batches and generate sitemaps
-async function fetchAndGenerateSitemaps(totalLimit = 100000, requestBatchSize = 1000) {
+async function fetchAndGenerateSitemaps(totalLimit = 2000000, requestBatchSize = 100) {
   console.log(`Fetching top ${totalLimit} POAP holders from Gnosis Chain...`);
   
   let offset = 0;
@@ -307,7 +307,7 @@ async function fetchAndGenerateSitemaps(totalLimit = 100000, requestBatchSize = 
 async function main() {
   try {
     // Fetch holders and generate sitemaps
-    await fetchAndGenerateSitemaps(100000, 1000);
+    await fetchAndGenerateSitemaps(2000000, 100);
     
     console.log('Sitemap generation completed successfully!');
   } catch (error) {
