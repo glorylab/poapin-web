@@ -20,3 +20,9 @@ select:-webkit-autofill:focus {
   background-color: transparent !important;
 }
 
+/* Golden glow animation */
+@keyframes goldenPulse {
+  0% { opacity: 0.4; width: 40%; }
+  50% { opacity: 0.8; width: 70%; }
+  100% { opacity: 0.4; width: 40%; }
+}
