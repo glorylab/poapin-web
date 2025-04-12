@@ -1,12 +1,11 @@
 import { Moment, POAP } from "~/types/poap";
-import { getPoapsOfAddress } from "~/api/poap";
+import { RateLimitError, getPoapsOfAddress } from "~/api/poap";
 import { Collection, getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Button, Select, SelectItem, Image, Spacer, useDisclosure } from "@heroui/react";
-import AddressInputComponent from "~/components/poap/address-input";
+import { Button, Select, SelectItem, useDisclosure } from "@heroui/react";
 import { getEnv } from "~/src/env";
 import FiltersWrapper from "~/components/poap/filters-wrapper";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
@@ -177,8 +176,22 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
 
         return json({ poaps, totalMomentsCount, latestMoments, dropsWithMoments, meta });
     } catch (error) {
-        console.error(error);
-        return json({ error: `Failed to fetch POAPs of ${address}` }, { status: 500 });
+        console.error('Error in v.$address loader:', error);
+
+        // Check if it's a rate limit error
+        if (error instanceof RateLimitError) {
+            return json({
+                error: error.message,
+                isRateLimit: true,
+                address: address
+            }, { status: 429 });
+        }
+
+        // Handle other errors
+        return json({
+            error: "Failed to load POAPs. Please try again later.",
+            address: address
+        }, { status: 500 });
     }
 };
 
@@ -188,6 +201,8 @@ interface LoaderData {
     latestMoments: Moment[];
     dropsWithMoments: number[];
     error: string;
+    isRateLimit?: boolean;
+    address?: string;
     meta: {
         title: string;
         description: string;
@@ -207,7 +222,7 @@ function getMomentsCountOfDrop(poap: POAP, dropsWithMoments: number[]) {
 }
 
 export default function POAPList({ className }: { className?: string }) {
-    const { poaps, meta, totalMomentsCount, latestMoments, dropsWithMoments, error } = useLoaderData<LoaderData>();
+    const { poaps, meta, totalMomentsCount, latestMoments, dropsWithMoments, error, isRateLimit, address } = useLoaderData<LoaderData>();
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
@@ -215,23 +230,23 @@ export default function POAPList({ className }: { className?: string }) {
     const [collections, setCollections] = useState<Collection[]>([]);
 
     // Create JSON-LD data
-    const jsonLd = {
+    const jsonLd = meta ? {
         "@context": "https://schema.org",
         "@type": "ItemList",
         "name": `${meta.address}'s POAP Collection`,
         "description": `Collection of POAPs (Proof of Attendance Protocol) owned by ${meta.address}`,
-        "itemListElement": poaps.slice(0, 10).map((poap, index) => ({
+        "itemListElement": poaps?.slice(0, 10).map((poap, index) => ({
             "@type": "ListItem",
             "position": index + 1,
             "url": `https://poap.in/poap/${poap.tokenId}`,
             "name": poap.event.name,
             "image": poap.event.image_url
         }))
-    };
+    } : null;
 
     useEffect(() => {
 
-        if (!poaps || !poaps.length) return;
+        if (!poaps || !poaps.length || error) return;
 
         const fetchCollections = async () => {
             const dropIds = poaps.map(poap => poap.event.id);
@@ -251,28 +266,56 @@ export default function POAPList({ className }: { className?: string }) {
         fetchCollections();
     }, [poaps]);
 
-    if (!poaps || !poaps.length) {
-        if (error) {
-            return (
-                <div className="w-full flex flex-col items-center py-24">
-                    <div className="relative flex flex-col items-center max-w-lg text-center">
-
-                        <h2 className="font-medium leading-7 text-secondary-300">404</h2>
-                        <h1 className="text-4xl font-medium tracking-tight text-background-800">{error}</h1>
-                        <Spacer y={4} />
-                        <h2 className="text-large text-background-700">
-                            Check out other friends&apos; POAP 👇
-                        </h2>
-                    </div>
-                    <Spacer y={4} />
-                    <div className="relative flex flex-col items-center max-w-lg">
-                        <AddressInputComponent />
-                    </div>
+    if (error) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="flex flex-col items-center justify-center text-center p-8 rounded-large bg-background-50 shadow-sm">
+                    {isRateLimit ? (
+                        <>
+                            <div className="mb-6 p-4 rounded-full bg-warning-100">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="48"
+                                    height="48"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="text-warning-500"
+                                >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                </svg>
+                            </div>
+                            <h1 className="text-3xl font-medium tracking-tight text-background-800 mb-4">Rate Limit Exceeded</h1>
+                            <p className="text-xl text-background-600 mb-6">{error}</p>
+                            <p className="text-medium text-background-500 mb-8">The POAP API is currently rate limited. This helps ensure fair usage for all users.</p>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                {address && (
+                                    <Button color="secondary" as={Link} to={`/v/${address}`} reloadDocument>
+                                        Try Again
+                                    </Button>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <h1 className="text-4xl font-medium tracking-tight text-background-800">{error}</h1>
+                            <Button className="mt-8" color="primary" as={Link} to="/">
+                                Go to Homepage
+                            </Button>
+                        </>
+                    )}
                 </div>
-            );
-        } else {
-            return <div className="info">No POAPs found</div>;
-        }
+            </div>
+        );
+    }
+
+    // If we have no poaps but also no error, show a loading state or empty state
+    if (!poaps || !poaps.length) {
+        return <div className="info">No POAPs found</div>;
     }
 
     const countryFilter: Filter = {
@@ -380,10 +423,12 @@ export default function POAPList({ className }: { className?: string }) {
     return (
         <>
             {/* Add JSON-LD script tag directly */}
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+            {jsonLd && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
+            )}
             <div className="flex gap-x-6 mb-8">
                 <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
                     <FiltersWrapper
