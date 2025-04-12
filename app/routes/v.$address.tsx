@@ -130,10 +130,16 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         }
 
         // Get the user agent
-        // const userAgent = request.headers.get("User-Agent");
+        const userAgent = request.headers.get("User-Agent") || "";
 
         // Check if the request is from a search engine bot
-        const isSearchEngineBot = false; // TODO: Add search engine bot detection
+        const isSearchEngineBot = [
+            'googlebot', 'bingbot', 'yandexbot', 'duckduckbot', 'slurp', 'baiduspider', 
+            'applebot', 'facebookexternalhit', 'twitterbot', 'rogerbot', 'linkedinbot',
+            'embedly', 'quora link preview', 'showyoubot', 'outbrain', 'pinterest',
+            'developers.google.com/+/web/snippet', 'discordbot', 'telegrambot', 'whatsapp',
+            'slack', 'vkshare', 'w3c_validator', 'lighthouse', 'chrome-lighthouse'
+        ].some(bot => userAgent.toLowerCase().includes(bot));
 
         let ogimageurl = "";
 
