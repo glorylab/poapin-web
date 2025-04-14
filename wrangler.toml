@@ -1,0 +1,30 @@
+name = "poapin-web"
+type = "javascript"
+
+# Specify the account ID explicitly
+account_id = "9e075df30c6748807fae2d7622b87d8a"
+
+# Set compatibility date to match what's in package.json
+compatibility_date = "2023-06-21"
+
+# Configure the AI binding
+[ai]
+binding = "AI"
+
+# Configure KV namespace for POAP summaries caching
+[[kv_namespaces]]
+binding = "poap-in-POAP_SUMMARIES_KV"
+id = "b329725da14a4895aca577c94b2649a4"  # Replace with your actual KV namespace ID from Cloudflare dashboard
+preview_id = "b329725da14a4895aca577c94b2649a4"  # Same as above for local development
+
+# Configure the Pages site
+[site]
+bucket = "./public"
+
+# Configure build settings
+[build]
+command = "npm run build"
+
+# Configure dev settings
+[dev]
+port = 8788

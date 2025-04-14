@@ -5,7 +5,7 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { cn } from "~/src/cn";
 import PoapListItem from "~/components/poap/poap-list-item";
-import { Button, Select, SelectItem, useDisclosure } from "@heroui/react";
+import { Select, SelectItem, useDisclosure } from "@heroui/react";
 import { getEnv } from "~/src/env";
 import FiltersWrapper from "~/components/poap/filters-wrapper";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
@@ -18,6 +18,7 @@ import Marquee from "~/components/shared/marquee";
 import { MomentCard } from "~/components/poap/moment-card";
 import { CollectionCard } from "~/components/poap/collection-card";
 import { OGImageCard } from "~/components/poap/og-image-card";
+import { Popover, PopoverTrigger, PopoverContent, Button } from "@heroui/react";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -35,24 +36,6 @@ export const meta: MetaFunction = ({ data }) => {
 
     const canonicalUrl = `https://poap.in/v/${ethAddress}`;
 
-    // Create JSON-LD structured data for rich results with multiple images
-    const poaps = loaderData.poaps || [];
-    const topPoaps = poaps.slice(0, 10); // Get top 10 POAPs for the carousel
-
-    const jsonLd = {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        "name": `${loaderData.meta.address}'s POAP Collection`,
-        "description": `Collection of POAPs (Proof of Attendance Protocol) owned by ${loaderData.meta.address}`,
-        "itemListElement": topPoaps.map((poap, index) => ({
-            "@type": "ListItem",
-            "position": index + 1,
-            "url": `https://poap.in/poap/${poap.tokenId}`,
-            "name": poap.event.name,
-            "image": poap.event.image_url
-        }))
-    };
-
     const baseMeta = [
         { title },
         { description },
@@ -63,7 +46,6 @@ export const meta: MetaFunction = ({ data }) => {
         { property: "og:site_name", content: "POAPin" },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `https://poap.in/v/${address}` },
-        // Add canonical link tag
         { tagName: "link", rel: "canonical", href: canonicalUrl },
     ];
 
@@ -114,8 +96,8 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
             metaTitle = `POAPs of ${address} (${ethAddress}) | POAPin`;
         }
 
-        const poapTitles = poaps.slice(0, 3).map(poap => poap.event.name).join(", ");
-        const metaDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 3 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
+        const poapTitles = poaps.slice(0, 1).map(poap => poap.event.name).join(", ");
+        const metaDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${poapTitles}`;
 
         let latestMoments;
@@ -165,20 +147,215 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
             ogimageurl = ogResponse.url;
         }
 
+        // Generate AI summary of the user's POAP collection
+        let aiGeneratedSummary = "";
+        let cachedTimestamp: string | null = null;
+        try {
+            // Check if we have access to the AI binding
+            if (context.cloudflare && context.cloudflare.env) {
+                // Use type assertion to access the AI binding and KV
+                const env = context.cloudflare.env as Record<string, any>;
+
+                // Get the ETH address from the POAPs
+                const ethAddress = poaps[0].owner;
+
+                // Check if we have a cached summary in KV
+                let cachedSummary = null;
+
+                // Try to get cached summary from KV if available
+                const kvBinding = env.POAP_SUMMARIES_KV || env["poap-in-POAP_SUMMARIES_KV"];
+
+                if (kvBinding) {
+                    // Try to get summary for the address parameter (could be ENS or ETH)
+                    try {
+                        // Get the cached data as JSON
+                        const cachedData = await kvBinding.get(address, "json");
+
+                        if (cachedData && typeof cachedData === 'object' && 'summary' in cachedData) {
+                            cachedSummary = cachedData.summary as string;
+                            // Set the generation timestamp from the cache
+                            cachedTimestamp = cachedData.timestamp as string;
+                        }
+                    } catch (error) {
+                        console.error("Error getting cached summary for", address, ":", error);
+                    }
+
+                    // If address is ENS and no cache found, try the ETH address
+                    if (!cachedSummary && address !== ethAddress) {
+                        try {
+                            // Get the cached data as JSON
+                            const cachedData = await kvBinding.get(ethAddress, "json");
+
+                            if (cachedData && typeof cachedData === 'object' && 'summary' in cachedData) {
+                                cachedSummary = cachedData.summary as string;
+                                // Set the generation timestamp from the cache
+                                cachedTimestamp = cachedData.timestamp as string;
+                            }
+                        } catch (error) {
+                            console.error("Error getting cached summary for", ethAddress, ":", error);
+                        }
+                    }
+
+                    if (cachedSummary) {
+                        aiGeneratedSummary = cachedSummary;
+                    } else {
+                    }
+                } else {
+                    console.warn("KV binding not available. Check wrangler.toml and make sure the binding name matches.");
+                }
+
+                // If no cached summary found and AI is available, generate a new one
+                if (!cachedSummary && env.AI) {
+                    // Get all event names
+                    const allPoapEvents = poaps.map(p => p.event.name);
+                    // Sort by event's supply
+                    const sortedPoapEvents = allPoapEvents.sort((a, b) => {
+                        const eventA = poaps.find(p => p.event.name === a);
+                        const eventB = poaps.find(p => p.event.name === b);
+                        return (eventB?.event.supply || 0) - (eventA?.event.supply || 0);
+                    });
+
+                    // Estimate token count for the prompt template (approximately)
+                    const promptTemplateTokens = 400; // Base prompt without event names
+                    const maxTokensForEvents = 7000; // Reserve some tokens for the response
+
+                    // Estimate tokens for event names (rough estimate: 1.5 tokens per word)
+                    let totalEventTokens = 0;
+                    let includedEvents = [];
+
+                    for (const eventName of sortedPoapEvents) {
+                        // Rough estimate: 1.5 tokens per word + 2 for punctuation/formatting
+                        const estimatedTokens = eventName.split(/\s+/).length * 1.5 + 2;
+
+                        if (totalEventTokens + estimatedTokens <= maxTokensForEvents) {
+                            includedEvents.push(eventName);
+                            totalEventTokens += estimatedTokens;
+                        } else {
+                            break; // Stop adding events if we exceed the token limit
+                        }
+                    }
+
+                    // Join the included events
+                    const poapEvents = includedEvents.join(", ");
+
+                    // Create a prompt for Llama model without predefined patterns
+                    const prompt = `
+                        You are an expert in analyzing NFT collections. I'm going to show you a POAP (Proof of Attendance Protocol) collection, and I need you to write a concise, personalized 1-2 sentence summary that describes the unique characteristics of this collection.
+                        
+                        POAP Collection for ${address}:
+                        - Collection Size: ${getCollectionSizeDescription(poaps.length)}
+                        - Event Names: ${poapEvents}
+                        
+                        Instructions:
+                        1. Analyze the event names to identify unique patterns, themes, or interests
+                        2. Write a concise, personalized 1-2 sentence summary that describes what makes this POAP collection unique
+                        3. Focus on the specific events, locations, or themes that are distinctive to this collection
+                        4. DO NOT start with phrases like "This collection is" or "This wallet demonstrates"
+                        5. DO NOT include any prefixes like "Here is a summary:" - just provide the summary directly
+                        6. DO NOT explain what POAPs are generally
+                        7. DO NOT compare this collection to other collections (avoid phrases like "sets it apart from other collections")
+                        8. Start directly with the unique aspects of the collection
+                        9. Be specific about the events and themes you identify
+                        10. Keep the focus entirely on this collection's characteristics without reference to others
+                        11. DO NOT mention the exact number of POAPs in the collection
+                    `;
+
+                    // Use the Llama model for better creative generation
+                    const result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
+                        prompt: prompt,
+                    });
+
+                    // Extract and clean the response from Llama
+                    if (result && typeof result === 'object' && 'response' in result) {
+                        let response = result.response;
+
+                        // Remove common prefixes
+                        const prefixesToRemove = [
+                            "Here is a concise, personalized 1-2 sentence summary:",
+                            "Here's a concise, personalized summary:",
+                            "Here is my summary:",
+                            "Summary:"
+                        ];
+
+                        for (const prefix of prefixesToRemove) {
+                            if (response.includes(prefix)) {
+                                response = response.replace(prefix, "").trim();
+                            }
+                        }
+
+                        // Remove newlines and extra spaces
+                        response = response.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
+
+                        // Remove quotes if present
+                        response = response.replace(/^"|"$/g, "");
+
+                        aiGeneratedSummary = response;
+
+                        // Store the summary in KV cache if available
+                        const kvBinding = env.POAP_SUMMARIES_KV || env["poap-in-POAP_SUMMARIES_KV"];
+                        if (kvBinding && aiGeneratedSummary) {
+                            try {
+                                // Set expiration to one month (in seconds)
+                                const oneMonthInSeconds = 30 * 24 * 60 * 60;
+                                const expirationTtl = oneMonthInSeconds;
+
+                                // Create a data object with both summary and timestamp
+                                const dataToStore = {
+                                    summary: aiGeneratedSummary,
+                                    timestamp: new Date().toISOString()
+                                };
+
+                                // Store for the address parameter (could be ENS or ETH)
+                                await kvBinding.put(address, JSON.stringify(dataToStore), { expirationTtl });
+
+                                // If address is different from ETH address (likely an ENS), store for ETH address too
+                                if (address !== ethAddress) {
+                                    await kvBinding.put(ethAddress, JSON.stringify(dataToStore), { expirationTtl });
+                                }
+
+                            } catch (error) {
+                                console.error("Error storing summary in KV:", error);
+                            }
+                        } else {
+                            console.warn("Cannot store summary in KV: binding not available or summary is empty");
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error generating AI summary:', error);
+        }
+
+        // Get current timestamp for AI generation time
+        const aiGenerationTimestamp = cachedTimestamp || (aiGeneratedSummary ? new Date().toISOString() : null);
+
+        // Base description without AI summary
+        let finalDescription = "";
+
+        // Start with AI summary if available
+        if (aiGeneratedSummary) {
+            finalDescription = aiGeneratedSummary + " ";
+        }
+
+        // Add standard description
+        finalDescription += `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
+
+        // Add moments count if available
+        const totalMomentsCount = momentsCount.totalMoments;
+        if (momentsCount && totalMomentsCount && totalMomentsCount > 0) {
+            finalDescription += ` ${address} created ${totalMomentsCount} POAP moments.`;
+        }
+
         const meta = {
             title: `${metaTitle}`,
-            description: `${metaDescription}`,
+            description: finalDescription,
             keywords: `${metaKeywords}`,
             poaps,
             address,
             ogimageurl,
+            aiSummary: aiGeneratedSummary || "",
+            aiGenerationTime: aiGenerationTimestamp,
         };
-
-        const totalMomentsCount = momentsCount.totalMoments;
-
-        if (momentsCount && totalMomentsCount && totalMomentsCount > 0) {
-            meta.description += ` ${address} created ${totalMomentsCount} POAP moments.`;
-        }
 
         return json({ poaps, totalMomentsCount, latestMoments, dropsWithMoments, meta });
     } catch (error) {
@@ -201,6 +378,61 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
     }
 };
 
+// Helper function to get a general description of collection size
+function getCollectionSizeDescription(count: number): string {
+    if (count < 5) return "A few POAPs";
+    if (count < 10) return "Several POAPs";
+    if (count < 20) return "A small collection";
+    if (count < 50) return "A modest collection";
+    if (count < 100) return "A medium-sized collection";
+    if (count < 200) return "A substantial collection";
+    if (count < 500) return "A large collection";
+    if (count < 1000) return "A very large collection";
+    return "An extensive collection";
+}
+
+// Helper function to format address for display
+function formatDisplayAddress(address: string): string {
+    // Check if address is an ENS name (contains a dot)
+    if (address.includes('.')) {
+        return address;
+    }
+
+    // Otherwise, it's an ETH address - truncate to first 4 and last 4 characters
+    if (address.length >= 8) {
+        return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+    }
+
+    // Fallback for very short addresses (shouldn't happen with ETH addresses)
+    return address;
+}
+
+// Helper function to format timestamp in a user-friendly way
+function formatTimestamp(timestamp: string): string {
+    const date = new Date(timestamp);
+    const now = new Date();
+
+    // Calculate time difference in milliseconds
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // Format as relative time if recent, otherwise use date
+    if (diffMins < 1) {
+        return "Just now";
+    } else if (diffMins < 60) {
+        return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+    } else if (diffHours < 24) {
+        return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    } else if (diffDays < 30) {
+        return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+    } else {
+        // For older timestamps, use date format
+        return date.toLocaleDateString();
+    }
+}
+
 interface LoaderData {
     poaps: POAP[];
     totalMomentsCount: number;
@@ -216,6 +448,8 @@ interface LoaderData {
         poaps: POAP[];
         address: string;
         ogimageurl: string;
+        aiSummary: string;
+        aiGenerationTime: string | null;
     };
 }
 
@@ -236,19 +470,46 @@ export default function POAPList({ className }: { className?: string }) {
     const [collections, setCollections] = useState<Collection[]>([]);
 
     // Create JSON-LD data
-    const jsonLd = meta ? {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        "name": `${meta.address}'s POAP Collection`,
-        "description": `Collection of POAPs (Proof of Attendance Protocol) owned by ${meta.address}`,
-        "itemListElement": poaps?.slice(0, 10).map((poap, index) => ({
-            "@type": "ListItem",
-            "position": index + 1,
-            "url": `https://poap.in/poap/${poap.tokenId}`,
-            "name": poap.event.name,
-            "image": poap.event.image_url
-        }))
-    } : null;
+    const jsonLd = meta ? [
+        // Person schema for the wallet owner
+        {
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "identifier": meta.address,
+            "name": meta.address.includes('.') ? meta.address : `Ethereum Wallet ${meta.address}`,
+            "description": meta.description,
+            "url": `https://poap.in/v/${meta.address}`,
+            "mainEntityOfPage": {
+                "@type": "ProfilePage",
+                "@id": `https://poap.in/v/${meta.address}`
+            },
+            "owns": {
+                "@type": "ItemList",
+                "itemListElement": poaps?.slice(0, 10).map((poap) => ({
+                    "@type": "Thing",
+                    "name": poap.event.name,
+                    "url": `https://poap.in/poap/${poap.tokenId}`
+                }))
+            }
+        },
+        // ItemList schema for the POAP collection (enhanced version of existing schema)
+        {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": `${meta.address}'s POAP Collection`,
+            "description": `Collection of POAPs (Proof of Attendance Protocol) owned by ${meta.address}`,
+            "numberOfItems": poaps.length,
+            "itemListOrder": "Descending",
+            "itemListElement": poaps?.slice(0, 10).map((poap, index) => ({
+                "@type": "ListItem",
+                "position": index + 1,
+                "url": `https://poap.in/poap/${poap.tokenId}`,
+                "name": poap.event.name,
+                "image": poap.event.image_url,
+                "description": `${poap.event.name} POAP from ${poap.event.start_date}`
+            }))
+        }
+    ] : null;
 
     useEffect(() => {
 
@@ -299,6 +560,23 @@ export default function POAPList({ className }: { className?: string }) {
                             <p className="text-xl text-background-600 mb-6">{error}</p>
                             <p className="text-medium text-background-500 mb-8">The POAP API is currently rate limited. This helps ensure fair usage for all users.</p>
                             <div className="flex flex-col sm:flex-row gap-4">
+                                {address && (
+                                    <Button
+                                        className="flex md:hidden border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800"
+                                        startContent={
+                                            <Icon
+                                                className="text-background-600 hover:text-background-800 active:text-background-800"
+                                                height={16}
+                                                icon="solar:filter-linear"
+                                                width={16}
+                                            />
+                                        }
+                                        variant="bordered"
+                                        onPress={onOpen}
+                                    >
+                                        Filters
+                                    </Button>
+                                )}
                                 {address && (
                                     <Button color="secondary" as={Link} to={`/v/${address}`} reloadDocument>
                                         Try Again
@@ -533,25 +811,38 @@ export default function POAPList({ className }: { className?: string }) {
                         </div>
                     </header>
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
-                        {/* OG Image */}
-                        {meta.address && (
-                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                                <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <div className="flex-1">
-                                        <OGImageCard
-                                            address={meta.address}
-                                            theme="default"
-                                            className="bg-[#d4dbe0]"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <OGImageCard
-                                            address={meta.address}
-                                            theme="letter"
-                                            className="bg-[#E8E4D8]"
-                                        />
-                                    </div>
+                        {/* AI Summary Display */}
+                        {meta.aiSummary && (
+                            <div className="flex flex-col gap-2 p-4 bg-secondary-50 bg-opacity-90 backdrop-blur-sm rounded-medium mx-auto mb-4">
+                                <h2 className="text-medium font-medium text-background-700">
+                                    Quick Insights: {formatDisplayAddress(meta.address || '')}
+                                </h2>
+                                <p className="text-background-800">{meta.aiSummary}</p>
+                                <div className="flex justify-between items-center">
+                                    <div></div> {/* Empty div to push the popover to the right */}
+                                    <Popover>
+                                        <PopoverTrigger>
+                                            <Button size="sm" variant="light" className="flex items-center gap-1 text-xs text-background-500">
+                                                <Icon icon="basil:info-rect-solid" width="24" height="24" />
+                                                {meta.aiGenerationTime ? formatTimestamp(meta.aiGenerationTime) : 'Unknown'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent>
+                                            {(titleProps) => (
+                                                <div className="px-3 py-2 max-w-xs">
+                                                    <h3 className="text-small font-bold" {...titleProps}>
+                                                        Quick Insights
+                                                    </h3>
+                                                    <div className="text-tiny mt-1">
+                                                        We periodically analyze POAP collections to help you quickly understand {formatDisplayAddress(meta.address || '')}'s POAP footprint.
+                                                    </div>
+                                                    <div className="text-tiny mt-2 text-background-500">
+                                                        Generated on: {meta.aiGenerationTime ? new Date(meta.aiGenerationTime).toLocaleString() : 'Unknown'}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
                         )}
@@ -579,18 +870,49 @@ export default function POAPList({ className }: { className?: string }) {
                                 </div>
                             </div>
                         )}
+                        {meta.address && (
+                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
+                                <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="flex-1">
+                                        <OGImageCard
+                                            address={meta.address}
+                                            theme="default"
+                                            className="bg-[#d4dbe0]"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <OGImageCard
+                                            address={meta.address}
+                                            theme="letter"
+                                            className="bg-[#E8E4D8]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <div className="block rounded-medium border-background-200 border-dashed border-[1px]">
                             <div className="flex flex-col items-center">
-                                <div
+                                <section 
+                                    aria-label="POAP Collection"
                                     className={cn(
                                         "my-auto grid max-w-7xl gap-5 p-4 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
                                         className
                                     )}
                                 >
                                     {filteredPoaps.map((poap) => (
-                                        <PoapListItem key={poap.tokenId} poap={poap} momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} />
+                                        <article 
+                                            key={poap.tokenId} 
+                                            aria-label={poap.event.name}
+                                            className="poap-item"
+                                        >
+                                            <PoapListItem 
+                                                poap={poap} 
+                                                momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} 
+                                            />
+                                        </article>
                                     ))}
-                                </div>
+                                </section>
                             </div>
                         </div>
                     </main>

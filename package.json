@@ -7,7 +7,7 @@
     "build": "remix build",
     "dev": "remix dev --manual -c \"npm run start\"",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
-    "start": "wrangler pages dev --compatibility-date=2023-06-21 ./public",
+    "start": "CLOUDFLARE_ACCOUNT_ID=9e075df30c6748807fae2d7622b87d8a wrangler pages dev --compatibility-date=2023-06-21 --ai AI ./public",
     "typecheck": "tsc"
   },
   "dependencies": {
