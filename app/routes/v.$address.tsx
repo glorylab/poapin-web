@@ -163,7 +163,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
                 let cachedSummary = null;
 
                 // Try to get cached summary from KV if available
-                const kvBinding = env.POAP_SUMMARIES_KV || env["poap-in-POAP_SUMMARIES_KV"];
+                const kvBinding = env.POAP_SUMMARIES_KV || env["POAP_SUMMARIES_KV"];
 
                 if (kvBinding) {
                     // Try to get summary for the address parameter (could be ENS or ETH)
@@ -206,124 +206,160 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
 
                 // If no cached summary found and AI is available, generate a new one
                 if (!cachedSummary && env.AI) {
-                    // Get all event names
-                    const allPoapEvents = poaps.map(p => p.event.name);
-                    // Sort by event's supply
-                    const sortedPoapEvents = allPoapEvents.sort((a, b) => {
-                        const eventA = poaps.find(p => p.event.name === a);
-                        const eventB = poaps.find(p => p.event.name === b);
-                        return (eventB?.event.supply || 0) - (eventA?.event.supply || 0);
-                    });
+                    try {
+                        // Get all event names
+                        const allPoapEvents = poaps.map(p => p.event.name);
+                        // Sort by event's supply
+                        const sortedPoapEvents = allPoapEvents.sort((a, b) => {
+                            const eventA = poaps.find(p => p.event.name === a);
+                            const eventB = poaps.find(p => p.event.name === b);
+                            return (eventB?.event.supply || 0) - (eventA?.event.supply || 0);
+                        });
 
-                    // Estimate token count for the prompt template (approximately)
-                    const promptTemplateTokens = 400; // Base prompt without event names
-                    const maxTokensForEvents = 7000; // Reserve some tokens for the response
+                        // Estimate token count for the prompt template (approximately)
+                        const promptTemplateTokens = 400; // Base prompt without event names
+                        const maxTokensForEvents = 7000; // Reserve some tokens for the response
 
-                    // Estimate tokens for event names (rough estimate: 1.5 tokens per word)
-                    let totalEventTokens = 0;
-                    let includedEvents = [];
+                        // Estimate tokens for event names (rough estimate: 1.5 tokens per word)
+                        let totalEventTokens = 0;
+                        let includedEvents = [];
 
-                    for (const eventName of sortedPoapEvents) {
-                        // Rough estimate: 1.5 tokens per word + 2 for punctuation/formatting
-                        const estimatedTokens = eventName.split(/\s+/).length * 1.5 + 2;
+                        for (const eventName of sortedPoapEvents) {
+                            // Rough estimate: 1.5 tokens per word + 2 for punctuation/formatting
+                            const estimatedTokens = eventName.split(/\s+/).length * 1.5 + 2;
 
-                        if (totalEventTokens + estimatedTokens <= maxTokensForEvents) {
-                            includedEvents.push(eventName);
-                            totalEventTokens += estimatedTokens;
-                        } else {
-                            break; // Stop adding events if we exceed the token limit
-                        }
-                    }
-
-                    // Join the included events
-                    const poapEvents = includedEvents.join(", ");
-
-                    // Create a prompt for Llama model without predefined patterns
-                    const prompt = `
-                        You are an expert in analyzing NFT collections. I'm going to show you a POAP (Proof of Attendance Protocol) collection, and I need you to write a concise, personalized 1-2 sentence summary that describes the unique characteristics of this collection.
-                        
-                        POAP Collection for ${address}:
-                        - Collection Size: ${getCollectionSizeDescription(poaps.length)}
-                        - Event Names: ${poapEvents}
-                        
-                        Instructions:
-                        1. Analyze the event names to identify unique patterns, themes, or interests
-                        2. Write a concise, personalized 1-2 sentence summary that describes what makes this POAP collection unique
-                        3. Focus on the specific events, locations, or themes that are distinctive to this collection
-                        4. DO NOT start with phrases like "This collection is" or "This wallet demonstrates"
-                        5. DO NOT include any prefixes like "Here is a summary:" - just provide the summary directly
-                        6. DO NOT explain what POAPs are generally
-                        7. DO NOT compare this collection to other collections (avoid phrases like "sets it apart from other collections")
-                        8. Start directly with the unique aspects of the collection
-                        9. Be specific about the events and themes you identify
-                        10. Keep the focus entirely on this collection's characteristics without reference to others
-                        11. DO NOT mention the exact number of POAPs in the collection
-                    `;
-
-                    // Use the Llama model for better creative generation
-                    const result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
-                        prompt: prompt,
-                    });
-
-                    // Extract and clean the response from Llama
-                    if (result && typeof result === 'object' && 'response' in result) {
-                        let response = result.response;
-
-                        // Remove common prefixes
-                        const prefixesToRemove = [
-                            "Here is a concise, personalized 1-2 sentence summary:",
-                            "Here's a concise, personalized summary:",
-                            "Here is my summary:",
-                            "Summary:"
-                        ];
-
-                        for (const prefix of prefixesToRemove) {
-                            if (response.includes(prefix)) {
-                                response = response.replace(prefix, "").trim();
+                            if (totalEventTokens + estimatedTokens <= maxTokensForEvents) {
+                                includedEvents.push(eventName);
+                                totalEventTokens += estimatedTokens;
+                            } else {
+                                break; // Stop adding events if we exceed the token limit
                             }
                         }
 
-                        // Remove newlines and extra spaces
-                        response = response.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
+                        // Join the included events
+                        const poapEvents = includedEvents.join(", ");
 
-                        // Remove quotes if present
-                        response = response.replace(/^"|"$/g, "");
+                        // Create a prompt for Llama model without predefined patterns
+                        const prompt = `
+                            You are an expert in analyzing NFT collections. I'm going to show you a POAP (Proof of Attendance Protocol) collection, and I need you to write a concise, personalized 1-2 sentence summary that describes the unique characteristics of this collection.
+                            
+                            POAP Collection for ${address}:
+                            - Collection Size: ${getCollectionSizeDescription(poaps.length)}
+                            - Event Names: ${poapEvents}
+                            
+                            Instructions:
+                            1. Analyze the event names to identify unique patterns, themes, or interests
+                            2. Write a concise, personalized 1-2 sentence summary that describes what makes this POAP collection unique
+                            3. Focus on the specific events, locations, or themes that are distinctive to this collection
+                            4. DO NOT start with phrases like "This collection is" or "This wallet demonstrates"
+                            5. DO NOT include any prefixes like "Here is a summary:" - just provide the summary directly
+                            6. DO NOT explain what POAPs are generally
+                            7. DO NOT compare this collection to other collections (avoid phrases like "sets it apart from other collections")
+                            8. Start directly with the unique aspects of the collection
+                            9. Be specific about the events and themes you identify
+                            10. Keep the focus entirely on this collection's characteristics without reference to others
+                            11. DO NOT mention the exact number of POAPs in the collection
+                        `;
 
-                        aiGeneratedSummary = response;
+                        // Check if AI binding exists and has the expected structure
+                        let result;
+                        if (typeof env.AI === 'object' && env.AI !== null) {
+                            // Try different methods of accessing the AI binding
+                            if (typeof env.AI.run === 'function') {
+                                // Standard method
+                                result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
+                                    prompt: prompt,
+                                });
+                            } else if (env.AI['@cf/meta/llama-3.2-3b-instruct'] && 
+                                     typeof env.AI['@cf/meta/llama-3.2-3b-instruct'] === 'function') {
+                                // Alternative method if model is directly accessible
+                                result = await env.AI['@cf/meta/llama-3.2-3b-instruct']({
+                                    prompt: prompt,
+                                });
+                            } else {
+                                throw new Error('AI binding exists but does not have expected methods');
+                            }
+                        } else {
+                            throw new Error('AI binding is not an object');
+                        }
 
-                        // Store the summary in KV cache if available
-                        const kvBinding = env.POAP_SUMMARIES_KV || env["poap-in-POAP_SUMMARIES_KV"];
-                        if (kvBinding && aiGeneratedSummary) {
-                            try {
-                                // Set expiration to one month (in seconds)
-                                const oneMonthInSeconds = 30 * 24 * 60 * 60;
-                                const expirationTtl = oneMonthInSeconds;
+                        // Extract and clean the response from Llama
+                        if (result && typeof result === 'object' && 'response' in result) {
+                            let response = result.response;
 
-                                // Create a data object with both summary and timestamp
-                                const dataToStore = {
-                                    summary: aiGeneratedSummary,
-                                    timestamp: new Date().toISOString()
-                                };
+                            // Remove common prefixes
+                            const prefixesToRemove = [
+                                "Here is a concise, personalized 1-2 sentence summary:",
+                                "Here's a concise, personalized summary:",
+                                "Here is my summary:",
+                                "Summary:"
+                            ];
 
-                                // Store for the address parameter (could be ENS or ETH)
-                                await kvBinding.put(address, JSON.stringify(dataToStore), { expirationTtl });
-
-                                // If address is different from ETH address (likely an ENS), store for ETH address too
-                                if (address !== ethAddress) {
-                                    await kvBinding.put(ethAddress, JSON.stringify(dataToStore), { expirationTtl });
+                            for (const prefix of prefixesToRemove) {
+                                if (response.includes(prefix)) {
+                                    response = response.replace(prefix, "").trim();
                                 }
-
-                            } catch (error) {
-                                console.error("Error storing summary in KV:", error);
                             }
-                        } else {
-                            console.warn("Cannot store summary in KV: binding not available or summary is empty");
+
+                            // Remove newlines and extra spaces
+                            response = response.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
+
+                            // Remove quotes if present
+                            response = response.replace(/^"|"$/g, "");
+
+                            aiGeneratedSummary = response;
+
+                            // Store the summary in KV cache if available
+                            const kvBinding = env.POAP_SUMMARIES_KV || env["POAP_SUMMARIES_KV"];
+                            if (kvBinding && aiGeneratedSummary) {
+                                try {
+                                    // Set expiration to one month (in seconds)
+                                    const oneMonthInSeconds = 30 * 24 * 60 * 60;
+                                    const expirationTtl = oneMonthInSeconds;
+
+                                    // Create a data object with both summary and timestamp
+                                    const dataToStore = {
+                                        summary: aiGeneratedSummary,
+                                        timestamp: new Date().toISOString()
+                                    };
+
+                                    // Store for the address parameter (could be ENS or ETH)
+                                    await kvBinding.put(address, JSON.stringify(dataToStore), { expirationTtl });
+
+                                    // If address is different from ETH address (likely an ENS), store for ETH address too
+                                    if (address !== ethAddress) {
+                                        await kvBinding.put(ethAddress, JSON.stringify(dataToStore), { expirationTtl });
+                                    }
+
+                                } catch (error) {
+                                    console.error("Error storing summary in KV:", error);
+                                }
+                            } else {
+                                console.warn("Cannot store summary in KV: binding not available or summary is empty");
+                            }
                         }
+                    } catch (error) {
+                        console.error('Error generating AI summary:', error);
                     }
                 }
             }
         } catch (error) {
-            console.error('Error generating AI summary:', error);
+            console.error('Error in v.$address loader:', error);
+
+            // Check if it's a rate limit error
+            if (error instanceof RateLimitError) {
+                return json({
+                    error: error.message,
+                    isRateLimit: true,
+                    address: address
+                }, { status: 429 });
+            }
+
+            // Handle other errors
+            return json({
+                error: "Failed to load POAPs. Please try again later.",
+                address: address
+            }, { status: 500 });
         }
 
         // Get current timestamp for AI generation time

@@ -13,7 +13,7 @@ binding = "AI"
 
 # Configure KV namespace for POAP summaries caching
 [[kv_namespaces]]
-binding = "poap-in-POAP_SUMMARIES_KV"
+binding = "POAP_SUMMARIES_KV"
 id = "b329725da14a4895aca577c94b2649a4"  # Replace with your actual KV namespace ID from Cloudflare dashboard
 preview_id = "b329725da14a4895aca577c94b2649a4"  # Same as above for local development
 
