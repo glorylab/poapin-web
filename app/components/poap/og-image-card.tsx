@@ -3,6 +3,7 @@ import { Image } from "@heroui/react";
 import { useAtom } from 'jotai';
 import { createOGImageAtom, ogImageAtomsMap } from '../../atoms/og-image-atom';
 import { WobbleCard } from "../global/wobble-card";
+import { Link } from "@remix-run/react";
 
 interface OGImageStatus {
     status: "completed" | "not_found" | "pending";
@@ -152,14 +153,16 @@ export function OGImageCard({ address, theme, className }: OGImageCardProps) {
 
     return (
         <WobbleCard className={`relative w-full aspect-[1200/630] rounded-lg overflow-hidden ${className}`}>
-            <Image
-                key={key}
-                src={imageUrl}
-                alt={`${address} ${theme} card`}
-                classNames={{
-                    img: "object-cover w-full h-full"
-                }}
-            />
+            <Link to={`/card/${address}`}>
+                <Image
+                    key={key}
+                    src={imageUrl}
+                    alt={`${address} ${theme} card`}
+                    classNames={{
+                        img: "object-cover w-full h-full"
+                    }}
+                />
+            </Link>
         </WobbleCard>
     );
 }

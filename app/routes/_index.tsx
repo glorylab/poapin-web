@@ -261,26 +261,34 @@ export default function Index() {
                   className="h-1/2"
                   pauseOnHover>
                   {highlights.map((highlight) => (
-                    <Image
-                      width={400}
-                      height={210}
-                      className="h-full"
+                    <Link 
                       key={highlight.address}
-                      src={highlight.og_image_url + "/default"}
-                      alt={highlight.address} />
+                      to={`/v/${highlight.address}`}
+                      className="h-full mx-1">
+                      <Image
+                        width={400}
+                        height={210}
+                        className="h-full"
+                        src={highlight.og_image_url + "/default"}
+                        alt={highlight.address} />
+                    </Link>
                   ))}
                 </Marquee>
                 <Marquee
                   className="h-1/2"
                   pauseOnHover>
                   {highlights.map((highlight) => (
-                    <Image
-                      width={400}
-                      height={210}
-                      className="h-full"
+                    <Link 
                       key={highlight.address}
-                      src={highlight.og_image_url + "/letter"}
-                      alt={highlight.address} />
+                      to={`/v/${highlight.address}`}
+                      className="h-full mx-1">
+                      <Image
+                        width={400}
+                        height={210}
+                        className="h-full"
+                        src={highlight.og_image_url + "/letter"}
+                        alt={highlight.address} />
+                    </Link>
                   ))}
                 </Marquee>
               </div>

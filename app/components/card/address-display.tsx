@@ -2,7 +2,7 @@ import { Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useAtom } from "jotai";
 import { motion } from "framer-motion";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate, Link } from "@remix-run/react";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
 
 interface AddressDisplayProps {
@@ -41,7 +41,16 @@ export function AddressDisplay({ onBack }: AddressDisplayProps) {
                 >
                     <Icon icon="heroicons:arrow-left" width="20" height="20" />
                 </Button>
-                <p className="text-gray-700 font-mono">{walletAddress}</p>
+                <Link 
+                    to={`/v/${walletAddress}`} 
+                    className="text-background-700 font-mono px-2 py-1 bg-secondary-50 rounded-md border border-secondary-500 hover:bg-secondary-50/30 active:bg-secondary-50/90 active:text-background-900 active:shadow-sm hover:shadow-md hover:text-background-800 transition-all flex items-center"
+                    title={`View ${walletAddress}'s POAP Collection`}
+                    aria-label={`View ${walletAddress}'s complete POAP collection`}
+                    rel="canonical"
+                >
+                    <span>{walletAddress}</span>
+                    <span className="ml-2 text-xs text-background-500 hidden sm:inline">(View full collection)</span>
+                </Link>
             </div>
         </motion.div>
     );
