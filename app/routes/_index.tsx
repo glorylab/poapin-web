@@ -64,7 +64,7 @@ export const meta: MetaFunction = () => {
 export const loader: LoaderFunction = async ({ context }) => {
   try {
     const highlightsResponse = await getHighLights(context) as { data: HighLight[] };
-    
+
     return json({ highlights: highlightsResponse.data });
   } catch (error) {
     console.error(error);
@@ -96,12 +96,12 @@ export default function Index() {
   useEffect(() => {
     // Initial fetch
     fetchStats();
-    
+
     // Set up periodic updates every 3 seconds
     updateIntervalRef.current = setInterval(() => {
       fetchStats();
     }, 3000);
-    
+
     // Stop updates after 2 minutes
     timeoutRef.current = setTimeout(() => {
       if (updateIntervalRef.current) {
@@ -109,7 +109,7 @@ export default function Index() {
         updateIntervalRef.current = null;
       }
     }, 120000); // 2 minutes
-    
+
     // Cleanup on unmount
     return () => {
       if (updateIntervalRef.current) {
@@ -181,29 +181,29 @@ export default function Index() {
         <div className="w-full mx-auto relative bg-gradient-to-b from-background-600/90 to-transparent">
           {/* Golden glow border effect */}
           <div className="absolute inset-x-0 top-0 h-[3px] w-full overflow-hidden">
-            <div 
-              className="absolute left-1/2 transform -translate-x-1/2 h-full bg-gradient-to-r from-transparent via-yellow-300/90 to-transparent" 
-              style={{ 
+            <div
+              className="absolute left-1/2 transform -translate-x-1/2 h-full bg-gradient-to-r from-transparent via-yellow-300/90 to-transparent"
+              style={{
                 boxShadow: '0 0 15px 2px rgba(255, 215, 0, 0.9), 0 0 30px 5px rgba(255, 215, 0, 0.3)',
                 width: '60%',
                 animation: '3s infinite goldenPulse'
               }}>
             </div>
           </div>
-          
+
           {/* Background overlay with image and opacity gradient */}
-          <div 
-            className="absolute inset-0 w-full h-full z-0" 
-            style={{ 
-              backgroundImage: 'url("/images/background_sketch.png")', 
-              backgroundRepeat: 'repeat', 
+          <div
+            className="absolute inset-0 w-full h-full z-0"
+            style={{
+              backgroundImage: 'url("/images/background_sketch.png")',
+              backgroundRepeat: 'repeat',
               backgroundSize: '256px 256px',
               WebkitMaskImage: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%)',
               maskImage: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%)',
               opacity: 0.1
             }}
           ></div>
-          
+
           {/* Content container with relative positioning to appear above the background */}
           <div className="relative z-10">
             {stats && (
@@ -212,7 +212,7 @@ export default function Index() {
                   <p className="text-lg text-gray-200 mb-6 leading-relaxed">
                     We've created {' '}
                     <AnimatePresence mode="wait">
-                      <motion.span 
+                      <motion.span
                         key={`total-${stats.total_images}`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -225,7 +225,7 @@ export default function Index() {
                     </AnimatePresence>
                     {' '} beautiful cards for {' '}
                     <AnimatePresence mode="wait">
-                      <motion.span 
+                      <motion.span
                         key={`addresses-${stats.unique_addresses}`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -238,7 +238,7 @@ export default function Index() {
                     </AnimatePresence>
                     {' '} wallets, with {' '}
                     <AnimatePresence mode="wait">
-                      <motion.span 
+                      <motion.span
                         key={`animated-${stats.animated_count}`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -255,13 +255,13 @@ export default function Index() {
               </section>
             )}
             <section className="w-full mx-auto relative px-0 xs:px-0 md:flex flex-col justify-center md:justify-start md:pt-0">
-              <div className="flex flex-col h-[512px]">
+              <div className="flex flex-col h-[728px]">
 
                 <Marquee
                   className="h-1/2"
                   pauseOnHover>
                   {highlights.map((highlight) => (
-                    <Link 
+                    <Link
                       key={highlight.address}
                       to={`/v/${highlight.address}`}
                       className="h-full mx-1">
@@ -276,9 +276,10 @@ export default function Index() {
                 </Marquee>
                 <Marquee
                   className="h-1/2"
+                  reverse
                   pauseOnHover>
                   {highlights.map((highlight) => (
-                    <Link 
+                    <Link
                       key={highlight.address}
                       to={`/v/${highlight.address}`}
                       className="h-full mx-1">
@@ -291,12 +292,29 @@ export default function Index() {
                     </Link>
                   ))}
                 </Marquee>
+                <Marquee
+                  className="h-1/2"
+                  pauseOnHover>
+                  {highlights.map((highlight) => (
+                    <Link
+                      key={highlight.address}
+                      to={`/v/${highlight.address}`}
+                      className="h-full mx-1">
+                      <Image
+                        width={400}
+                        height={210}
+                        className="h-full"
+                        src={highlight.og_image_url + "/gallery"}
+                        alt={highlight.address} />
+                    </Link>
+                  ))}
+                </Marquee>
               </div>
             </section>
-            
+
             <section className="w-full mx-auto relative px-2 xs:px-8 md:flex flex-col items-center justify-center md:justify-start md:pt-8 pb-12">
-              <Link 
-                to="/card" 
+              <Link
+                to="/card"
                 className="bg-gradient-to-r from-secondary-600 to-secondary-500 hover:from-secondary-700 hover:to-secondary-600 active:from-secondary-700 active:to-secondary-700 active:scale-[0.98] transition-all duration-300 hover:scale-[1.01] text-white font-bold py-4 px-10 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105 flex items-center justify-center text-lg">
                 <span>Get My POAP Card</span>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">

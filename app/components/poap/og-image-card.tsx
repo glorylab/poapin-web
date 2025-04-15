@@ -14,11 +14,11 @@ interface OGImageStatus {
 
 interface OGImageCardProps {
     address: string;
-    theme: "default" | "letter";
+    theme: "default" | "letter" | "gallery";
     className?: string;
 }
 
-function useOGImage(address: string, theme: "default" | "letter") {
+function useOGImage(address: string, theme: "default" | "letter" | "gallery") {
     const key = `${address}-${theme}`;
     if (!ogImageAtomsMap.has(key)) {
         ogImageAtomsMap.set(key, createOGImageAtom(address, theme));

@@ -6,7 +6,7 @@ export interface OGImageState {
     retryCount: number;
 }
 
-export const createOGImageAtom = (address: string, theme: "default" | "letter") => {
+export const createOGImageAtom = (address: string, theme: "default" | "letter" | "gallery") => {
     return atom<OGImageState>({
         status: "pending",
         url: `https://og.poap.in/api/poap/v/${address}/${theme}`,

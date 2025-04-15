@@ -10,6 +10,7 @@ interface ResultBoxProps {
 export function ResultBox({ walletAddress }: ResultBoxProps) {
     const imageUrl = `https://og.poap.in/api/poap/v/${walletAddress}`;
     const imageUrl2 = `https://og.poap.in/api/poap/v/${walletAddress}/letter`;
+    const imageUrl3 = `https://og.poap.in/api/poap/v/${walletAddress}/gallery`;
     const badgeUrlSm = `/badge/${walletAddress}/sm`;
     const badgeUrlMd = `/badge/${walletAddress}/md`;
     const badgeUrlLg = `/badge/${walletAddress}/lg`;
@@ -38,6 +39,14 @@ export function ResultBox({ walletAddress }: ResultBoxProps) {
                 address={walletAddress}
                 imageUrl={imageUrl2}
                 altText={`POAP | ${walletAddress}`}
+            />
+
+            <PreviewImageCard
+                title="Gallery"
+                description="Visualize your POAP collection in a gallery"
+                address={walletAddress}
+                imageUrl={imageUrl3}
+                altText={`POAP Gallery | ${walletAddress}`}
             />
 
             <PreviewBadgeCard

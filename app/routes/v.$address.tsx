@@ -924,6 +924,13 @@ export default function POAPList({ className }: { className?: string }) {
                                             className="bg-[#E8E4D8]"
                                         />
                                     </div>
+                                    <div className="flex-1">
+                                        <OGImageCard
+                                            address={meta.address}
+                                            theme="gallery"
+                                            className="bg-[#E8E4D8]"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}
