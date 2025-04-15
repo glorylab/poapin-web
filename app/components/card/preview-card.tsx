@@ -6,8 +6,10 @@ import { CardBody, CardContainer, CardItem } from "~/components/3d-card";
 const imageUrls = [
     "https://og.poap.in/api/poap/v/poap.eth/letter",
     "https://og.poap.in/api/poap/v/glorylab.eth",
+    "https://og.poap.in/api/poap/v/poap.eth/gallery",
     "https://og.poap.in/api/poap/v/isabel.eth/letter",
     "https://og.poap.in/api/poap/v/vitalik.eth",
+    "https://og.poap.in/api/poap/v/countessellis.eth/gallery",
 ];
 
 // Physical easing curve
