@@ -169,7 +169,7 @@ export default function POAPDetailPage() {
             "artform": "Digital Token",
             "artMedium": "NFT",
             "image": poap?.event?.image_url,
-            "dateCreated": poap?.event?.start_date,
+            "dateCreated": poap?.event?.start_date ? formatISO8601Date(poap.event.start_date) : undefined,
             ...(poap?.owner ? {
                 "owner": {
                     "@type": "Person",
@@ -180,17 +180,42 @@ export default function POAPDetailPage() {
                 "@type": "Event",
                 "name": poap?.event?.name,
                 "description": poap?.event?.description,
-                "startDate": poap?.event?.start_date,
-                "endDate": poap?.event?.end_date || poap?.event?.start_date,
+                "startDate": poap?.event?.start_date ? formatISO8601Date(poap.event.start_date) : undefined,
+                "endDate": poap?.event?.end_date ? formatISO8601Date(poap.event.end_date) : 
+                          (poap?.event?.start_date ? formatISO8601Date(poap.event.start_date) : undefined),
+                "eventStatus": "https://schema.org/EventScheduled",
+                "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+                "image": poap?.event?.image_url,
                 ...(poap?.event?.city || poap?.event?.country ? {
                     "location": {
                         "@type": "Place",
-                        ...(poap?.event?.city ? { "addressLocality": poap.event.city } : {}),
-                        ...(poap?.event?.country ? { "addressCountry": poap.event.country } : {})
+                        "name": [poap?.event?.city, poap?.event?.country].filter(Boolean).join(", "),
+                        "address": {
+                            "@type": "PostalAddress",
+                            ...(poap?.event?.city ? { "addressLocality": poap.event.city } : {}),
+                            ...(poap?.event?.country ? { "addressCountry": poap.event.country } : {})
+                        }
                     }
-                } : {}),
+                } : {
+                    "location": {
+                        "@type": "VirtualLocation",
+                        "name": "Digital Event"
+                    }
+                }),
                 ...(poap?.event?.event_url ? { "url": poap.event.event_url } : {}),
                 "organizer": {
+                    "@type": "Organization",
+                    "name": "POAP - Proof of Attendance Protocol",
+                    "url": "https://poap.xyz/"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD",
+                    "availability": "https://schema.org/InStock",
+                    "url": `https://poap.in/poap/${poap?.tokenId}`
+                },
+                "performer": {
                     "@type": "Organization",
                     "name": "POAP - Proof of Attendance Protocol"
                 }
@@ -214,6 +239,27 @@ export default function POAPDetailPage() {
             ]
         }
     };
+
+    // Helper function to convert date string to ISO 8601 format
+    function formatISO8601Date(dateString: string): string {
+        // Try to parse different date formats
+        const formats = [
+            "DD-MMM-YYYY", // 19-Feb-2025
+            "YYYY-MM-DD",  // 2025-02-19
+            "MM/DD/YYYY", // 02/19/2025
+            "MMMM DD, YYYY" // February 19, 2025
+        ];
+        
+        for (const format of formats) {
+            const date = new Date(dateString);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+            }
+        }
+        
+        // If cannot parse, return original string
+        return dateString;
+    }
 
     if (!poap) {
         return <div className="loading">Loading POAP...</div>;
