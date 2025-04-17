@@ -117,26 +117,30 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                         {<Chip
                             onClick={() => handleOpen()}
                             className="font-mono cursor-pointer hover:bg-secondary-100 hover:text-secondary-700 transition-all duration-200 hover:shadow-lg hover:scale-[0.96] active:scale-[0.94]"
-                            variant="flat">{supply.order}/{supply.total}</Chip>
+                            variant="flat"
+                            aria-label={`POAP supply: ${supply.order} out of ${supply.total}`}
+                        >{supply.order}/{supply.total}</Chip>
                         }
-                        {event.country && <Chip variant="flat">{event.country}</Chip>}
-                        {event.city && <Chip variant="flat">{event.city}</Chip>}
-                        {event.year && <Chip variant="flat">{event.year}</Chip>}
+                        {event.country && <Chip variant="flat" aria-label={`Event country: ${event.country}`}>{event.country}</Chip>}
+                        {event.city && <Chip variant="flat" aria-label={`Event city: ${event.city}`}>{event.city}</Chip>}
+                        {event.year && <Chip variant="flat" aria-label={`Event year: ${event.year}`}>{event.year}</Chip>}
                     </div>
                     <div className="flex py-2">
                         {event.event_url &&
                             <Link
                                 to={event.event_url}
-                                rel="noreferrer"
+                                rel="noopener"
                                 className="text-primary hover:opacity-80 transition-all duration-200 flex flex-row items-center gap-2 hover:underline"
-                                prefetch="intent" target="_blank" color="primary">
+                                prefetch="intent" target="_blank" color="primary"
+                                aria-label="Event website link"
+                            >
                                 <Icon icon="akar-icons:link" width="1rem" height="1rem" className="inline-block" />
                                 {event.event_url}
                             </Link>}
                     </div>
 
                     <div className="mt-4">
-                        <p className="sr-only">POAP event description</p>
+                        <h3 className="sr-only">POAP event description</h3>
                         <p className="text-medium text-default-500 whitespace-pre-wrap">{event.description}</p>
                     </div>
                 </div>

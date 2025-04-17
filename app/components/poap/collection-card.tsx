@@ -16,7 +16,7 @@ export const CollectionCard = ({ collection }: { collection: Collection }) => {
                 <Link
                     to={`https://collections.poap.xyz/${collection.slug}`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener"
                     className="h-full w-full flex flex-col justify-between items-center"
                 >
                     <div className="h-20 w-full overflow-hidden">

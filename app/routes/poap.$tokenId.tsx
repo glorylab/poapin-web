@@ -175,7 +175,43 @@ export default function POAPDetailPage() {
                     "@type": "Person",
                     "identifier": poap.owner
                 }
-            } : {})
+            } : {}),
+            "isPartOf": {
+                "@type": "Event",
+                "name": poap?.event?.name,
+                "description": poap?.event?.description,
+                "startDate": poap?.event?.start_date,
+                "endDate": poap?.event?.end_date || poap?.event?.start_date,
+                ...(poap?.event?.city || poap?.event?.country ? {
+                    "location": {
+                        "@type": "Place",
+                        ...(poap?.event?.city ? { "addressLocality": poap.event.city } : {}),
+                        ...(poap?.event?.country ? { "addressCountry": poap.event.country } : {})
+                    }
+                } : {}),
+                ...(poap?.event?.event_url ? { "url": poap.event.event_url } : {}),
+                "organizer": {
+                    "@type": "Organization",
+                    "name": "POAP - Proof of Attendance Protocol"
+                }
+            },
+            "additionalProperty": [
+                {
+                    "@type": "PropertyValue",
+                    "name": "tokenId",
+                    "value": poap?.tokenId
+                },
+                {
+                    "@type": "PropertyValue",
+                    "name": "supply",
+                    "value": poap?.supply?.total
+                },
+                {
+                    "@type": "PropertyValue",
+                    "name": "order",
+                    "value": poap?.supply?.order
+                }
+            ]
         }
     };
 
@@ -192,17 +228,29 @@ export default function POAPDetailPage() {
             
             <h1 className="sr-only">{poap.event.name} - POAP #{poap.tokenId}</h1>
             
-            <POAPDetailItem
-                poap={poap}
-                poapActivityData={poapActivityData}
-                frontQuantity={frontQuantity}
-                backQuantity={backQuantity}
-            />
+            <article aria-labelledby="poap-details-heading">
+                <header className="sr-only">
+                    <h2 id="poap-details-heading">POAP Details</h2>
+                </header>
+                <POAPDetailItem
+                    poap={poap}
+                    poapActivityData={poapActivityData}
+                    frontQuantity={frontQuantity}
+                    backQuantity={backQuantity}
+                />
+            </article>
 
-            <POAPOwnerList
-                poapActivityData={poapActivityData}
-                frontQuantity={frontQuantity}
-                backQuantity={backQuantity} />
+            <section aria-labelledby="poap-owners-heading">
+                <header className="sr-only">
+                    <h2 id="poap-owners-heading">POAP Owners</h2>
+                    <p>List of wallets that own this POAP token</p>
+                </header>
+                <POAPOwnerList
+                    poapActivityData={poapActivityData}
+                    frontQuantity={frontQuantity}
+                    backQuantity={backQuantity} 
+                />
+            </section>
         </div>
     );
 }
