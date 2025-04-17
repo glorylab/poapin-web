@@ -110,49 +110,67 @@ export default function Index() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // JSON-LD structured data for the homepage
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "POAPin",
-    "url": "https://poap.in",
-    "description": "POAPin helps you organize, showcase and share your POAP (Proof of Attendance Protocol) collection with beautiful visual cards and gallery views.",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://poap.in/v/{wallet_address}",
-      "query-input": "required name=wallet_address",
-      "description": "Search for any Ethereum wallet address or ENS name to view their POAP collection"
-    },
-    "mainEntity": [
-      {
-        "@type": "WebPageElement",
-        "name": "POAP Collection Search",
-        "description": "Search for any Ethereum address or ENS name to view their POAP collection"
-      },
-      {
-        "@type": "WebPageElement",
-        "name": "Featured POAP Collections",
-        "description": "Featured POAP collections from notable Ethereum addresses"
-      },
-      {
-        "@type": "WebPageElement",
-        "name": "POAP Collection Gallery",
-        "description": "Explore featured POAP collections with beautiful visual cards"
-      },
-      {
-        "@type": "WebPageElement",
-        "name": "POAP Card Creator",
-        "description": "Create your personalized POAP card to showcase your collection",
-        "potentialAction": {
-          "@type": "Action",
-          "target": {
-            "@type": "EntryPoint",
-            "urlTemplate": "https://poap.in/card"
-          },
-          "name": "Get My POAP Card"
-        }
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "POAPin",
+      "url": "https://poap.in",
+      "description": "POAPin helps you organize, showcase and share your POAP (Proof of Attendance Protocol) collection with beautiful visual cards and gallery views.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://poap.in/v/{wallet_address}",
+        "query-input": "required name=wallet_address"
       }
-    ]
-  };
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "POAP Card Creator",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "url": "https://poap.in/card",
+      "description": "Create your personalized POAP card to showcase your collection"
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Featured POAP Collections",
+      "description": "Explore notable Ethereum addresses and their POAP collections",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "url": "https://poap.in/v/poap.eth",
+          "name": "poap.eth's POAP Collection"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "url": "https://poap.in/v/vitalik.eth",
+          "name": "vitalik.eth's POAP Collection"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "url": "https://poap.in/v/glorylab.eth",
+          "name": "glorylab.eth's POAP Collection"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "url": "https://poap.in/v/isabel.eth",
+          "name": "isabel.eth's POAP Collection"
+        }
+      ]
+    }
+  ];
 
   // Function to fetch stats
   const fetchStats = async () => {
