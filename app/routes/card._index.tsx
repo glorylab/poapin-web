@@ -5,6 +5,44 @@ import { useNavigate } from "@remix-run/react";
 import { PreviewCard } from "~/components/card/preview-card";
 import { AddressForm } from "~/components/card/address-form";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
+import type { MetaFunction } from "@remix-run/node";
+
+export const meta: MetaFunction = ({ location }) => {
+  const title = "Create Your POAP Card - Showcase Your Collection | POAPin";
+  const description = "Create a beautiful, shareable card showcasing your POAP collection. Enter your Ethereum address or ENS name to generate a personalized POAP card that highlights your digital memories.";
+  const keywords = "POAP Card, POAP Collection, NFT Display, Ethereum, Web3, Digital Collectibles, POAP Gallery,POAP, Proof of Attendance Protocol";
+  const canonicalUrl = "https://poap.in/card";
+  
+  return [
+    // Basic meta tags
+    { title: title },
+    { description: description },
+    { keywords: keywords },
+    { charSet: "utf-8" },
+    { name: "viewport", content: "width=device-width, initial-scale=1" },
+    
+    // Canonical URL
+    { tagName: "link", rel: "canonical", href: canonicalUrl },
+    
+    // Open Graph tags for social sharing
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: canonicalUrl },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:image", content: "https://og.poap.in/api/poap/v/poap.eth" },
+    
+    // X Card tags
+    { name: "x:card", content: "summary_large_image" },
+    { name: "x:url", content: canonicalUrl },
+    { name: "x:title", content: title },
+    { name: "x:description", content: description },
+    { name: "x:image", content: "https://og.poap.in/api/poap/v/poap.eth" },
+    
+    // Additional SEO tags
+    { name: "robots", content: "index, follow" },
+    { name: "author", content: "POAPin" },
+  ];
+};
 
 export default function CardIndexPage() {
     const [isCardVisible, setIsCardVisible] = useState(true);
@@ -12,6 +50,22 @@ export default function CardIndexPage() {
     const [, setWalletAddress] = useAtom(walletAddressAtom);
     const [, setShowResults] = useAtom(showResultsAtom);
     const navigate = useNavigate();
+    
+    // JSON-LD structured data for the POAP Card page
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Create Your POAP Card",
+        "description": "Create a beautiful, shareable card showcasing your POAP collection",
+        "url": "https://poap.in/card",
+        "mainEntity": {
+            "@type": "SoftwareApplication",
+            "name": "POAP Card Creator",
+            "applicationCategory": "UtilityApplication",
+            "operatingSystem": "Web",
+            "isAccessibleForFree": true
+        }
+    };
 
     const handleGetStarted = () => {
         setIsCardVisible(false);
@@ -26,6 +80,17 @@ export default function CardIndexPage() {
 
     return (
         <div className="w-full mx-auto px-2 md:px-4 lg:px-8">
+            {/* JSON-LD structured data */}
+            <script 
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            
+            <header className="sr-only">
+                <h1>Create Your POAP Card</h1>
+                <p>Generate a beautiful, shareable card showcasing your POAP collection</p>
+            </header>
+            
             <AnimatePresence>
                 {isCardVisible && (
                     <motion.div

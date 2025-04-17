@@ -12,7 +12,8 @@ import BlurFade from "~/components/shared/blur-fade";
 import { SparklesCore } from "~/components/sparkles";
 import { HighLight } from "~/types/og";
 import Marquee from "~/components/shared/marquee";
-import { Image } from "@heroui/react";
+import { Button, Image } from "@heroui/react";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 // Stats interface
 interface StatsResponse {
@@ -52,12 +53,40 @@ const highlightPoaps: HighLightPoapsProps[] = [
   },
 ];
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction = ({ location }) => {
+  const title = "POAPin - Organize, Display and Share Your POAP Collection";
+  const description = "POAPin helps you organize, showcase and share your POAP (Proof of Attendance Protocol) collection with beautiful visual cards and gallery views. Create your personalized POAP profile and explore the bookmarks of your life.";
+  const keywords = "POAP, Proof of Attendance Protocol, NFT, Ethereum, Web3, Digital Collectibles, Blockchain, POAP Gallery, POAP Cards, POAP Collection";
+  const canonicalUrl = "https://poap.in";
+
   return [
-    { title: "POAPin" },
-    { description: "POAPin helps you organize and share POAPs - the bookmarks of your life." },
+    // Basic meta tags
+    { title: title },
+    { description: description },
+    { keywords: keywords },
     { charSet: "utf-8" },
     { name: "viewport", content: "width=device-width, initial-scale=1" },
+
+    // Canonical URL
+    { tagName: "link", rel: "canonical", href: canonicalUrl },
+
+    // Open Graph tags for social sharing
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: canonicalUrl },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:image", content: "https://og.poap.in/api/poap/v/poap.eth" },
+
+    // X Card tags
+    { name: "x:card", content: "summary_large_image" },
+    { name: "x:url", content: canonicalUrl },
+    { name: "x:title", content: title },
+    { name: "x:description", content: description },
+    { name: "x:image", content: "https://og.poap.in/api/poap/v/poap.eth" },
+
+    // Additional SEO tags
+    { name: "robots", content: "index, follow" },
+    { name: "author", content: "POAPin" },
   ];
 };
 
@@ -79,6 +108,51 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // JSON-LD structured data for the homepage
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "POAPin",
+    "url": "https://poap.in",
+    "description": "POAPin helps you organize, showcase and share your POAP (Proof of Attendance Protocol) collection with beautiful visual cards and gallery views.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://poap.in/v/{wallet_address}",
+      "query-input": "required name=wallet_address",
+      "description": "Search for any Ethereum wallet address or ENS name to view their POAP collection"
+    },
+    "mainEntity": [
+      {
+        "@type": "WebPageElement",
+        "name": "POAP Collection Search",
+        "description": "Search for any Ethereum address or ENS name to view their POAP collection"
+      },
+      {
+        "@type": "WebPageElement",
+        "name": "Featured POAP Collections",
+        "description": "Featured POAP collections from notable Ethereum addresses"
+      },
+      {
+        "@type": "WebPageElement",
+        "name": "POAP Collection Gallery",
+        "description": "Explore featured POAP collections with beautiful visual cards"
+      },
+      {
+        "@type": "WebPageElement",
+        "name": "POAP Card Creator",
+        "description": "Create your personalized POAP card to showcase your collection",
+        "potentialAction": {
+          "@type": "Action",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://poap.in/card"
+          },
+          "name": "Get My POAP Card"
+        }
+      }
+    ]
+  };
 
   // Function to fetch stats
   const fetchStats = async () => {
@@ -122,7 +196,12 @@ export default function Index() {
   }, []);
 
   return (
-    <div className=" min-h-[2048px] w-full flex flex-col">
+    <div className="min-h-[2048px] w-full flex flex-col">
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       <motion.div
         className="h-96 relative w-full overflow-hidden bg-slate-900 flex flex-col items-center justify-center rounded-none [mask-image:linear-gradient(0deg,rgba(0,0,0,0),#000)]"
@@ -137,9 +216,9 @@ export default function Index() {
       >
         <BackgroundGradientAnimation>
           <div className="absolute z-50 inset-0 flex flex-col items-center justify-center text-white font-bold px-4 pointer-events-none text-3xl text-center md:text-4xl lg:text-7xl">
-            <p className="drop-shadow-2xl text-shadow">
+            <h1 className="drop-shadow-2xl text-shadow">
               Dive into the world of POAP
-            </p>
+            </h1>
             <div className="w-[40rem] h-40 relative mt-4">
               {/* Gradients */}
               <div className="absolute inset-x-20 top-0 bg-gradient-to-r from-transparent via-white/90 to-transparent h-[2px] w-3/4 blur-sm" />
@@ -164,12 +243,18 @@ export default function Index() {
         </BackgroundGradientAnimation>
       </motion.div>
 
-      <section className="max-w-lg mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-16">
+      <section
+        className="max-w-lg mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-16"
+        aria-label="Search for any Ethereum address or ENS name to view their POAP collection"
+      >
         <div className="md:pb-8">
           <BlurFade delay={0.25} inView><AddressInputComponent isClearable /></BlurFade>
         </div>
       </section>
-      <section className="w-full mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-0">
+      <section
+        className="w-full mx-auto relative px-2 xs:px-8 md:flex flex-col justify-center md:justify-start md:pt-0"
+        aria-label="Featured POAP collections from notable Ethereum addresses"
+      >
         <div className="md:pb-8">
           <BlurFade delay={0.55} inView>
             <HighLightPoaps data={highlightPoaps} />
@@ -254,7 +339,10 @@ export default function Index() {
                 </div>
               </section>
             )}
-            <section className="w-full mx-auto relative px-0 xs:px-0 md:flex flex-col justify-center md:justify-start md:pt-0">
+            <section
+              className="w-full mx-auto relative px-0 xs:px-0 md:flex flex-col justify-center md:justify-start md:pt-0"
+              aria-label="Explore featured POAP collections with beautiful visual cards"
+            >
               <div className="flex flex-col h-[728px]">
 
                 <Marquee
@@ -312,16 +400,25 @@ export default function Index() {
               </div>
             </section>
 
-            <section className="w-full mx-auto relative px-2 xs:px-8 md:flex flex-col items-center justify-center md:justify-start md:pt-8 pb-12">
-              <Link
-                to="/card"
-                className="bg-gradient-to-r from-secondary-600 to-secondary-500 hover:from-secondary-700 hover:to-secondary-600 active:from-secondary-700 active:to-secondary-700 active:scale-[0.98] transition-all duration-300 hover:scale-[1.01] text-white font-bold py-4 px-10 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105 flex items-center justify-center text-lg">
-                <span>Get My POAP Card</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </Link>
+            <section className="sr-only" aria-label="Create your personalized POAP card to showcase your collection">
+              <h2>Create Your POAP Card</h2>
+              <p>Generate a beautiful, shareable card showcasing your POAP collection. Enter your Ethereum address or ENS name to create your personalized POAP card.</p>
+              <a href="/card">Get My POAP Card</a>
             </section>
+
+            <div className="w-full mx-auto flex flex-col items-center">
+              <Button
+                as={Link}
+                to="/card"
+                size="lg"
+                color="secondary"
+                variant="shadow"
+                className="w-full max-w-lg mx-auto sm:w-auto font-bold tracking-wide cursor-pointer rounded-lg px-6 py-4 my-8"
+                startContent={<Icon icon="fluent:flash-sparkle-24-filled" className="w-5 h-5" />}
+              >
+                Get My POAP Card
+              </Button>
+            </div>
           </div>
         </div>
       }
