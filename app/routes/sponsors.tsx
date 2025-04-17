@@ -65,6 +65,25 @@ export default function SponsorsPage() {
 
   const { data: grants, error } = useLoaderData<GrantsResponse>();
   
+  // Helper function to ensure date strings have timezone information
+  const formatDateWithTimezone = (dateString: string): string => {
+    if (!dateString) return '';
+    
+    // Check if the date string already has timezone information
+    if (dateString.endsWith('Z') || dateString.includes('+') || dateString.includes('-')) {
+      return dateString;
+    }
+    
+    // Try to parse the date
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return dateString;
+    }
+    
+    // Add UTC timezone information
+    return dateString.includes('T') ? `${dateString}Z` : `${dateString}T00:00:00Z`;
+  };
+  
   // JSON-LD structured data
   const jsonLd = {
     "@context": "https://schema.org",
@@ -94,8 +113,8 @@ export default function SponsorsPage() {
           "@type": "Event",
           "name": grant.title,
           "description": grant.description,
-          "startDate": grant.start_time,
-          "endDate": grant.end_time,
+          "startDate": formatDateWithTimezone(grant.start_time),
+          "endDate": formatDateWithTimezone(grant.end_time),
           "url": `https://poap.in/sponsors#grant-${grant.id}`,
           "location": {
             "@type": "VirtualLocation",
@@ -120,7 +139,7 @@ export default function SponsorsPage() {
             "priceCurrency": "USD",
             "availability": "https://schema.org/InStock",
             "url": `https://poap.in/sponsors#grant-${grant.id}`,
-            "validFrom": grant.start_time
+            "validFrom": formatDateWithTimezone(grant.start_time)
           }
         }
       })) || []
