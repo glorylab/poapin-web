@@ -5,6 +5,7 @@ import { useLoaderData } from "@remix-run/react";
 import { getGrants } from "~/api/grants";
 import GrantCardComponent from "~/components/sponsors/grant-card";
 import { GrantsResponse } from '~/types/grant';
+import { formatISO8601DateWithTimezone } from "~/utils/date-utils";
 
 export const meta: MetaFunction = ({ data }) => {
 
@@ -65,25 +66,6 @@ export default function SponsorsPage() {
 
   const { data: grants, error } = useLoaderData<GrantsResponse>();
   
-  // Helper function to ensure date strings have timezone information
-  const formatDateWithTimezone = (dateString: string): string => {
-    if (!dateString) return '';
-    
-    // Check if the date string already has timezone information
-    if (dateString.endsWith('Z') || dateString.includes('+') || dateString.includes('-')) {
-      return dateString;
-    }
-    
-    // Try to parse the date
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return dateString;
-    }
-    
-    // Add UTC timezone information
-    return dateString.includes('T') ? `${dateString}Z` : `${dateString}T00:00:00Z`;
-  };
-  
   // JSON-LD structured data
   const jsonLd = {
     "@context": "https://schema.org",
@@ -106,43 +88,48 @@ export default function SponsorsPage() {
       "description": "List of grants and sponsorships supporting POAPin",
       "itemListOrder": "https://schema.org/ItemListOrderDescending",
       "numberOfItems": grants?.length || 0,
-      "itemListElement": grants?.slice(0, 10).map((grant, index) => ({
-        "@type": "ListItem",
-        "position": index + 1,
-        "item": {
-          "@type": "Event",
-          "name": grant.title,
-          "description": grant.description,
-          "startDate": formatDateWithTimezone(grant.start_time),
-          "endDate": formatDateWithTimezone(grant.end_time),
-          "url": `https://poap.in/sponsors#grant-${grant.id}`,
-          "location": {
-            "@type": "VirtualLocation",
-            "url": "https://grants.gitcoin.co"
-          },
-          "organizer": {
-            "@type": "Organization",
-            "name": "Gitcoin",
-            "url": "https://gitcoin.co"
-          },
-          "performer": {
-            "@type": "Organization",
-            "name": "POAPin",
-            "url": "https://poap.in"
-          },
-          "eventStatus": "https://schema.org/EventScheduled",
-          "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-          "image": grant.image.url,
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock",
+      "itemListElement": grants?.slice(0, 10).map((grant, index) => {
+        const startDate = formatISO8601DateWithTimezone(grant.start_time);
+        const endDate = formatISO8601DateWithTimezone(grant.end_time);
+        
+        return {
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "Event",
+            "name": grant.title,
+            "description": grant.description,
+            "startDate": startDate,
+            "endDate": endDate,
             "url": `https://poap.in/sponsors#grant-${grant.id}`,
-            "validFrom": formatDateWithTimezone(grant.start_time)
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://grants.gitcoin.co"
+            },
+            "organizer": {
+              "@type": "Organization",
+              "name": "Gitcoin",
+              "url": "https://gitcoin.co"
+            },
+            "performer": {
+              "@type": "Organization",
+              "name": "POAPin",
+              "url": "https://poap.in"
+            },
+            "eventStatus": "https://schema.org/EventScheduled",
+            "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+            "image": grant.image.url,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock",
+              "url": `https://poap.in/sponsors#grant-${grant.id}`,
+              "validFrom": startDate
+            }
           }
-        }
-      })) || []
+        };
+      }) || []
     }
   };
 

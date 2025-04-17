@@ -5,6 +5,7 @@ import POAPDetailItem from "~/components/poap/poap-detail-item";
 import { POAPOwnerList } from "~/components/poap/poap-owner-list";
 import { POAPActivityData } from "~/types/data";
 import { POAPDetail } from "~/types/poap";
+import { formatISO8601Date } from "~/utils/date-utils";
 
 export const meta: MetaFunction = ({ data, params, location }) => {
     const loaderData = data as LoaderData | undefined;
@@ -244,27 +245,6 @@ export default function POAPDetailPage() {
             ]
         }
     };
-
-    // Helper function to convert date string to ISO 8601 format
-    function formatISO8601Date(dateString: string): string {
-        // Try to parse different date formats
-        const formats = [
-            "DD-MMM-YYYY", // 19-Feb-2025
-            "YYYY-MM-DD",  // 2025-02-19
-            "MM/DD/YYYY", // 02/19/2025
-            "MMMM DD, YYYY" // February 19, 2025
-        ];
-        
-        for (const format of formats) {
-            const date = new Date(dateString);
-            if (!isNaN(date.getTime())) {
-                return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
-            }
-        }
-        
-        // If cannot parse, return original string
-        return dateString;
-    }
 
     if (!poap) {
         return <div className="loading">Loading POAP...</div>;
