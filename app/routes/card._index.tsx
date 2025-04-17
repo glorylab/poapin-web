@@ -63,7 +63,13 @@ export default function CardIndexPage() {
             "name": "POAP Card Creator",
             "applicationCategory": "UtilityApplication",
             "operatingSystem": "Web",
-            "isAccessibleForFree": true
+            "isAccessibleForFree": true,
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock"
+            }
         }
     };
 
