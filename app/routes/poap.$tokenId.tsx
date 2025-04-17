@@ -198,8 +198,12 @@ export default function POAPDetailPage() {
                     }
                 } : {
                     "location": {
-                        "@type": "VirtualLocation",
-                        "name": "Digital Event"
+                        "@type": "Place",
+                        "name": "Digital Event",
+                        "address": {
+                            "@type": "PostalAddress",
+                            "addressCountry": "Online"
+                        }
                     }
                 }),
                 ...(poap?.event?.event_url ? { "url": poap.event.event_url } : {}),
@@ -213,7 +217,8 @@ export default function POAPDetailPage() {
                     "price": "0",
                     "priceCurrency": "USD",
                     "availability": "https://schema.org/InStock",
-                    "url": `https://poap.in/poap/${poap?.tokenId}`
+                    "url": `https://poap.in/poap/${poap?.tokenId}`,
+                    "validFrom": poap?.event?.start_date ? formatISO8601Date(poap.event.start_date) : new Date().toISOString().split('T')[0]
                 },
                 "performer": {
                     "@type": "Organization",
