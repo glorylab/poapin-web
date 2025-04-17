@@ -9,7 +9,11 @@ import {
     BreadcrumbItem,
     Breadcrumbs,
     Chip,
-    Button
+    Button,
+    Dropdown,
+    DropdownTrigger,
+    DropdownMenu,
+    DropdownItem
 } from "@heroui/react";
 
 import { cn } from "~/src/cn";
@@ -61,6 +65,12 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
             return navigation.state === "loading" && navigation.location.pathname === `/v/${address}`;
         }
 
+        // The POAP Collectors URL with referral information
+        const poapCollectorsUrl = `https://collectors.poap.xyz/token/${tokenId}`;
+
+        // The POAP Gallery URL for the event
+        const poapGalleryUrl = `https://poap.gallery/drops/${event.id}`;
+
         return (
             <div
                 ref={ref}
@@ -101,11 +111,52 @@ const POAPDetailItem = React.forwardRef<HTMLDivElement, POAPDetailItemProps>(
                                     item: "text-secondary-700 hover:text-secondary-900",
                                 }}
                             >{shortOwner}</BreadcrumbItem>
+                            
+                            {/* TokenId with dropdown */}
                             <BreadcrumbItem
                                 classNames={{
-                                    item: "text-secondary-600"
+                                    item: "text-secondary-600 relative"
                                 }}
-                            >#{tokenId}</BreadcrumbItem>
+                            >
+                                <Dropdown>
+                                    <DropdownTrigger>
+                                        <Button 
+                                            className="text-secondary-600 hover:text-secondary-900 cursor-pointer bg-transparent min-w-0 h-auto p-0 font-normal"
+                                            aria-label={`POAP Token ID: ${tokenId}. Click to view more options`}
+                                        >
+                                            #{tokenId}
+                                        </Button>
+                                    </DropdownTrigger>
+                                    <DropdownMenu aria-label="POAP Token Actions">
+                                        <DropdownItem
+                                            key="collectors"
+                                            startContent={<Icon icon="mdi:eye" className="text-lg" />}
+                                            description="View token on official POAP Collectors site"
+                                            as="a"
+                                            href={poapCollectorsUrl}
+                                            target="_blank"
+                                            rel="noopener"
+                                            className="text-secondary-800 hover:text-secondary-900 hover:bg-secondary-100"
+                                        >
+                                            View token on POAP Collectors
+                                        </DropdownItem>
+
+                                         <DropdownItem
+                                            key="gallery"
+                                            startContent={<Icon icon="mdi:image-multiple" className="text-lg" />}
+                                            description="View event details on official POAP Gallery site"
+                                            as="a"
+                                            href={poapGalleryUrl}
+                                            target="_blank"
+                                            rel="noopener"
+                                            className="text-secondary-800 hover:text-secondary-900 hover:bg-secondary-100"
+                                        >
+                                            View event on POAP Gallery
+                                        </DropdownItem>
+
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </BreadcrumbItem>
                         </Breadcrumbs>
 
                     </div>
