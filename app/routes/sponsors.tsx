@@ -96,7 +96,32 @@ export default function SponsorsPage() {
           "description": grant.description,
           "startDate": grant.start_time,
           "endDate": grant.end_time,
-          "url": `https://poap.in/sponsors#grant-${grant.id}`
+          "url": `https://poap.in/sponsors#grant-${grant.id}`,
+          "location": {
+            "@type": "VirtualLocation",
+            "url": "https://grants.gitcoin.co"
+          },
+          "organizer": {
+            "@type": "Organization",
+            "name": "Gitcoin",
+            "url": "https://gitcoin.co"
+          },
+          "performer": {
+            "@type": "Organization",
+            "name": "POAPin",
+            "url": "https://poap.in"
+          },
+          "eventStatus": "https://schema.org/EventScheduled",
+          "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+          "image": grant.image.url,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+            "url": `https://poap.in/sponsors#grant-${grant.id}`,
+            "validFrom": grant.start_time
+          }
         }
       })) || []
     }
