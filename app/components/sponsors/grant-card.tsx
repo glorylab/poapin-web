@@ -71,7 +71,7 @@ export default function GrantCardComponent(props: GrantProps) {
             </CardHeader>
             <CardBody className="px-6 pb-8 pt-4">
                 <div className="flex flex-col gap-2 mb-8">
-                    <p className="text-xl text-neutral-800">{props.grant.title}</p>
+                    <p id={`grant-title-${props.grant.id}`} className="text-xl text-neutral-800">{props.grant.title}</p>
                     <p className="text-small text-neutral-700">
                         {props.grant.description}
                     </p>

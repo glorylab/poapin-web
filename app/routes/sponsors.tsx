@@ -86,7 +86,19 @@ export default function SponsorsPage() {
       "name": "POAPin's Sponsor Records",
       "description": "List of grants and sponsorships supporting POAPin",
       "itemListOrder": "https://schema.org/ItemListOrderDescending",
-      "numberOfItems": grants?.length || 0
+      "numberOfItems": grants?.length || 0,
+      "itemListElement": grants?.slice(0, 10).map((grant, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Event",
+          "name": grant.title,
+          "description": grant.description,
+          "startDate": grant.start_time,
+          "endDate": grant.end_time,
+          "url": `https://poap.in/sponsors#grant-${grant.id}`
+        }
+      })) || []
     }
   };
 
@@ -117,42 +129,45 @@ export default function SponsorsPage() {
   });
 
   return (
-    <main className="max-w-xl mx-auto relative py-8 lg:py-16 px-8" aria-labelledby="sponsors-heading">
+    <>
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
-      <header>
-        <h1 id="sponsors-heading" className="font-medium leading-7 text-secondary-300">POAPin&apos;s Sponsor Records</h1>
-        <h2 className="text-4xl font-medium text-primary tracking-tight underline underline-offset-8 leading-relaxed decoration-wavy decoration-8 decoration-[#f0d3da]">
-          THANKS FOR YOUR GENEROUS SUPPORT!
-        </h2>
-      </header>
-      <Spacer y={4} />
-      <div className="flex justify-center">
-        <Image
-          src="https://nexus.glorylab.xyz/3/4/Bowing_person_emoji_4c1eabd350.png"
-          alt="THANKS FOR YOUR GENEROUS SUPPORT!"
-          width={120}
-          height={120}
-        />
-      </div>
+      <main className="max-w-xl mx-auto relative py-8 lg:py-16 px-8" aria-labelledby="sponsors-heading">
+        <header>
+          <h1 id="sponsors-heading" className="font-medium leading-7 text-secondary-300">POAPin&apos;s Sponsor Records</h1>
+          <h2 className="text-4xl font-medium text-primary tracking-tight underline underline-offset-8 leading-relaxed decoration-wavy decoration-8 decoration-[#f0d3da]">
+            THANKS FOR YOUR GENEROUS SUPPORT!
+          </h2>
+        </header>
+        <Spacer y={4} />
+        <div className="flex justify-center">
+          <Image
+            src="https://nexus.glorylab.xyz/3/4/Bowing_person_emoji_4c1eabd350.png"
+            alt="THANKS FOR YOUR GENEROUS SUPPORT!"
+            width={120}
+            height={120}
+          />
+        </div>
 
-      <section className="mt-10" aria-label="Grant list">
-        {sortedGrants.map((grant, index) => (
-          <article 
-            key={index} 
-            className="flex-auto cursor-default max-w-xl mb-8 rounded-2xl overflow-clip shadow-sm hover:shadow-xl transition-all duration-200 border-dashed border-1.5 hover:border-dotted"
-            aria-labelledby={`grant-${index}`}
-          >
-            <GrantCardComponent
-              grant={grant}
-            />
-          </article>
-        ))}
-      </section>
-    </main>
+        <section className="mt-10" aria-label="Grant list">
+          {sortedGrants.map((grant, index) => (
+            <article 
+              key={index} 
+              id={`grant-${grant.id}`}
+              className="flex-auto cursor-default max-w-xl mb-8 rounded-2xl overflow-clip shadow-sm hover:shadow-xl transition-all duration-200 border-dashed border-1.5 hover:border-dotted"
+              aria-labelledby={`grant-title-${index}`}
+            >
+              <GrantCardComponent
+                grant={grant}
+              />
+            </article>
+          ))}
+        </section>
+      </main>
+    </>
   );
 }
