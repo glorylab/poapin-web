@@ -6,11 +6,17 @@ import { POAPOwnerList } from "~/components/poap/poap-owner-list";
 import { POAPActivityData } from "~/types/data";
 import { POAPDetail } from "~/types/poap";
 
-export const meta: MetaFunction = ({ data }) => {
+export const meta: MetaFunction = ({ data, params, location }) => {
     const loaderData = data as LoaderData | undefined;
+    const canonicalUrl = `https://poap.in/poap/${params.tokenId}`;
 
     if (!loaderData || !loaderData.meta) {
-        return [];
+        return [
+            { title: "POAP Not Found | POAPin" },
+            { description: "The requested POAP token could not be found." },
+            { tagName: "link", rel: "canonical", href: canonicalUrl },
+            { name: "robots", content: "noindex, follow" }
+        ];
     }
 
     const { title, description, keywords, poap } = loaderData.meta;
@@ -19,26 +25,33 @@ export const meta: MetaFunction = ({ data }) => {
         { title },
         { description },
         { keywords },
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { tagName: "link", rel: "canonical", href: canonicalUrl },
+        { name: "robots", content: "index, follow" },
+        { name: "author", content: "POAPin" },
+    ];
+
+    const ogMeta = [
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:site_name", content: "POAPin" },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: `https://poap.in/poap/${poap.tokenId}` },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:image", content: poap.event.image_url },
+        { property: "og:image:alt", content: `POAP image for ${poap.event.name}` },
     ];
 
-    const twitterMeta = [
-        { name: "twitter:card", content: "summary" },
-        { name: "twitter:domain", content: "poap.in" },
-        { name: "twitter:url", content: `https://poap.in/poap/${poap.tokenId}` },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: poap.event.image_url }
+    const xMeta = [
+        { name: "x:card", content: "summary_large_image" },
+        { name: "x:domain", content: "poap.in" },
+        { name: "x:url", content: canonicalUrl },
+        { name: "x:title", content: title },
+        { name: "x:description", content: description },
+        { name: "x:image", content: poap.event.image_url }
     ];
 
-    const imageMeta = [
-        { property: "og:image", content: poap.event.image_url }
-    ];
-    return [...baseMeta, ...imageMeta, ...twitterMeta];
+    return [...baseMeta, ...ogMeta, ...xMeta];
 }
 
 interface LoaderData {
@@ -66,8 +79,23 @@ export const loader: LoaderFunction = async ({ context, params }) => {
     try {
         const poap = await getPoapToken(context, tokenId);
 
-        const metaTitle = `${poap.event.name} - POAP #${poap.tokenId}`;
-        const metaDescription = `${poap.event.description} - POAP #${poap.tokenId}`;
+        const metaTitle = `${poap.event.name} (POAP #${poap.tokenId}) | POAPin`;
+        
+        let metaDescription = poap.event.description;
+        if (poap.event.city || poap.event.country) {
+            metaDescription += ` This event took place in ${poap.event.city ? poap.event.city + ", " : ""}${poap.event.country || ""}`;  
+        }
+        if (poap.event.start_date) {
+            const eventDate = poap.event.end_date && poap.event.end_date !== poap.event.start_date 
+                ? `from ${poap.event.start_date} to ${poap.event.end_date}` 
+                : `on ${poap.event.start_date}`;
+            metaDescription += ` ${eventDate}.`;
+        }
+        metaDescription += ` View this POAP token and explore its details on POAPin.`;
+        
+        if (metaDescription.length > 160) {
+            metaDescription = metaDescription.substring(0, 157) + "...";
+        }
 
         const poapOwner = poap.owner ? `${poap.owner},` : "";
         const poapEventCountry = poap.event.country ? `${poap.event.country},` : "";
@@ -78,9 +106,9 @@ export const loader: LoaderFunction = async ({ context, params }) => {
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${additionalKeywords},`;
 
         const meta = {
-            title: `${metaTitle}`,
-            description: `${metaDescription}`,
-            keywords: `${metaKeywords}`,
+            title: metaTitle,
+            description: metaDescription,
+            keywords: metaKeywords,
             poap,
         };
 
@@ -124,13 +152,46 @@ export const loader: LoaderFunction = async ({ context, params }) => {
 export default function POAPDetailPage() {
     const { poap, poapActivityData, frontQuantity, backQuantity } = useLoaderData<LoaderData>();
 
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": poap?.event?.name,
+        "description": poap?.event?.description,
+        "url": `https://poap.in/poap/${poap?.tokenId}`,
+        "mainEntity": {
+            "@type": "VisualArtwork",
+            "name": poap?.event?.name,
+            "description": poap?.event?.description,
+            "creator": {
+                "@type": "Organization",
+                "name": "POAP - Proof of Attendance Protocol"
+            },
+            "artform": "Digital Token",
+            "artMedium": "NFT",
+            "image": poap?.event?.image_url,
+            "dateCreated": poap?.event?.start_date,
+            ...(poap?.owner ? {
+                "owner": {
+                    "@type": "Person",
+                    "identifier": poap.owner
+                }
+            } : {})
+        }
+    };
 
-    if (!poap || !poap) {
+    if (!poap) {
         return <div className="loading">Loading POAP...</div>;
     }
 
     return (
         <div className="flex flex-col items-center">
+            <script 
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            
+            <h1 className="sr-only">{poap.event.name} - POAP #{poap.tokenId}</h1>
+            
             <POAPDetailItem
                 poap={poap}
                 poapActivityData={poapActivityData}
