@@ -30,6 +30,13 @@ interface StatsResponse {
   static_count: number;
 }
 
+interface GitPoapItem {
+  id: string;
+  address: string;
+  ens_name?: string;
+  image_url: string;
+}
+
 const highlightPoaps: HighLightPoapsProps[] = [
   {
     backgroundColor: "#1E8DCD22",
@@ -213,6 +220,26 @@ export default function Index() {
     };
   }, []);
 
+  const [gitpoapImages, setGitpoapImages] = useState<GitPoapItem[]>([]);
+  const [gitpoapLoading, setGitpoapLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setGitpoapLoading(true);
+    fetch('https://og.poap.in/api/poap/recent/gitpoap')
+      .then(res => res.json())
+      .then((data) => {
+        if (!cancelled && data && Array.isArray((data as any).results)) {
+          setGitpoapImages((data as any).results as GitPoapItem[]);
+        }
+      })
+      .catch(() => { })
+      .finally(() => {
+        if (!cancelled) setGitpoapLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <div className="min-h-[2048px] w-full flex flex-col">
       {/* JSON-LD structured data */}
@@ -361,8 +388,31 @@ export default function Index() {
               className="w-full mx-auto relative px-0 xs:px-0 md:flex flex-col justify-center md:justify-start md:pt-0"
               aria-label="Explore featured POAP collections with beautiful visual cards"
             >
-              <div className="flex flex-col h-[728px]">
-
+              <div className="flex flex-col h-[970px]">
+                {/* --- GitPOAP Recent Marquee --- */}
+                {!gitpoapLoading && gitpoapImages.length > 0 && (
+                  <Marquee
+                    className="h-1/2"
+                    pauseOnHover
+                    reverse>
+                    {gitpoapImages.map((item) => (
+                      <Link
+                        key={item.id}
+                        to={`/v/${item.address}`}
+                        className="h-full mx-1"
+                        title={item.ens_name || item.address}
+                      >
+                        <Image
+                          width={400}
+                          height={210}
+                          className="h-full"
+                          src={item.image_url}
+                          alt={item.ens_name || item.address}
+                        />
+                      </Link>
+                    ))}
+                  </Marquee>
+                )}
                 <Marquee
                   className="h-1/2"
                   pauseOnHover>
