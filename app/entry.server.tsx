@@ -14,11 +14,21 @@ function Document({
     <html lang="en">
       <head>
         {isProd && (
-          <script
-            defer
-            data-domain="poap.in"
-            src="https://insights.glorylab.xyz/js/script.js"
-          />
+          <>
+            <script
+              defer
+              data-domain="poap.in"
+              src="https://insights.glorylab.xyz/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+window.plausible = window.plausible || function () {
+  (window.plausible.q = window.plausible.q || []).push(arguments)
+}`
+              }}
+            />
+          </>
         )}
       </head>
       <body>{children}</body>
