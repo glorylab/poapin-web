@@ -24,6 +24,7 @@ import NavBarComponent from "./components/global/navbar";
 import footerPositionAtom from "./atoms/footer-position-atom";
 import { getSubdomain } from "./utils/subdomain.server";
 import { redirect } from "@remix-run/cloudflare";
+import { usePlausiblePageview } from "./utils/usePlausible";
 
 interface LoaderData {
   gaTrackingId: string;
@@ -70,6 +71,8 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
+
+  usePlausiblePageview(); 
 
   const location = useLocation();
   const footerRef = useRef<HTMLElement>(null);
