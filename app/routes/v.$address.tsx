@@ -818,7 +818,7 @@ export default function POAPList({ className }: { className?: string }) {
                                     placeholder="Select an option"
                                     variant="bordered"
                                 >
-                                    <SelectItem key="collected_newest" value="collected_newest"
+                                    <SelectItem key="collected_newest"
                                         classNames={{
                                             title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
                                             description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
@@ -827,19 +827,49 @@ export default function POAPList({ className }: { className?: string }) {
                                     >
                                         Collected date: Newest
                                     </SelectItem>
-                                    <SelectItem key="collected_oldest" value="collected_oldest">
+                                    <SelectItem key="collected_oldest"
+                                        classNames={{
+                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        }}
+                                    >
                                         Collected date: Oldest
                                     </SelectItem>
-                                    <SelectItem key="start_date_newest" value="start_date_newest">
+                                    <SelectItem key="start_date_newest"
+                                        classNames={{
+                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        }}
+                                    >
                                         Start Date: Newest
                                     </SelectItem>
-                                    <SelectItem key="start_date_oldest" value="start_date_oldest">
+                                    <SelectItem key="start_date_oldest"
+                                        classNames={{
+                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        }}
+                                    >
                                         Start Date: Oldest
                                     </SelectItem>
-                                    <SelectItem key="most_popular" value="most_popular">
+                                    <SelectItem key="most_popular"
+                                        classNames={{
+                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        }}
+                                    >
                                         Most Popular
                                     </SelectItem>
-                                    <SelectItem key="most_moments" value="most_moments">
+                                    <SelectItem key="most_moments"
+                                        classNames={{
+                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
+                                        }}
+                                    >
                                         Most Moments
                                     </SelectItem>
                                 </Select>
