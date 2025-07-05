@@ -1,6 +1,6 @@
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { getPoapActivity, getPoapToken } from "~/api/poap";
+import { getPoapActivity, getPoapToken } from "~/lib/poap";
 import POAPDetailItem from "~/components/poap/poap-detail-item";
 import { POAPOwnerList } from "~/components/poap/poap-owner-list";
 import { POAPActivityData } from "~/types/data";

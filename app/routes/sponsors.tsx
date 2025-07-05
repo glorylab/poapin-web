@@ -2,7 +2,7 @@ import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { Spacer, Image } from "@heroui/react";
 import { json, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { getGrants } from "~/api/grants";
+import { getGrants } from "~/lib/grants";
 import GrantCardComponent from "~/components/sponsors/grant-card";
 import { GrantsResponse } from '~/types/grant';
 import { formatISO8601DateWithTimezone } from "~/utils/date-utils";

@@ -1,8 +1,8 @@
 import { Moment, POAP } from "~/types/poap";
-import { RateLimitError, getPoapsOfAddress } from "~/api/poap";
-import { Collection, getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
+import { RateLimitError, getPoapsOfAddress } from "~/lib/poap";
+import { Collection, getMomentsCountByAuthor } from "~/lib/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useParams } from "@remix-run/react";
 import { useDisclosure } from "@heroui/react";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import SidebarDrawer from "~/components/poap/sidebar-drawer";
@@ -102,34 +102,14 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         const metaDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${poapTitles}`;
 
-        let latestMoments;
-        let dropsWithMoments = [];
-
-        // Get moments count
+        // Get basic moments count for SEO (but defer detailed moments loading)
         const momentsCount = await getMomentsCountByAuthor({ context, author: ethAddress });
-        dropsWithMoments = momentsCount.uniqueDropIds;
-        if (momentsCount && momentsCount.totalMoments && momentsCount.totalMoments > 0) {
-            // Get the latest moments
-            latestMoments = await getLastMomentsByAuthor({ context, author: ethAddress, limit: 10 });
-        }
+        const dropsWithMoments = momentsCount.uniqueDropIds;
+        const totalMomentsCount = momentsCount.totalMoments;
 
-        // Get the user agent
-        const userAgent = request.headers.get("User-Agent") || "";
-
-        // Check if the request is from a search engine bot
-        const isSearchEngineBot = [
-            'googlebot', 'bingbot', 'yandexbot', 'duckduckbot', 'slurp', 'baiduspider', 
-            'applebot', 'facebookexternalhit', 'twitterbot', 'rogerbot', 'linkedinbot',
-            'embedly', 'quora link preview', 'showyoubot', 'outbrain', 'pinterest',
-            'developers.google.com/+/web/snippet', 'discordbot', 'telegrambot', 'whatsapp',
-            'slack', 'vkshare', 'w3c_validator', 'lighthouse', 'chrome-lighthouse'
-        ].some(bot => userAgent.toLowerCase().includes(bot));
-
-        let ogimageurl = "";
-
-        // If the request is not from a search engine bot, get the OG image
-        if (!isSearchEngineBot) {
-            // Get the OG image
+        // Generate OG image on server-side (needed immediately for display and SEO)
+        let ogImageUrl = "";
+        try {
             const ogResponse = await fetch(`https://og.poap.in/api/poap/v/${address}`, {
                 method: 'POST',
                 headers: {
@@ -137,249 +117,21 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
                 },
                 body: JSON.stringify({
                     poaps,
-                    latestMoments,
                     poapapikey: getEnv({ context }).poapApiKey,
                 }),
             });
 
-            if (!ogResponse.ok) {
-                console.error(`Failed to fetch ogImage: ${ogResponse.statusText}`);
-            }
-
-            ogimageurl = ogResponse.url;
-        }
-
-        // Generate AI summary of the user's POAP collection
-        let aiGeneratedSummary = "";
-        let cachedTimestamp: string | null = null;
-        try {
-            // Check if we have access to the AI binding
-            if (context.cloudflare && context.cloudflare.env) {
-                // Use type assertion to access the AI binding and KV
-                const env = context.cloudflare.env as Record<string, any>;
-
-                // Get the ETH address from the POAPs
-                const ethAddress = poaps[0].owner;
-
-                // Check if we have a cached summary in KV
-                let cachedSummary = null;
-
-                // Try to get cached summary from KV if available
-                const kvBinding = env.POAP_SUMMARIES_KV || env["POAP_SUMMARIES_KV"];
-
-                if (kvBinding) {
-                    // Try to get summary for the address parameter (could be ENS or ETH)
-                    try {
-                        // Get the cached data as JSON
-                        const cachedData = await kvBinding.get(address, "json");
-
-                        if (cachedData && typeof cachedData === 'object' && 'summary' in cachedData) {
-                            cachedSummary = cachedData.summary as string;
-                            // Set the generation timestamp from the cache
-                            cachedTimestamp = cachedData.timestamp as string;
-                        }
-                    } catch (error) {
-                        console.error("Error getting cached summary for", address, ":", error);
-                    }
-
-                    // If address is ENS and no cache found, try the ETH address
-                    if (!cachedSummary && address !== ethAddress) {
-                        try {
-                            // Get the cached data as JSON
-                            const cachedData = await kvBinding.get(ethAddress, "json");
-
-                            if (cachedData && typeof cachedData === 'object' && 'summary' in cachedData) {
-                                cachedSummary = cachedData.summary as string;
-                                // Set the generation timestamp from the cache
-                                cachedTimestamp = cachedData.timestamp as string;
-                            }
-                        } catch (error) {
-                            console.error("Error getting cached summary for", ethAddress, ":", error);
-                        }
-                    }
-
-                    if (cachedSummary) {
-                        aiGeneratedSummary = cachedSummary;
-                    } else {
-                    }
-                } else {
-                    console.warn("KV binding not available. Check wrangler.toml and make sure the binding name matches.");
-                }
-
-                // If no cached summary found and AI is available, generate a new one
-                if (!cachedSummary && env.AI) {
-                    try {
-                        // Get all event names
-                        const allPoapEvents = poaps.map(p => p.event.name);
-                        // Sort by event's supply
-                        const sortedPoapEvents = allPoapEvents.sort((a, b) => {
-                            const eventA = poaps.find(p => p.event.name === a);
-                            const eventB = poaps.find(p => p.event.name === b);
-                            return (eventB?.event.supply || 0) - (eventA?.event.supply || 0);
-                        });
-
-                        // Estimate token count for the prompt template (approximately)
-                        const promptTemplateTokens = 400; // Base prompt without event names
-                        const maxTokensForEvents = 7000; // Reserve some tokens for the response
-
-                        // Estimate tokens for event names (rough estimate: 1.5 tokens per word)
-                        let totalEventTokens = 0;
-                        let includedEvents = [];
-
-                        for (const eventName of sortedPoapEvents) {
-                            // Rough estimate: 1.5 tokens per word + 2 for punctuation/formatting
-                            const estimatedTokens = eventName.split(/\s+/).length * 1.5 + 2;
-
-                            if (totalEventTokens + estimatedTokens <= maxTokensForEvents) {
-                                includedEvents.push(eventName);
-                                totalEventTokens += estimatedTokens;
-                            } else {
-                                break; // Stop adding events if we exceed the token limit
-                            }
-                        }
-
-                        // Join the included events
-                        const poapEvents = includedEvents.join(", ");
-
-                        // Create a prompt for Llama model without predefined patterns
-                        const prompt = `
-                            You are an expert in analyzing NFT collections. I'm going to show you a POAP (Proof of Attendance Protocol) collection, and I need you to write a concise, personalized 1-2 sentence summary that describes the unique characteristics of this collection.
-                            
-                            POAP Collection for ${address}:
-                            - Collection Size: ${getCollectionSizeDescription(poaps.length)}
-                            - Event Names: ${poapEvents}
-                            
-                            Instructions:
-                            1. Analyze the event names to identify unique patterns, themes, or interests
-                            2. Write a concise, personalized 1-2 sentence summary that describes what makes this POAP collection unique
-                            3. Focus on the specific events, locations, or themes that are distinctive to this collection
-                            4. DO NOT start with phrases like "This collection is" or "This wallet demonstrates"
-                            5. DO NOT include any prefixes like "Here is a summary:" - just provide the summary directly
-                            6. DO NOT explain what POAPs are generally
-                            7. DO NOT compare this collection to other collections (avoid phrases like "sets it apart from other collections")
-                            8. Start directly with the unique aspects of the collection
-                            9. Be specific about the events and themes you identify
-                            10. Keep the focus entirely on this collection's characteristics without reference to others
-                            11. DO NOT mention the exact number of POAPs in the collection
-                        `;
-
-                        // Check if AI binding exists and has the expected structure
-                        let result;
-                        if (typeof env.AI === 'object' && env.AI !== null) {
-                            // Try different methods of accessing the AI binding
-                            if (typeof env.AI.run === 'function') {
-                                // Standard method
-                                result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
-                                    prompt: prompt,
-                                });
-                            } else if (env.AI['@cf/meta/llama-3.2-3b-instruct'] && 
-                                     typeof env.AI['@cf/meta/llama-3.2-3b-instruct'] === 'function') {
-                                // Alternative method if model is directly accessible
-                                result = await env.AI['@cf/meta/llama-3.2-3b-instruct']({
-                                    prompt: prompt,
-                                });
-                            } else {
-                                throw new Error('AI binding exists but does not have expected methods');
-                            }
-                        } else {
-                            throw new Error('AI binding is not an object');
-                        }
-
-                        // Extract and clean the response from Llama
-                        if (result && typeof result === 'object' && 'response' in result) {
-                            let response = result.response;
-
-                            // Remove common prefixes
-                            const prefixesToRemove = [
-                                "Here is a concise, personalized 1-2 sentence summary:",
-                                "Here's a concise, personalized summary:",
-                                "Here is my summary:",
-                                "Summary:"
-                            ];
-
-                            for (const prefix of prefixesToRemove) {
-                                if (response.includes(prefix)) {
-                                    response = response.replace(prefix, "").trim();
-                                }
-                            }
-
-                            // Remove newlines and extra spaces
-                            response = response.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
-
-                            // Remove quotes if present
-                            response = response.replace(/^"|"$/g, "");
-
-                            aiGeneratedSummary = response;
-
-                            // Store the summary in KV cache if available
-                            const kvBinding = env.POAP_SUMMARIES_KV || env["POAP_SUMMARIES_KV"];
-                            if (kvBinding && aiGeneratedSummary) {
-                                try {
-                                    // Set expiration to one month (in seconds)
-                                    const oneMonthInSeconds = 30 * 24 * 60 * 60;
-                                    const expirationTtl = oneMonthInSeconds;
-
-                                    // Create a data object with both summary and timestamp
-                                    const dataToStore = {
-                                        summary: aiGeneratedSummary,
-                                        timestamp: new Date().toISOString()
-                                    };
-
-                                    // Store for the address parameter (could be ENS or ETH)
-                                    await kvBinding.put(address, JSON.stringify(dataToStore), { expirationTtl });
-
-                                    // If address is different from ETH address (likely an ENS), store for ETH address too
-                                    if (address !== ethAddress) {
-                                        await kvBinding.put(ethAddress, JSON.stringify(dataToStore), { expirationTtl });
-                                    }
-
-                                } catch (error) {
-                                    console.error("Error storing summary in KV:", error);
-                                }
-                            } else {
-                                console.warn("Cannot store summary in KV: binding not available or summary is empty");
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error generating AI summary:', error);
-                    }
-                }
+            if (ogResponse.ok) {
+                ogImageUrl = ogResponse.url;
             }
         } catch (error) {
-            console.error('Error in v.$address loader:', error);
-
-            // Check if it's a rate limit error
-            if (error instanceof RateLimitError) {
-                return json({
-                    error: error.message,
-                    isRateLimit: true,
-                    address: address
-                }, { status: 429 });
-            }
-
-            // Handle other errors
-            return json({
-                error: "Failed to load POAPs. Please try again later.",
-                address: address
-            }, { status: 500 });
+            console.error('Error generating OG image:', error);
         }
 
-        // Get current timestamp for AI generation time
-        const aiGenerationTimestamp = cachedTimestamp || (aiGeneratedSummary ? new Date().toISOString() : null);
-
-        // Base description without AI summary
-        let finalDescription = "";
-
-        // Start with AI summary if available
-        if (aiGeneratedSummary) {
-            finalDescription = aiGeneratedSummary + " ";
-        }
-
-        // Add standard description
-        finalDescription += `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
-
+        // Create base description for SEO (AI summary will be added client-side)
+        let finalDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
+        
         // Add moments count if available
-        const totalMomentsCount = momentsCount.totalMoments;
         if (momentsCount && totalMomentsCount && totalMomentsCount > 0) {
             finalDescription += ` ${address} created ${totalMomentsCount} POAP moments.`;
         }
@@ -390,12 +142,16 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
             keywords: `${metaKeywords}`,
             poaps,
             address,
-            ogimageurl,
-            aiSummary: aiGeneratedSummary || "",
-            aiGenerationTime: aiGenerationTimestamp,
+            ogimageurl: ogImageUrl
         };
 
-        return json({ poaps, totalMomentsCount, latestMoments, dropsWithMoments, meta });
+        // Return critical data immediately (non-critical data loaded client-side)
+        return json({ 
+            poaps, 
+            totalMomentsCount, 
+            dropsWithMoments, 
+            meta
+        });
     } catch (error) {
         console.error('Error in v.$address loader:', error);
 
@@ -416,67 +172,11 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
     }
 };
 
-// Helper function to get a general description of collection size
-function getCollectionSizeDescription(count: number): string {
-    if (count < 5) return "A few POAPs";
-    if (count < 10) return "Several POAPs";
-    if (count < 20) return "A small collection";
-    if (count < 50) return "A modest collection";
-    if (count < 100) return "A medium-sized collection";
-    if (count < 200) return "A substantial collection";
-    if (count < 500) return "A large collection";
-    if (count < 1000) return "A very large collection";
-    return "An extensive collection";
-}
-
-// Helper function to format address for display
-function formatDisplayAddress(address: string): string {
-    // Check if address is an ENS name (contains a dot)
-    if (address.includes('.')) {
-        return address;
-    }
-
-    // Otherwise, it's an ETH address - truncate to first 4 and last 4 characters
-    if (address.length >= 8) {
-        return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
-    }
-
-    // Fallback for very short addresses (shouldn't happen with ETH addresses)
-    return address;
-}
-
-// Helper function to format timestamp in a user-friendly way
-function formatTimestamp(timestamp: string): string {
-    const date = new Date(timestamp);
-    const now = new Date();
-
-    // Calculate time difference in milliseconds
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    // Format as relative time if recent, otherwise use date
-    if (diffMins < 1) {
-        return "Just now";
-    } else if (diffMins < 60) {
-        return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-    } else if (diffHours < 24) {
-        return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-    } else if (diffDays < 30) {
-        return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-    } else {
-        // For older timestamps, use date format
-        return date.toLocaleDateString();
-    }
-}
-
 interface LoaderData {
     poaps: POAP[];
     totalMomentsCount: number;
-    latestMoments: Moment[];
     dropsWithMoments: number[];
-    error: string;
+    error?: string;
     isRateLimit?: boolean;
     address?: string;
     meta: {
@@ -486,18 +186,50 @@ interface LoaderData {
         poaps: POAP[];
         address: string;
         ogimageurl: string;
-        aiSummary: string;
-        aiGenerationTime: string | null;
     };
 }
 
 export default function POAPList({ className }: { className?: string }) {
-    const { poaps, meta, totalMomentsCount, latestMoments, dropsWithMoments, error, isRateLimit, address } = useLoaderData<LoaderData>();
+    const { poaps, meta, totalMomentsCount, dropsWithMoments, error, isRateLimit } = useLoaderData<LoaderData>();
+    const { address } = useParams<{ address: string }>();
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
     const [collections, setCollections] = useState<Collection[]>([]);
+    const [latestMoments, setLatestMoments] = useState<Moment[]>([]);
+    const [aiSummary, setAiSummary] = useState<string>("");
+    const [aiGenerationTime, setAiGenerationTime] = useState<string | null>(null);
 
+    // Load deferred data (AI summary, latest moments, OG image)
+    useEffect(() => {
+        if (!poaps || !poaps.length || error) return;
+        
+        const loadExtrasData = async () => {
+            try {
+                const response = await fetch(`/api/poap/extras/${address}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const extrasData: any = await response.json();
+                    setLatestMoments(extrasData.latestMoments || []);
+                    setAiSummary(extrasData.aiSummary || "");
+                    setAiGenerationTime(extrasData.aiGenerationTime);
+                } else {
+                    console.error('API response not ok:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('Error loading deferred data:', error);
+            }
+        };
+        
+        loadExtrasData();
+    }, [poaps, address, error]);
+
+    // Load collections data
     useEffect(() => {
         if (!poaps || !poaps.length || error) return;
 
@@ -663,8 +395,8 @@ export default function POAPList({ className }: { className?: string }) {
                     />
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
                         <AiSummary
-                            aiSummary={meta.aiSummary}
-                            aiGenerationTime={meta.aiGenerationTime}
+                            aiSummary={aiSummary}
+                            aiGenerationTime={aiGenerationTime}
                             address={meta.address}
                         />
                         <LatestMoments latestMoments={latestMoments} />

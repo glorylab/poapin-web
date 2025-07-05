@@ -1,5 +1,5 @@
 import { json, LoaderFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { getCollectionsByDropIds } from "~/api/poap-graph";
+import { getCollectionsByDropIds } from "~/lib/poap-graph";
 
 export const loader: LoaderFunction = async (args: LoaderFunctionArgs) => {
     const { params, context, request } = args;

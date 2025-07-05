@@ -4,13 +4,15 @@ import { POAP } from "~/types/poap";
  * Helper function to get a general description of collection size
  */
 export function getCollectionSizeDescription(count: number): string {
-    if (count === 0) return "No POAPs";
-    if (count === 1) return "1 POAP";
-    if (count < 10) return `${count} POAPs`;
-    if (count < 50) return `${count} POAPs - Getting started`;
-    if (count < 100) return `${count} POAPs - Active collector`;
-    if (count < 500) return `${count} POAPs - Dedicated collector`;
-    return `${count} POAPs - POAP enthusiast`;
+    if (count < 5) return "A few POAPs";
+    if (count < 10) return "Several POAPs";
+    if (count < 20) return "A small collection";
+    if (count < 50) return "A modest collection";
+    if (count < 100) return "A medium-sized collection";
+    if (count < 200) return "A substantial collection";
+    if (count < 500) return "A large collection";
+    if (count < 1000) return "A very large collection";
+    return "An extensive collection";
 }
 
 /**

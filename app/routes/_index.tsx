@@ -3,7 +3,7 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
-import { getHighLights } from "~/api/og";
+import { getHighLights } from "~/lib/og";
 import footerPositionAtom from "~/atoms/footer-position-atom";
 import { BackgroundGradientAnimation } from "~/components/background-gradient-animation";
 import AddressInputComponent from "~/components/poap/address-input";

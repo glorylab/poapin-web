@@ -1,4 +1,4 @@
-import { Collection } from "~/api/poap-graph";
+import { Collection } from "~/lib/poap-graph";
 import Marquee from "~/components/shared/marquee";
 import { CollectionCard } from "~/components/poap/collection-card";
 

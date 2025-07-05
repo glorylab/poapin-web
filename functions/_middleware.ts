@@ -12,8 +12,10 @@ export async function onRequest({ request, next }: any) {
       }
     }
     
-    // If the request is for assets or API, proxy to the original site
-    if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/api/')) {
+    // If the request is for assets, proxy to the original site
+    // Exclude local API routes (like /api/poap/extras) from being proxied
+    if (url.pathname.startsWith('/assets/') || 
+        (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/poap/') && !url.pathname.startsWith('/api/collections'))) {
       const targetUrl = `https://poap.in${url.pathname}${url.search}`;
       return fetch(targetUrl, {
         method: request.method,

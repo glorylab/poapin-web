@@ -1,4 +1,4 @@
-import { Collection } from "~/api/poap-graph";
+import { Collection } from "~/lib/poap-graph";
 import { MagicCard } from "../shared/magic-card";
 import { Link } from "@remix-run/react";
 import { Image } from "@heroui/react";
