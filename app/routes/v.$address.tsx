@@ -2,23 +2,25 @@ import { Moment, POAP } from "~/types/poap";
 import { RateLimitError, getPoapsOfAddress } from "~/api/poap";
 import { Collection, getLastMomentsByAuthor, getMomentsCountByAuthor } from "~/api/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
-import { Link, useLoaderData } from "@remix-run/react";
-import { cn } from "~/src/cn";
-import PoapListItem from "~/components/poap/poap-list-item";
-import { Select, SelectItem, useDisclosure } from "@heroui/react";
-import { getEnv } from "~/src/env";
-import FiltersWrapper from "~/components/poap/filters-wrapper";
+import { useLoaderData } from "@remix-run/react";
+import { useDisclosure } from "@heroui/react";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
-import { Icon } from "@iconify/react/dist/iconify.js";
 import SidebarDrawer from "~/components/poap/sidebar-drawer";
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "app/types/filter";
 import { useEffect, useState } from "react";
-import Marquee from "~/components/shared/marquee";
-import { MomentCard } from "~/components/poap/moment-card";
-import { CollectionCard } from "~/components/poap/collection-card";
-import { OGImageCard } from "~/components/poap/og-image-card";
-import { Popover, PopoverTrigger, PopoverContent, Button } from "@heroui/react";
+import { getEnv } from "~/src/env";
+// Components
+import FiltersWrapper from "~/components/poap/filters-wrapper";
+import { JsonLdSchema } from "~/components/poap/json-ld-schema";
+import { ErrorState } from "~/components/poap/error-state";
+import { AiSummary } from "~/components/poap/ai-summary";
+import { LatestMoments } from "~/components/poap/latest-moments";
+import { CollectionsSection } from "~/components/poap/collections-section";
+import { ExclusiveCards } from "~/components/poap/exclusive-cards";
+import { PageHeader } from "~/components/poap/page-header";
+import { PoapGrid } from "~/components/poap/poap-grid";
+
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -489,66 +491,14 @@ interface LoaderData {
     };
 }
 
-function getMomentsCountOfDrop(poap: POAP, dropsWithMoments: number[]) {
-    let momentsCount = 0;
-    if (!dropsWithMoments || dropsWithMoments.length == 0) return momentsCount;
-    // Return the number of moments for the given POAP
-    momentsCount = dropsWithMoments.filter((dropId) => dropId === poap.event.id).length;
-    return momentsCount;
-}
-
 export default function POAPList({ className }: { className?: string }) {
     const { poaps, meta, totalMomentsCount, latestMoments, dropsWithMoments, error, isRateLimit, address } = useLoaderData<LoaderData>();
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
-
     const [collections, setCollections] = useState<Collection[]>([]);
 
-    // Create JSON-LD data
-    const jsonLd = meta ? [
-        // Person schema for the wallet owner
-        {
-            "@context": "https://schema.org",
-            "@type": "Person",
-            "identifier": meta.address,
-            "name": meta.address.includes('.') ? meta.address : `Ethereum Wallet ${meta.address}`,
-            "description": meta.description,
-            "url": `https://poap.in/v/${meta.address}`,
-            "mainEntityOfPage": {
-                "@type": "ProfilePage",
-                "@id": `https://poap.in/v/${meta.address}`
-            },
-            "owns": {
-                "@type": "ItemList",
-                "itemListElement": poaps?.slice(0, 10).map((poap) => ({
-                    "@type": "Thing",
-                    "name": poap.event.name,
-                    "url": `https://poap.in/poap/${poap.tokenId}`
-                }))
-            }
-        },
-        // ItemList schema for the POAP collection (enhanced version of existing schema)
-        {
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            "name": `${meta.address}'s POAP Collection`,
-            "description": `Collection of POAPs (Proof of Attendance Protocol) owned by ${meta.address}`,
-            "numberOfItems": poaps.length,
-            "itemListOrder": "Descending",
-            "itemListElement": poaps?.slice(0, 10).map((poap, index) => ({
-                "@type": "ListItem",
-                "position": index + 1,
-                "url": `https://poap.in/poap/${poap.tokenId}`,
-                "name": poap.event.name,
-                "image": poap.event.image_url,
-                "description": `${poap.event.name} POAP from ${poap.event.start_date}`
-            }))
-        }
-    ] : null;
-
     useEffect(() => {
-
         if (!poaps || !poaps.length || error) return;
 
         const fetchCollections = async () => {
@@ -570,74 +520,14 @@ export default function POAPList({ className }: { className?: string }) {
     }, [poaps]);
 
     if (error) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex flex-col items-center justify-center text-center p-8 rounded-large bg-background-50 shadow-sm">
-                    {isRateLimit ? (
-                        <>
-                            <div className="mb-6 p-4 rounded-full bg-warning-100">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="48"
-                                    height="48"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="text-warning-500"
-                                >
-                                    <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
-                                </svg>
-                            </div>
-                            <h1 className="text-3xl font-medium tracking-tight text-background-800 mb-4">Rate Limit Exceeded</h1>
-                            <p className="text-xl text-background-600 mb-6">{error}</p>
-                            <p className="text-medium text-background-500 mb-8">The POAP API is currently rate limited. This helps ensure fair usage for all users.</p>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                {address && (
-                                    <Button
-                                        className="flex md:hidden border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800"
-                                        startContent={
-                                            <Icon
-                                                className="text-background-600 hover:text-background-800 active:text-background-800"
-                                                height={16}
-                                                icon="solar:filter-linear"
-                                                width={16}
-                                            />
-                                        }
-                                        variant="bordered"
-                                        onPress={onOpen}
-                                    >
-                                        Filters
-                                    </Button>
-                                )}
-                                {address && (
-                                    <Button color="secondary" as={Link} to={`/v/${address}`} reloadDocument>
-                                        Try Again
-                                    </Button>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <h1 className="text-4xl font-medium tracking-tight text-background-800">{error}</h1>
-                            <Button className="mt-8" color="primary" as={Link} to="/">
-                                Go to Homepage
-                            </Button>
-                        </>
-                    )}
-                </div>
-            </div>
-        );
+        return <ErrorState error={error} isRateLimit={isRateLimit} address={address} onOpen={onOpen} />;
     }
 
-    // If we have no poaps but also no error, show a loading state or empty state
     if (!poaps || !poaps.length) {
         return <div className="info">No POAPs found</div>;
     }
 
+    // Create filters
     const countryFilter: Filter = {
         type: FilterTypeEnum.CheckboxGroup,
         title: "Country",
@@ -696,6 +586,7 @@ export default function POAPList({ className }: { className?: string }) {
         }, []),
     };
 
+    // Filter and sort POAPs
     const filteredPoaps = poaps.filter((poap) => {
         return Object.entries(selectedFilters).every(([key, values]) => {
             if (values.length === 0) return true;
@@ -723,12 +614,13 @@ export default function POAPList({ className }: { className?: string }) {
             case "start_date_oldest":
                 return new Date(a.event.start_date).getTime() - new Date(b.event.start_date).getTime();
             case "most_moments":
-                return getMomentsCountOfDrop(b, dropsWithMoments) - getMomentsCountOfDrop(a, dropsWithMoments);
+                // Use inline function since getMomentsCountOfDrop was moved to utils
+                const getMomentsCount = (poap: POAP) => dropsWithMoments.includes(poap.event.id) ? 1 : 0;
+                return getMomentsCount(b) - getMomentsCount(a);
             case "most_popular":
                 return b.event.supply - a.event.supply;
             default:
                 return new Date(b.created).getTime() - new Date(a.created).getTime();
-
         }
     });
 
@@ -742,13 +634,8 @@ export default function POAPList({ className }: { className?: string }) {
 
     return (
         <>
-            {/* Add JSON-LD script tag directly */}
-            {jsonLd && (
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-                />
-            )}
+            {/* Add JSON-LD structured data */}
+            {meta && <JsonLdSchema meta={meta} poaps={poaps} />}
             <div className="flex gap-x-6 mb-8">
                 <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
                     <FiltersWrapper
@@ -766,228 +653,28 @@ export default function POAPList({ className }: { className?: string }) {
                     />
                 </SidebarDrawer>
                 <div className="w-full flex-1 flex-col">
-                    <header className="relative z-20 mx-4 px-4 mt-4 flex flex-col gap-2 rounded-medium bg-default-50 bg-opacity-30 backdrop-blur-sm pb-3 pt-2 md:pt-3">
-                        <div className="flex items-center gap-1 md:hidden md:gap-2">
-                            <h1 className="text-large font-medium text-background-700">{meta.address}</h1>
-                            <span className="text-small text-background-500">({poaps.length})</span>
-                            <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex flex-row grow gap-2">
-                                <Button
-                                    className="flex md:hidden border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800"
-                                    startContent={
-                                        <Icon
-                                            className="text-background-600 hover:text-background-800 active:text-background-800"
-                                            height={16}
-                                            icon="solar:filter-linear"
-                                            width={16}
-                                        />
-                                    }
-                                    variant="bordered"
-                                    onPress={onOpen}
-                                >
-                                    Filters
-                                </Button>
-                                <div className="hidden items-center gap-1 md:flex">
-                                    <h1 className="text-medium font-medium text-background-700">{meta.address}</h1>
-                                    <span className="text-small text-background-500">({poaps.length})</span>
-                                    <span className="text-small text-background-500"> {totalMomentsCount > 0 ? `(${totalMomentsCount} moments)` : ""}</span>
-                                </div>
-                            </div>
-                            <div className="flex grow">
-                                <Select
-                                    aria-label="Sort by"
-                                    classNames={{
-                                        base: "items-center justify-end",
-                                        trigger: "border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800",
-                                        label:
-                                            "hidden lg:block text-tiny whitespace-nowrap md:text-small text-background-600",
-                                        mainWrapper: "max-w-xs",
-                                    }}
-                                    defaultSelectedKeys={[selectedSort]}
-                                    onSelectionChange={(keys: string[]) => {
-                                        const selectedKey = Array.from(keys)[0];
-                                        if (typeof selectedKey === "string") {
-                                            setSelectedSort(selectedKey);
-                                        }
-                                    }}
-
-                                    label="Sort by"
-                                    labelPlacement="outside-left"
-                                    placeholder="Select an option"
-                                    variant="bordered"
-                                >
-                                    <SelectItem key="collected_newest"
-                                        classNames={{
-                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        }}
-                                    >
-                                        Collected date: Newest
-                                    </SelectItem>
-                                    <SelectItem key="collected_oldest"
-                                        classNames={{
-                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        }}
-                                    >
-                                        Collected date: Oldest
-                                    </SelectItem>
-                                    <SelectItem key="start_date_newest"
-                                        classNames={{
-                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        }}
-                                    >
-                                        Start Date: Newest
-                                    </SelectItem>
-                                    <SelectItem key="start_date_oldest"
-                                        classNames={{
-                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        }}
-                                    >
-                                        Start Date: Oldest
-                                    </SelectItem>
-                                    <SelectItem key="most_popular"
-                                        classNames={{
-                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        }}
-                                    >
-                                        Most Popular
-                                    </SelectItem>
-                                    <SelectItem key="most_moments"
-                                        classNames={{
-                                            title: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            description: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                            selectedIcon: "text-secondary-600 hover:text-secondary-900 active:text-secondary-800",
-                                        }}
-                                    >
-                                        Most Moments
-                                    </SelectItem>
-                                </Select>
-                            </div>
-                        </div>
-                    </header>
+                    <PageHeader
+                        address={meta.address}
+                        poapCount={poaps.length}
+                        totalMomentsCount={totalMomentsCount}
+                        selectedSort={selectedSort}
+                        onSortChange={setSelectedSort}
+                        onFilterOpen={onOpen}
+                    />
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
-                        {/* AI Summary Display */}
-                        {meta.aiSummary && (
-                            <div className="flex flex-col gap-2 p-4 bg-secondary-50 bg-opacity-90 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                                <h2 className="text-medium font-medium text-background-700">
-                                    Quick Insights: {formatDisplayAddress(meta.address || '')}
-                                </h2>
-                                <p className="text-background-800">{meta.aiSummary}</p>
-                                <div className="flex justify-between items-center">
-                                    <div></div> {/* Empty div to push the popover to the right */}
-                                    <Popover>
-                                        <PopoverTrigger>
-                                            <Button size="sm" variant="light" className="flex items-center gap-1 text-xs text-background-500">
-                                                <Icon icon="basil:info-rect-solid" width="24" height="24" />
-                                                {meta.aiGenerationTime ? formatTimestamp(meta.aiGenerationTime) : 'Unknown'}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent>
-                                            {(titleProps) => (
-                                                <div className="px-3 py-2 max-w-xs">
-                                                    <h3 className="text-small font-bold" {...titleProps}>
-                                                        Quick Insights
-                                                    </h3>
-                                                    <div className="text-tiny mt-1">
-                                                        We periodically analyze POAP collections to help you quickly understand {formatDisplayAddress(meta.address || '')}'s POAP footprint.
-                                                    </div>
-                                                    <div className="text-tiny mt-2 text-background-500">
-                                                        Generated on: {meta.aiGenerationTime ? new Date(meta.aiGenerationTime).toLocaleString() : 'Unknown'}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                            </div>
-                        )}
-                        {latestMoments && latestMoments.length > 0 && (
-                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                                <h2 className="text-medium font-medium text-background-700">Latest Moments</h2>
-                                <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
-                                    <Marquee pauseOnHover>
-                                        {latestMoments.map((moment) => (
-                                            <MomentCard key={moment.id} moment={moment} />
-                                        ))}
-                                    </Marquee>
-                                </div>
-                            </div>
-                        )}
-                        {collections && collections.length > 0 && (
-                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                                <h2 className="text-medium font-medium text-background-700">Collections</h2>
-                                <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg">
-                                    <Marquee pauseOnHover>
-                                        {collections.map((collection) => (
-                                            <CollectionCard key={collection.id} collection={collection} />
-                                        ))}
-                                    </Marquee>
-                                </div>
-                            </div>
-                        )}
-                        {meta.address && (
-                            <div className="flex flex-col gap-2 p-4 bg-default-50 bg-opacity-30 backdrop-blur-sm rounded-medium mx-auto mb-4">
-                                <h2 className="text-medium font-medium text-background-700">Exclusive Cards</h2>
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <div className="flex-1">
-                                        <OGImageCard
-                                            address={meta.address}
-                                            theme="default"
-                                            className="bg-[#d4dbe0]"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <OGImageCard
-                                            address={meta.address}
-                                            theme="letter"
-                                            className="bg-[#E8E4D8]"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <OGImageCard
-                                            address={meta.address}
-                                            theme="gallery"
-                                            className="bg-[#E8E4D8]"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        <div className="block rounded-medium border-background-200 border-dashed border-[1px]">
-                            <div className="flex flex-col items-center">
-                                <section 
-                                    aria-label="POAP Collection"
-                                    className={cn(
-                                        "my-auto grid max-w-7xl gap-5 p-4 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
-                                        className
-                                    )}
-                                >
-                                    {filteredPoaps.map((poap) => (
-                                        <article 
-                                            key={poap.tokenId} 
-                                            aria-label={poap.event.name}
-                                            className="poap-item"
-                                        >
-                                            <PoapListItem 
-                                                poap={poap} 
-                                                momentsCount={getMomentsCountOfDrop(poap, dropsWithMoments)} 
-                                            />
-                                        </article>
-                                    ))}
-                                </section>
-                            </div>
-                        </div>
+                        <AiSummary
+                            aiSummary={meta.aiSummary}
+                            aiGenerationTime={meta.aiGenerationTime}
+                            address={meta.address}
+                        />
+                        <LatestMoments latestMoments={latestMoments} />
+                        <CollectionsSection collections={collections} />
+                        <ExclusiveCards address={meta.address} />
+                        <PoapGrid
+                            poaps={filteredPoaps}
+                            dropsWithMoments={dropsWithMoments}
+                            className={className}
+                        />
                     </main>
                 </div>
             </div>
