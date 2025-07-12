@@ -27,6 +27,8 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
     const transition = useNavigation();
     const isNavigating = transition.state === "loading";
     const [navigatingUrl, setNavigatingUrl] = useState("");
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     useEffect(() => {
       const observer = new IntersectionObserver(
@@ -34,13 +36,19 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
               const lazyImage = entry.target as HTMLImageElement;
-              lazyImage.src = lazyImage.dataset.src || "";
+              const imageSrc = lazyImage.dataset.src || "";
+              
+              // Set up image load handlers
+              lazyImage.onload = () => setImageLoaded(true);
+              lazyImage.onerror = () => setImageError(true);
+              
+              lazyImage.src = imageSrc;
               observer.unobserve(lazyImage);
             }
           });
         },
         {
-          rootMargin: "0px",
+          rootMargin: "200px", // Start loading images 200px before they come into view
           threshold: 0.1,
         }
       );
@@ -80,14 +88,38 @@ const PoapListItem = React.forwardRef<HTMLDivElement, PoapListItemProps>(
           {...props}
         >
 
-          <img
-            ref={imageRef}
-            alt={poap.event.name}
-            data-src={poap.event.image_url + "?size=medium"}
-            className="aspect-square w-full rounded-full"
-            width={300}
-            height={300}
-          />
+          <div className="relative aspect-square w-full rounded-full overflow-hidden bg-transparent">
+            {/* Placeholder/Skeleton */}
+            {!imageLoaded && !imageError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-sm">
+                <div className="animate-pulse w-full h-full p-2">
+                  <div className="w-full h-full rounded-full bg-white/20 border border-white/30"></div>
+                </div>
+              </div>
+            )}
+            
+            {/* Error state */}
+            {imageError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-default-100 text-default-400">
+                <div className="text-center">
+                  <div className="w-8 h-8 mx-auto mb-1 rounded-full bg-default-300"></div>
+                  <p className="text-xs">Image unavailable</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Actual image */}
+            <img
+              ref={imageRef}
+              alt={poap.event.name}
+              data-src={poap.event.image_url + "?size=medium"}
+              className={`aspect-square w-full rounded-full transition-opacity duration-300 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              width={300}
+              height={300}
+            />
+          </div>
 
           <div className="mt-1 mb-4 flex flex-col flex-grow gap-2 px-1">
             {isLoading ? (
