@@ -13,6 +13,7 @@ import { getEnv } from "~/src/env";
 // Components
 import FiltersWrapper from "~/components/poap/filters-wrapper";
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
+import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
 import { ErrorState } from "~/components/poap/error-state";
 import { AiSummary } from "~/components/poap/ai-summary";
 import { LatestMoments } from "~/components/poap/latest-moments";
@@ -42,12 +43,20 @@ export const meta: MetaFunction = ({ data }) => {
         { title },
         { description },
         { keywords },
+        { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
+        { name: "author", content: address },
+        { name: "theme-color", content: "#6366f1" },
+        { name: "application-name", content: "POAPin" },
         { property: "og:title", content: title },
         { property: "og:image", content: ogimageurl },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: `${address}'s POAP collection visualization` },
         { property: "og:description", content: description },
         { property: "og:site_name", content: "POAPin" },
-        { property: "og:type", content: "website" },
+        { property: "og:type", content: "profile" },
         { property: "og:url", content: `https://poap.in/v/${address}` },
+        { property: "og:locale", content: "en_US" },
         { tagName: "link", rel: "canonical", href: canonicalUrl },
     ];
 
@@ -368,6 +377,14 @@ export default function POAPList({ className }: { className?: string }) {
         <>
             {/* Add JSON-LD structured data */}
             {meta && <JsonLdSchema meta={meta} poaps={poaps} />}
+            {meta && <BreadcrumbSchema address={meta.address} />}
+            
+            {/* Page header for SEO */}
+            <header className="sr-only">
+                <h1>{meta.title}</h1>
+                <p>{meta.description}</p>
+            </header>
+            
             <div className="flex gap-x-6 mb-8">
                 <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
                     <FiltersWrapper
