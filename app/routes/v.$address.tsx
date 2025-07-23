@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { getEnv } from "~/src/env";
 // Components
 import { FloatingFilterBar } from "~/components/poap/floating-filter-bar";
+import { FloatingSortBar } from "~/components/poap/floating-sort-bar";
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
 import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
 import { ErrorState } from "~/components/poap/error-state";
@@ -402,6 +403,12 @@ export default function POAPList({ className }: { className?: string }) {
                 filteredPoaps={filteredPoaps}
             />
             
+            {/* Floating Sort Bar */}
+            <FloatingSortBar
+                selectedSort={selectedSort}
+                onSortChange={setSelectedSort}
+            />
+            
             {/* Centered Main Content */}
             <div className="flex justify-center mb-8">
                 <div className="w-full max-w-6xl flex-col">
@@ -409,8 +416,6 @@ export default function POAPList({ className }: { className?: string }) {
                         address={meta.address}
                         poapCount={poaps.length}
                         totalMomentsCount={totalMomentsCount}
-                        selectedSort={selectedSort}
-                        onSortChange={setSelectedSort}
                     />
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
                         <AiSummary

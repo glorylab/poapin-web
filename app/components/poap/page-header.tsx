@@ -1,21 +1,15 @@
 import { Button } from "@heroui/react";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { SortSelector } from "./sort-selector";
-
 interface PageHeaderProps {
     address: string;
     poapCount: number;
     totalMomentsCount: number;
-    selectedSort: string;
-    onSortChange: (sort: string) => void;
 }
 
 export function PageHeader({ 
     address, 
     poapCount, 
-    totalMomentsCount, 
-    selectedSort, 
-    onSortChange
+    totalMomentsCount
 }: PageHeaderProps) {
     return (
         <header className="relative z-20 mx-4 px-4 mt-4 flex flex-col gap-2 rounded-medium bg-default-50 bg-opacity-30 backdrop-blur-sm pb-3 pt-2 md:pt-3">
@@ -29,7 +23,7 @@ export function PageHeader({
                         </span>
                     </div>
                 </div>
-                <SortSelector selectedSort={selectedSort} onSortChange={onSortChange} />
+
             </div>
         </header>
     );
