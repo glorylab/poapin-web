@@ -289,14 +289,16 @@ export function FloatingFilterBar({
         <>
             {/* Floating Filter Button */}
             <div className="fixed bottom-6 left-6 z-50">
-                <Button
-                    isIconOnly
-                    className="w-14 h-14 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg"
-                    radius="full"
-                    onPress={onOpen}
-                >
-                    <Icon icon="heroicons:funnel" className="w-6 h-6" />
-                </Button>
+                <div className="relative p-[1px] rounded-full bg-gradient-to-br from-white/80 to-white/20">
+                    <Button
+                        isIconOnly
+                        className="w-14 h-14 bg-black/50 hover:bg-black/70 hover:!opacity-100 backdrop-blur-sm text-primary/80 shadow-lg"
+                        radius="full"
+                        onPress={onOpen}
+                    >
+                        <Icon icon="heroicons:funnel" className="w-6 h-6" />
+                    </Button>
+                </div>
             </div>
 
             {/* Filter Modal */}
@@ -305,6 +307,7 @@ export function FloatingFilterBar({
                 onOpenChange={onClose}
                 size="2xl"
                 placement="center"
+                hideCloseButton
                 classNames={{
                     backdrop: "bg-black/50 backdrop-blur-sm",
                     base: "bg-white",
