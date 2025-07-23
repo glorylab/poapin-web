@@ -3,6 +3,7 @@ import { Button, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody
 import { Icon } from '@iconify/react';
 import type { Filter } from "~/types/filter";
 import type { POAP } from "~/types/poap";
+import { cn } from '~/src/cn';
 
 interface FloatingFilterBarProps {
     filters: Filter[];
@@ -173,7 +174,7 @@ export function FloatingFilterBar({
             switch (filterTitle) {
                 case 'Country':
                     return (poap.event.country || '(None)') === optionValue;
-                    case 'City':
+                case 'City':
                     return (poap.event.city || '(None)') === optionValue;
                 case 'Year':
                     return poap.event.year.toString() === optionValue;
@@ -236,7 +237,7 @@ export function FloatingFilterBar({
                 {displaySelected.map((poap, index) => (
                     <Avatar
                         key={`selected-${poap.tokenId}`}
-                        src={poap.event.image_url}
+                        src={`${poap.event.image_url}?size=xsmall`}
                         alt={poap.event.name}
                         size="sm"
                         className={selectedBorderClass}
@@ -245,7 +246,11 @@ export function FloatingFilterBar({
 
                 {/* Show count if more selected */}
                 {remainingSelected > 0 && (
-                    <div className="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-medium">
+                    <div className={`h-6 bg-green-500 text-white text-xs flex items-center justify-center font-mono font-medium ${
+                        remainingSelected.toString().length <= 1 
+                            ? 'px-1 rounded-full' 
+                            : 'px-2 rounded-full'
+                    }`}>
                         +{remainingSelected}
                     </div>
                 )}
@@ -259,7 +264,7 @@ export function FloatingFilterBar({
                 {displayUnselected.map((poap, index) => (
                     <Avatar
                         key={`unselected-${poap.tokenId}`}
-                        src={poap.event.image_url}
+                        src={`${poap.event.image_url}?size=xsmall`}
                         alt={poap.event.name}
                         size="sm"
                         className="w-6 h-6 opacity-60"
@@ -268,7 +273,11 @@ export function FloatingFilterBar({
 
                 {/* Show count if more unselected */}
                 {remainingUnselected > 0 && (
-                    <div className="w-6 h-6 rounded-full bg-gray-400 text-white text-xs flex items-center justify-center font-medium">
+                    <div className={`h-6 bg-gray-400 text-white text-xs flex items-center justify-center font-mono font-medium ${
+                        remainingUnselected.toString().length <= 1
+                            ? 'px-1 rounded-full' 
+                            : 'px-2 rounded-full'
+                    }`}>
                         +{remainingUnselected}
                     </div>
                 )}
@@ -320,7 +329,7 @@ export function FloatingFilterBar({
                                 </p>
                             </ModalHeader>
                             <ModalBody>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4">
                                     {filters.map((filter, index) => {
                                         // Calculate counts for this filter
                                         const { allCounts, filteredCounts } = calculateOptionCounts(allPoaps, filteredPoaps, filter.title);
@@ -370,7 +379,7 @@ export function FloatingFilterBar({
                                                                             key={keyString}
                                                                             size="sm"
                                                                             variant="flat"
-                                                                            className='group-data-[has-value=true]:text-background-500'
+                                                                            className='group-data-[has-value=true]:text-primary-500 group-data-[has-value=true]:bg-background-500'
                                                                         >
                                                                             {option?.title || keyString}
                                                                         </Chip>
@@ -381,12 +390,8 @@ export function FloatingFilterBar({
                                                     }}
                                                     classNames={{
                                                         base: "z-100 data-[has-value=true]:text-green",
-                                                        label: "text-gray-700",
+                                                        label: "text-gray-700 group-data-[has-value=true]:font-bold",
                                                         value: "text-gray-900 group-data-[has-value=true]:text-black",
-                                                        listboxWrapper: "max-h-[400px]",
-                                                        listbox: "p-0",
-                                                        innerWrapper: "bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800 data-[has-value=true]:bg-primary-50",
-                                                        trigger: "border-background-200 hover:border-background-100 bg-background-100 bg-opacity-20 hover:bg-background-100 hover:bg-opacity-70 active:bg-opacity-70 text-background-600 hover:text-background-800 active:text-background-800 data-[has-value=true]:border-primary-200 data-[has-value=true]:bg-primary-50",
                                                     }}
                                                 >
                                                     {filter.options?.map((option) => {
@@ -398,9 +403,17 @@ export function FloatingFilterBar({
                                                                 textValue={option.title}
                                                                 endContent={renderPOAPAvatars(filter.title, option.value)}
                                                                 classNames={{
-                                                                    wrapper: "py-4 hover:bg-gray-100 active:bg-gray-50 cursor-pointer",
-                                                                    title: `text-gray-900 hover:text-gray-900 hover:bg-gray-100 active:text-gray-900 py-4 px-2 rounded-md ${selectionState === 'partially-selected' ? 'text-yellow-700 bg-yellow-100' :
-                                                                        selectionState === 'fully-selected' ? 'text-green-700 bg-green-100 font-bold' : ''
+                                                                    base: cn(
+                                                                        'cursor-pointer py-2 px-2 rounded-md',
+                                                                        selectionState === 'partially-selected' 
+                                                                            ? '!bg-yellow-100 hover:!bg-yellow-200 active:!bg-yellow-50' 
+                                                                            : selectionState === 'fully-selected' 
+                                                                            ? '!bg-green-100 hover:!bg-green-200 active:!bg-green-50'
+                                                                            : '!bg-gray-50 hover:!bg-gray-100 active:!bg-gray-25'
+                                                                    ),
+                                                                    wrapper: "",
+                                                                    title: `text-gray-900 hover:text-gray-900 active:text-gray-900 py-2 px-2 rounded-md ${selectionState === 'partially-selected' ? 'text-yellow-700' :
+                                                                        selectionState === 'fully-selected' ? 'text-green-700 font-bold' : ''
                                                                         }`,
                                                                     selectedIcon: selectionState === 'partially-selected' ? "text-yellow-700" : "text-green-700",
                                                                 }}
