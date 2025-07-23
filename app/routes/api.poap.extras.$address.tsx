@@ -19,7 +19,6 @@ export const loader: LoaderFunction = async ({ params }) => {
 // Handle POST requests
 export const action: ActionFunction = async ({ context, params, request }) => {
     const address = params.address;
-    console.log("poap-extras", address);
 
     if (!address) {
         return json({ error: "Address not found" }, { status: 404 });

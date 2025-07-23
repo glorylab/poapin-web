@@ -3,15 +3,13 @@ import { RateLimitError, getPoapsOfAddress } from "~/lib/poap";
 import { Collection, getMomentsCountByAuthor } from "~/lib/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { useLoaderData, useParams } from "@remix-run/react";
-import { useDisclosure } from "@heroui/react";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
-import SidebarDrawer from "~/components/poap/sidebar-drawer";
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "app/types/filter";
 import { useEffect, useState } from "react";
 import { getEnv } from "~/src/env";
 // Components
-import FiltersWrapper from "~/components/poap/filters-wrapper";
+import { FloatingFilterBar } from "~/components/poap/floating-filter-bar";
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
 import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
 import { ErrorState } from "~/components/poap/error-state";
@@ -201,7 +199,6 @@ interface LoaderData {
 export default function POAPList({ className }: { className?: string }) {
     const { poaps, meta, totalMomentsCount, dropsWithMoments, error, isRateLimit } = useLoaderData<LoaderData>();
     const { address } = useParams<{ address: string }>();
-    const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
     const [collections, setCollections] = useState<Collection[]>([]);
@@ -329,8 +326,14 @@ export default function POAPList({ className }: { className?: string }) {
 
     // Filter and sort POAPs
     const filteredPoaps = poaps.filter((poap) => {
-        return Object.entries(selectedFilters).every(([key, values]) => {
-            if (values.length === 0) return true;
+        // Get all active filter entries (with non-empty values)
+        const activeFilters = Object.entries(selectedFilters).filter(([key, values]) => values.length > 0);
+        
+        // If no filters are active, show all POAPs
+        if (activeFilters.length === 0) return true;
+        
+        // Check if POAP matches ANY of the active filter values (OR logic)
+        return activeFilters.some(([key, values]) => {
             switch (key) {
                 case "Country":
                     return values.includes(poap.event.country || "(None)");
@@ -341,7 +344,7 @@ export default function POAPList({ className }: { className?: string }) {
                 case "Year":
                     return values.includes(poap.event.year.toString());
                 default:
-                    return true;
+                    return false;
             }
         });
     }).sort((a, b) => {
@@ -385,30 +388,29 @@ export default function POAPList({ className }: { className?: string }) {
                 <p>{meta.description}</p>
             </header>
             
-            <div className="flex gap-x-6 mb-8">
-                <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
-                    <FiltersWrapper
-                        className="md:bg-default-50 sm:ml-4 bg-transparent md:bg-opacity-30 backdrop-blur-sm min-w-64"
-                        items={[
-                            countryFilter,
-                            cityFilter,
-                            yearFilter,
-                            chainFilter,
-                        ]}
-                        scrollShadowClassName="max-h-full pb-12"
-                        showActions={false}
-                        title="Filter by"
-                        onFilterChange={handleFilterChange}
-                    />
-                </SidebarDrawer>
-                <div className="w-full flex-1 flex-col">
+            {/* Floating Filter Bar */}
+            <FloatingFilterBar
+                filters={[
+                    countryFilter,
+                    cityFilter,
+                    yearFilter,
+                    chainFilter,
+                ]}
+                selectedFilters={selectedFilters}
+                onFilterChange={handleFilterChange}
+                allPoaps={poaps}
+                filteredPoaps={filteredPoaps}
+            />
+            
+            {/* Centered Main Content */}
+            <div className="flex justify-center mb-8">
+                <div className="w-full max-w-6xl flex-col">
                     <PageHeader
                         address={meta.address}
                         poapCount={poaps.length}
                         totalMomentsCount={totalMomentsCount}
                         selectedSort={selectedSort}
                         onSortChange={setSelectedSort}
-                        onFilterOpen={onOpen}
                     />
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
                         <AiSummary
