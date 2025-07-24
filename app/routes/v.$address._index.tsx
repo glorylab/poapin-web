@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useOutletContext } from "@remix-run/react";
+import { useOutletContext, useSearchParams } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { FilterTypeEnum } from "~/types/filter";
@@ -90,20 +90,48 @@ interface OutletContext {
 
 export default function POAPIndex() {
     const { poaps, meta, totalMomentsCount, dropsWithMoments, filteredPoapCount, setFilteredPoapCount } = useOutletContext<OutletContext>();
-    const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
-    const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
+    const [searchParams, setSearchParams] = useSearchParams();
+    
+    // Get filter state from URL search params
+    const getFiltersFromURL = (): { [key: string]: string[] } => {
+        const filters: { [key: string]: string[] } = {};
+        for (const [key, value] of searchParams.entries()) {
+            if (key.startsWith('filter_')) {
+                const filterKey = key.replace('filter_', '');
+                filters[filterKey] = value.split(',').filter(v => v.length > 0);
+            }
+        }
+        return filters;
+    };
+    
+    const selectedFilters = getFiltersFromURL();
+    const selectedSort = searchParams.get('sort') || 'collected_newest';
 
     // Handle removing a single filter
     const handleFilterRemove = (key: string, value: string) => {
-        setSelectedFilters(prev => ({
-            ...prev,
-            [key]: prev[key]?.filter(v => v !== value) || []
-        }));
+        const newSearchParams = new URLSearchParams(searchParams);
+        const currentValues = selectedFilters[key] || [];
+        const newValues = currentValues.filter(v => v !== value);
+        
+        if (newValues.length > 0) {
+            newSearchParams.set(`filter_${key}`, newValues.join(','));
+        } else {
+            newSearchParams.delete(`filter_${key}`);
+        }
+        
+        setSearchParams(newSearchParams);
     };
 
     // Handle clearing all filters
     const handleClearAllFilters = () => {
-        setSelectedFilters({});
+        const newSearchParams = new URLSearchParams(searchParams);
+        // Remove all filter parameters
+        for (const [key] of searchParams.entries()) {
+            if (key.startsWith('filter_')) {
+                newSearchParams.delete(key);
+            }
+        }
+        setSearchParams(newSearchParams);
     };
 
     // Create filters
@@ -231,10 +259,22 @@ export default function POAPIndex() {
     }, [filteredPoaps.length, setFilteredPoapCount]);
 
     const handleFilterChange = (key: string, values: string[]) => {
-        setSelectedFilters((prevFilters) => ({
-            ...prevFilters,
-            [key]: values,
-        }));
+        const newSearchParams = new URLSearchParams(searchParams);
+        
+        if (values.length > 0) {
+            newSearchParams.set(`filter_${key}`, values.join(','));
+        } else {
+            newSearchParams.delete(`filter_${key}`);
+        }
+        
+        setSearchParams(newSearchParams);
+    };
+
+    // Handle sort change
+    const handleSortChange = (sort: string) => {
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.set('sort', sort);
+        setSearchParams(newSearchParams);
     };
 
     return (
@@ -257,7 +297,7 @@ export default function POAPIndex() {
             {/* Floating Sort Bar */}
             <FloatingSortBar
                 selectedSort={selectedSort}
-                onSortChange={setSelectedSort}
+                onSortChange={handleSortChange}
             />
             
             {/* Centered Main Content */}
