@@ -219,11 +219,14 @@ export default function POAPLayout() {
     const [aiSummary, setAiSummary] = useState<string>("");
     const [aiGenerationTime, setAiGenerationTime] = useState<string | null>(null);
     const [profileDataLoaded, setProfileDataLoaded] = useState(false);
+    
+    // Filter state for tracking filtered POAP count
+    const [filteredPoapCount, setFilteredPoapCount] = useState<number>(poaps?.length || 0);
 
     // Load profile data once and cache it
     useEffect(() => {
         if (!poaps || !poaps.length || error || profileDataLoaded) return;
-
+        
         const loadProfileData = async () => {
             try {
                 // Load AI summary and moments
@@ -307,7 +310,10 @@ export default function POAPLayout() {
                                     }}
                                     variant="shadow"
                                 >
-                                    {poaps.length}
+                                    {filteredPoapCount !== poaps.length && filteredPoapCount < poaps.length 
+                                        ? `${filteredPoapCount}/${poaps.length}` 
+                                        : poaps.length
+                                    }
                                 </Chip>
                             </NavLink>
                             <NavLink
@@ -338,7 +344,10 @@ export default function POAPLayout() {
                 latestMoments,
                 aiSummary,
                 aiGenerationTime,
-                profileDataLoaded
+                profileDataLoaded,
+                // Filter state
+                filteredPoapCount,
+                setFilteredPoapCount
             }} />
         </>
     );

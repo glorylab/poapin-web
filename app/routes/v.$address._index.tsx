@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOutletContext } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
@@ -79,17 +79,17 @@ interface OutletContext {
     meta: {
         title: string;
         description: string;
-        keywords: string;
-        poaps: POAP[];
         address: string;
         ogimageurl: string;
     };
     totalMomentsCount: number;
     dropsWithMoments: number[];
+    filteredPoapCount: number;
+    setFilteredPoapCount: (count: number) => void;
 }
 
 export default function POAPIndex() {
-    const { poaps, meta, totalMomentsCount, dropsWithMoments } = useOutletContext<OutletContext>();
+    const { poaps, meta, totalMomentsCount, dropsWithMoments, filteredPoapCount, setFilteredPoapCount } = useOutletContext<OutletContext>();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
 
@@ -224,6 +224,11 @@ export default function POAPIndex() {
                 return new Date(b.created).getTime() - new Date(a.created).getTime();
         }
     });
+
+    // Update parent component with filtered count whenever filters or sort change
+    useEffect(() => {
+        setFilteredPoapCount(filteredPoaps.length);
+    }, [filteredPoaps.length, setFilteredPoapCount]);
 
     const handleFilterChange = (key: string, values: string[]) => {
         setSelectedFilters((prevFilters) => ({
