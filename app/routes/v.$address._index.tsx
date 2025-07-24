@@ -289,9 +289,6 @@ export default function POAPIndex() {
         
         try {
             setSearchParams(newSearchParams);
-        
-        try {
-            setSearchParams(newSearchParams);
         } catch (error) {
             console.error('Error calling setSearchParams for batch update:', error);
         }
