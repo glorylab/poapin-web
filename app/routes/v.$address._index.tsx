@@ -9,6 +9,7 @@ import type { POAP } from "~/types/poap";
 import { FloatingFilterBar } from "~/components/poap/floating-filter-bar";
 import { FloatingSortBar } from "~/components/poap/floating-sort-bar";
 import { PoapGrid } from "~/components/poap/poap-grid";
+import { ActiveFiltersDisplay } from "~/components/poap/active-filters-display";
 
 export const meta: MetaFunction = ({ params, matches }) => {
     const parentMatch = matches.find(match => match.id === "routes/v.$address");
@@ -91,6 +92,19 @@ export default function POAPIndex() {
     const { poaps, meta, totalMomentsCount, dropsWithMoments } = useOutletContext<OutletContext>();
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
     const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
+
+    // Handle removing a single filter
+    const handleFilterRemove = (key: string, value: string) => {
+        setSelectedFilters(prev => ({
+            ...prev,
+            [key]: prev[key]?.filter(v => v !== value) || []
+        }));
+    };
+
+    // Handle clearing all filters
+    const handleClearAllFilters = () => {
+        setSelectedFilters({});
+    };
 
     // Create filters
     const countryFilter: Filter = {
@@ -228,6 +242,13 @@ export default function POAPIndex() {
             <div className="flex justify-center mb-8">
                 <div className="w-full max-w-6xl flex-col">
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl mx-auto">
+                        {/* Active Filters Display */}
+                        <ActiveFiltersDisplay
+                            selectedFilters={selectedFilters}
+                            onFilterRemove={handleFilterRemove}
+                            onClearAll={handleClearAllFilters}
+                        />
+                        
                         <PoapGrid
                             poaps={filteredPoaps}
                             dropsWithMoments={dropsWithMoments}

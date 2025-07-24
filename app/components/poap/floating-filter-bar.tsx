@@ -285,6 +285,10 @@ export function FloatingFilterBar({
         );
     };
 
+    // Check if any filters are active
+    const hasActiveFilters = Object.values(selectedFilters).some(values => values.length > 0);
+    const activeFilterCount = Object.values(selectedFilters).reduce((count, values) => count + values.length, 0);
+
     return (
         <>
             {/* Floating Filter Button */}
@@ -298,6 +302,15 @@ export function FloatingFilterBar({
                     >
                         <Icon icon="heroicons:funnel" className="w-6 h-6" />
                     </Button>
+                    
+                    {/* Active Filter Badge */}
+                    {hasActiveFilters && (
+                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-white/50 to-white/20 rounded-full flex items-center justify-center shadow-lg border-2 border-white backdrop-blur-sm">
+                            <span className="text-white/90 text-xs font-bold">
+                                {activeFilterCount > 9 ? '9+' : activeFilterCount}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 
