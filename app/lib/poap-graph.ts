@@ -141,38 +141,113 @@ export async function getMomentsCountByAuthor({
     context,
     author,
 }: FetchGetMomentsCountByAuthorProps): Promise<MomentsCountResult> {
-    const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
+    try {
+        const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
+        const pageSize = 200;
+        let allDropIds: number[] = [];
+        let totalMoments = 0;
+        let offset = 0;
+        let hasMore = true;
 
-    const query = `
-        query GetMomentsCountByAuthor {
-            moments_aggregate(where: { author: { _eq: "${author}" } }) {
-                aggregate {
-                count
-                }
-                nodes {
-                drop_id
+        // First request to get total count and first batch
+        const firstQuery = `
+            query GetMomentsCountByAuthor {
+                moments_aggregate(
+                    where: { author: { _eq: "${author}" } }
+                    distinct_on: drop_id
+                    limit: ${pageSize}
+                    offset: ${offset}
+                ) {
+                    aggregate {
+                        count
+                    }
+                    nodes {
+                        drop_id
+                    }
                 }
             }
-        }
-    `;
+        `;
 
-    try {
-        const response = await fetch(poapGraphQLBaseUrl, {
+        const firstResponse = await fetch(poapGraphQLBaseUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ query }),
+            body: JSON.stringify({ query: firstQuery }),
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (!firstResponse.ok) {
+            throw new Error(`HTTP error! status: ${firstResponse.status}`);
         }
 
-        const { data } = await response.json() as GraphQLResponse<GetMomentsCountByAuthorResponse>;
-        const totalMoments = data.moments_aggregate.aggregate.count;
-        const uniqueDropIds = [...new Set(data.moments_aggregate.nodes.map((node) => node.drop_id))];
+        const { data: firstData } = await firstResponse.json() as GraphQLResponse<GetMomentsCountByAuthorResponse>;
+        totalMoments = firstData.moments_aggregate.aggregate.count;
+        
+        // Process first batch and filter out invalid data
+        const firstBatchDropIds = firstData.moments_aggregate.nodes
+            .map((node) => node.drop_id)
+            .filter((id): id is number => typeof id === 'number' && !isNaN(id));
+        
+        allDropIds.push(...firstBatchDropIds);
+        offset += pageSize;
 
+        console.log("First batch - Total moments:", totalMoments);
+        console.log("First batch - Drop IDs:", firstBatchDropIds.length);
+
+        // Continue fetching if there are more pages
+        while (offset < totalMoments && hasMore) {
+            const pageQuery = `
+                query GetMomentsCountByAuthorPage {
+                    moments_aggregate(
+                        where: { author: { _eq: "${author}" } }
+                        distinct_on: drop_id
+                        limit: ${pageSize}
+                        offset: ${offset}
+                    ) {
+                        nodes {
+                            drop_id
+                        }
+                    }
+                }
+            `;
+
+            const pageResponse = await fetch(poapGraphQLBaseUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: pageQuery }),
+            });
+
+            if (!pageResponse.ok) {
+                console.warn(`Failed to fetch page at offset ${offset}:`, pageResponse.status);
+                break;
+            }
+
+            const { data: pageData } = await pageResponse.json() as GraphQLResponse<GetMomentsCountByAuthorResponse>;
+            const pageDropIds = pageData.moments_aggregate.nodes
+                .map((node) => node.drop_id)
+                .filter((id): id is number => typeof id === 'number' && !isNaN(id));
+            
+            if (pageDropIds.length === 0) {
+                hasMore = false;
+                break;
+            }
+
+            allDropIds.push(...pageDropIds);
+            offset += pageSize;
+
+            console.log(`Page ${Math.floor(offset / pageSize)} - Drop IDs:`, pageDropIds.length);
+        }
+
+        // Remove duplicates and ensure all are valid numbers
+        const uniqueDropIds = [...new Set(allDropIds)];
+
+        console.log("Final results for author:", author);
+        console.log("Total moments:", totalMoments);
+        console.log("Unique drop IDs count:", uniqueDropIds.length);
+        console.log("Sample drop IDs:", uniqueDropIds.slice(0, 10));
+        
         return {
             totalMoments,
             uniqueDropIds,
