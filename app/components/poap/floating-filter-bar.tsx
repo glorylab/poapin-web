@@ -306,7 +306,7 @@ export function FloatingFilterBar({
                 isOpen={isOpen}
                 onOpenChange={onClose}
                 size="2xl"
-                placement="center"
+                placement="auto"
                 hideCloseButton
                 classNames={{
                     backdrop: "bg-black/50 backdrop-blur-sm",

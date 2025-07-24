@@ -50,7 +50,7 @@ export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarP
                 isOpen={isOpen}
                 onOpenChange={onClose}
                 size="md"
-                placement="center"
+                placement="auto"
                 hideCloseButton
                 classNames={{
                     backdrop: "bg-black/50 backdrop-blur-sm",

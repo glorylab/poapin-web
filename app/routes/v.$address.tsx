@@ -259,7 +259,7 @@ export default function POAPList({ className }: { className?: string }) {
     }, [poaps]);
 
     if (error) {
-        return <ErrorState error={error} isRateLimit={isRateLimit} address={address} onOpen={onOpen} />;
+        return <ErrorState error={error} isRateLimit={isRateLimit} address={address} onOpen={open} />;
     }
 
     if (!poaps || !poaps.length) {
@@ -417,7 +417,7 @@ export default function POAPList({ className }: { className?: string }) {
                         poapCount={poaps.length}
                         totalMomentsCount={totalMomentsCount}
                     />
-                    <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl">
+                    <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl mx-auto">
                         <AiSummary
                             aiSummary={aiSummary}
                             aiGenerationTime={aiGenerationTime}
