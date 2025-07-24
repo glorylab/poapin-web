@@ -1,26 +1,16 @@
-import { Moment, POAP } from "~/types/poap";
-import { RateLimitError, getPoapsOfAddress } from "~/lib/poap";
-import { Collection, getMomentsCountByAuthor } from "~/lib/poap-graph";
-import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
-import { useLoaderData, useParams } from "@remix-run/react";
-import { getFrameMetadata } from '@coinbase/onchainkit/frame';
-import { FilterTypeEnum } from "~/types/filter";
-import type { Filter } from "app/types/filter";
 import { useEffect, useState } from "react";
+import { POAP, Moment } from "~/types/poap";
+import { RateLimitError, getPoapsOfAddress } from "~/lib/poap";
+import { getMomentsCountByAuthor, Collection } from "~/lib/poap-graph";
+import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
+import { Outlet, useLoaderData, useParams, NavLink, useLocation } from "@remix-run/react";
+import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
 // Components
-import { FloatingFilterBar } from "~/components/poap/floating-filter-bar";
-import { FloatingSortBar } from "~/components/poap/floating-sort-bar";
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
 import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
 import { ErrorState } from "~/components/poap/error-state";
-import { AiSummary } from "~/components/poap/ai-summary";
-import { LatestMoments } from "~/components/poap/latest-moments";
-import { CollectionsSection } from "~/components/poap/collections-section";
-import { ExclusiveCards } from "~/components/poap/exclusive-cards";
-import { PageHeader } from "~/components/poap/page-header";
-import { PoapGrid } from "~/components/poap/poap-grid";
-
+import { Chip } from "@heroui/react";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -39,35 +29,48 @@ export const meta: MetaFunction = ({ data }) => {
     const canonicalUrl = `https://poap.in/v/${ethAddress}`;
 
     const baseMeta = [
-        { title },
-        { description },
-        { keywords },
+        { name: "title", content: title },
+        { name: "description", content: description },
+        { name: "keywords", content: keywords },
         { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
         { name: "author", content: address },
         { name: "theme-color", content: "#6366f1" },
         { name: "application-name", content: "POAPin" },
+
+        { property: "og:locale", content: "en_US" },
         { property: "og:title", content: title },
         { property: "og:image", content: ogimageurl },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: `${address}'s POAP collection visualization` },
         { property: "og:description", content: description },
-        { property: "og:site_name", content: "POAPin" },
+        { property: "og:url", content: canonicalUrl },
         { property: "og:type", content: "profile" },
-        { property: "og:url", content: `https://poap.in/v/${address}` },
-        { property: "og:locale", content: "en_US" },
-        { tagName: "link", rel: "canonical", href: canonicalUrl },
+        { property: "og:site_name", content: "POAPin" },
+        { property: "profile:username", content: address },
+
+        { rel: "canonical", href: canonicalUrl },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "format-detection", content: "telephone=no" },
+        { name: "msapplication-TileColor", content: "#6366f1" },
     ];
 
     const twitterMeta = [
-        { name: "X:card", content: "summary_large_image" },
-        { name: "X:domain", content: "poap.in" },
-        { name: "X:url", content: `https://poap.in/v/${address}` },
-        { name: "X:title", content: title },
-        { name: "X:description", content: description },
-        { name: "X:image", ogimageurl }
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@glorylaboratory" },
+        { name: "twitter:creator", content: "@glorylaboratory" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: ogimageurl },
+        { name: "twitter:image:alt", content: `${address}'s POAP collection` },
+        { name: "twitter:url", content: canonicalUrl },
+        { name: "twitter:label1", content: "POAPs" },
+        { name: "twitter:data1", content: loaderData.poaps?.length?.toString() || "0" },
+        { name: "twitter:label2", content: "Moments" },
+        { name: "twitter:data2", content: loaderData.totalMomentsCount?.toString() || "0" },
     ];
 
+    // Frame metadata for Farcaster
     const frameMetadata = getFrameMetadata({
         buttons: [
             {
@@ -138,7 +141,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
 
         // Create base description for SEO (AI summary will be added client-side)
         let finalDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
-        
+
         // Add moments count if available
         if (momentsCount && totalMomentsCount && totalMomentsCount > 0) {
             finalDescription += ` ${address} created ${totalMomentsCount} POAP moments.`;
@@ -154,10 +157,10 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         };
 
         // Return critical data immediately (non-critical data loaded client-side)
-        return json({ 
-            poaps, 
-            totalMomentsCount, 
-            dropsWithMoments, 
+        return json({
+            poaps,
+            totalMomentsCount,
+            dropsWithMoments,
             meta
         });
     } catch (error) {
@@ -197,244 +200,146 @@ interface LoaderData {
     };
 }
 
-export default function POAPList({ className }: { className?: string }) {
+export default function POAPLayout() {
     const { poaps, meta, totalMomentsCount, dropsWithMoments, error, isRateLimit } = useLoaderData<LoaderData>();
     const { address } = useParams<{ address: string }>();
-    const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({});
-    const [selectedSort, setSelectedSort] = useState<string>("collected_newest");
+    const location = useLocation();
+
+    // Handle tab click - scroll to top if already on that tab
+    const handleTabClick = (e: React.MouseEvent<HTMLAnchorElement>, targetPath: string) => {
+        if (location.pathname === targetPath) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    // Cached data for profile tab to avoid reloading
     const [collections, setCollections] = useState<Collection[]>([]);
     const [latestMoments, setLatestMoments] = useState<Moment[]>([]);
     const [aiSummary, setAiSummary] = useState<string>("");
     const [aiGenerationTime, setAiGenerationTime] = useState<string | null>(null);
+    const [profileDataLoaded, setProfileDataLoaded] = useState(false);
 
-    // Load deferred data (AI summary, latest moments, OG image)
+    // Load profile data once and cache it
     useEffect(() => {
-        if (!poaps || !poaps.length || error) return;
-        
-        const loadExtrasData = async () => {
+        if (!poaps || !poaps.length || error || profileDataLoaded) return;
+
+        const loadProfileData = async () => {
             try {
-                const response = await fetch(`/api/poap/extras/${address}`, {
+                // Load AI summary and moments
+                const extrasResponse = await fetch(`/api/poap/extras/${address}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 });
-                
-                if (response.ok) {
-                    const extrasData: any = await response.json();
+
+                if (extrasResponse.ok) {
+                    const extrasData: any = await extrasResponse.json();
                     setLatestMoments(extrasData.latestMoments || []);
                     setAiSummary(extrasData.aiSummary || "");
                     setAiGenerationTime(extrasData.aiGenerationTime);
-                } else {
-                    console.error('API response not ok:', response.status, response.statusText);
                 }
-            } catch (error) {
-                console.error('Error loading deferred data:', error);
-            }
-        };
-        
-        loadExtrasData();
-    }, [poaps, address, error]);
 
-    // Load collections data
-    useEffect(() => {
-        if (!poaps || !poaps.length || error) return;
+                // Load collections
+                const dropIds = poaps.map(poap => poap.event.id);
+                const queryParams = new URLSearchParams({ dropIds: dropIds.join(',') });
+                const collectionsResponse = await fetch(`/api/collections?${queryParams}`);
 
-        const fetchCollections = async () => {
-            const dropIds = poaps.map(poap => poap.event.id);
-            const queryParams = new URLSearchParams({ dropIds: dropIds.join(',') });
-            try {
-                const response = await fetch(`/api/collections?${queryParams}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch collections');
+                if (collectionsResponse.ok) {
+                    const collectionsData: Collection[] = await collectionsResponse.json();
+                    setCollections(collectionsData);
                 }
-                const data: Collection[] = await response.json();
-                setCollections(data);
+
+                setProfileDataLoaded(true);
             } catch (error) {
-                console.error('Error fetching collections:', error);
+                console.error('Error loading profile data:', error);
             }
         };
 
-        fetchCollections();
-    }, [poaps]);
+        loadProfileData();
+    }, [poaps, address, error, profileDataLoaded]);
 
     if (error) {
-        return <ErrorState error={error} isRateLimit={isRateLimit} address={address} onOpen={open} />;
+        return <ErrorState error={error} isRateLimit={isRateLimit} address={address} onOpen={() => window.open(`https://poap.in/v/${address}`, '_blank')} />;
     }
 
     if (!poaps || !poaps.length) {
         return <div className="info">No POAPs found</div>;
     }
 
-    // Create filters
-    const countryFilter: Filter = {
-        type: FilterTypeEnum.CheckboxGroup,
-        title: "Country",
-        options: poaps.reduce((acc: Filter["options"], poap) => {
-            const country = poap.event.country || "(None)";
-            if (acc) {
-                if (!acc.find((option) => option.value === country)) {
-                    acc.push({ title: country, value: country });
-                }
-                return acc;
-            }
-            return [{ title: country, value: country }];
-        }, []),
-    };
-
-    const cityFilter: Filter = {
-        type: FilterTypeEnum.CheckboxGroup,
-        title: "City",
-        options: poaps.reduce((acc: Filter["options"], poap) => {
-            const city = poap.event.city || "(None)";
-            if (acc) {
-                if (!acc.find((option) => option.value === city)) {
-                    acc.push({ title: city, value: city });
-                }
-                return acc;
-            }
-            return [{ title: city, value: city }];
-        }, []),
-    };
-
-    const chainFilter: Filter = {
-        type: FilterTypeEnum.CheckboxGroup,
-        title: "Chain",
-        options: poaps.reduce((acc: Filter["options"], poap) => {
-            if (acc) {
-                if (!acc.find((option) => option.value === poap.chain)) {
-                    acc.push({ title: poap.chain, value: poap.chain });
-                }
-                return acc;
-            }
-            return [{ title: poap.chain, value: poap.chain }];
-        }, []),
-    };
-
-    const yearFilter: Filter = {
-        type: FilterTypeEnum.CheckboxGroup,
-        title: "Year",
-        options: poaps.reduce((acc: Filter["options"], poap) => {
-            if (acc) {
-                if (!acc.find((option) => option.value === poap.event.year.toString())) {
-                    acc.push({ title: poap.event.year.toString(), value: poap.event.year.toString() });
-                }
-                return acc;
-            }
-            return [{ title: poap.event.year.toString(), value: poap.event.year.toString() }];
-        }, []),
-    };
-
-    // Filter and sort POAPs
-    const filteredPoaps = poaps.filter((poap) => {
-        // Get all active filter entries (with non-empty values)
-        const activeFilters = Object.entries(selectedFilters).filter(([key, values]) => values.length > 0);
-        
-        // If no filters are active, show all POAPs
-        if (activeFilters.length === 0) return true;
-        
-        // Check if POAP matches ANY of the active filter values (OR logic)
-        return activeFilters.some(([key, values]) => {
-            switch (key) {
-                case "Country":
-                    return values.includes(poap.event.country || "(None)");
-                case "City":
-                    return values.includes(poap.event.city || "(None)");
-                case "Chain":
-                    return values.includes(poap.chain);
-                case "Year":
-                    return values.includes(poap.event.year.toString());
-                default:
-                    return false;
-            }
-        });
-    }).sort((a, b) => {
-        switch (selectedSort) {
-            case "collected_newest":
-                return new Date(b.created).getTime() - new Date(a.created).getTime();
-            case "collected_oldest":
-                return new Date(a.created).getTime() - new Date(b.created).getTime();
-            case "start_date_newest":
-                return new Date(b.event.start_date).getTime() - new Date(a.event.start_date).getTime();
-            case "start_date_oldest":
-                return new Date(a.event.start_date).getTime() - new Date(b.event.start_date).getTime();
-            case "most_moments":
-                // Use inline function since getMomentsCountOfDrop was moved to utils
-                const getMomentsCount = (poap: POAP) => dropsWithMoments.includes(poap.event.id) ? 1 : 0;
-                return getMomentsCount(b) - getMomentsCount(a);
-            case "most_popular":
-                return b.event.supply - a.event.supply;
-            default:
-                return new Date(b.created).getTime() - new Date(a.created).getTime();
-        }
-    });
-
-
-    const handleFilterChange = (key: string, values: string[]) => {
-        setSelectedFilters((prevFilters) => ({
-            ...prevFilters,
-            [key]: values,
-        }));
-    };
+    const isProfileTab = location.pathname.endsWith('/profile');
 
     return (
         <>
             {/* Add JSON-LD structured data */}
             {meta && <JsonLdSchema meta={meta} poaps={poaps} />}
             {meta && <BreadcrumbSchema address={meta.address} />}
-            
+
             {/* Page header for SEO */}
             <header className="sr-only">
                 <h1>{meta.title}</h1>
                 <p>{meta.description}</p>
             </header>
-            
-            {/* Floating Filter Bar */}
-            <FloatingFilterBar
-                filters={[
-                    countryFilter,
-                    cityFilter,
-                    yearFilter,
-                    chainFilter,
-                ]}
-                selectedFilters={selectedFilters}
-                onFilterChange={handleFilterChange}
-                allPoaps={poaps}
-                filteredPoaps={filteredPoaps}
-            />
-            
-            {/* Floating Sort Bar */}
-            <FloatingSortBar
-                selectedSort={selectedSort}
-                onSortChange={setSelectedSort}
-            />
-            
-            {/* Centered Main Content */}
-            <div className="flex justify-center mb-8">
-                <div className="w-full max-w-6xl flex-col">
-                    <PageHeader
-                        address={meta.address}
-                        poapCount={poaps.length}
-                        totalMomentsCount={totalMomentsCount}
-                    />
-                    <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl mx-auto">
-                        <AiSummary
-                            aiSummary={aiSummary}
-                            aiGenerationTime={aiGenerationTime}
-                            address={meta.address}
-                        />
-                        <LatestMoments latestMoments={latestMoments} />
-                        <CollectionsSection collections={collections} />
-                        <ExclusiveCards address={meta.address} />
-                        <PoapGrid
-                            poaps={filteredPoaps}
-                            dropsWithMoments={dropsWithMoments}
-                            className={className}
-                        />
-                    </main>
+
+            {/* Tab Navigation - Sticky below navbar */}
+            <div className="sticky top-[60px] z-40 bg-white/10 backdrop-blur-sm border-b border-white/50 shadow-sm">
+                <div className="flex justify-center">
+                    <div className="w-full max-w-6xl px-4">
+                        <nav className="flex space-x-8 justify-center">
+                            <NavLink
+                                to={`/v/${address}`}
+                                end
+                                onClick={(e) => handleTabClick(e, `/v/${address}`)}
+                                className={({ isActive }) =>
+                                    `py-2 px-1 border-b-2 flex items-center gap-2 ${isActive
+                                        ? 'border-primary-500 text-primary-600 font-bold'
+                                        : 'border-transparent text-primary-500 hover:text-primary-600 hover:border-primary-500/50 font-medium'
+                                    }`
+                                }
+                            >
+                                <span className="text-xl">POAPs</span>
+                                <Chip
+                                    size="sm"
+                                    classNames={{
+                                        base: "bg-linear-to-br from-indigo-500 to-pink-500 border-small border-white/50 shadow-pink-500/30",
+                                        content: "drop-shadow-xs shadow-black text-white",
+                                    }}
+                                    variant="shadow"
+                                >
+                                    {poaps.length}
+                                </Chip>
+                            </NavLink>
+                            <NavLink
+                                to={`/v/${address}/profile`}
+                                onClick={(e) => handleTabClick(e, `/v/${address}/profile`)}
+                                className={({ isActive }) =>
+                                    `py-2 px-1 border-b-2 flex items-center ${isActive
+                                        ? 'border-primary-500 text-primary-600 font-bold'
+                                        : 'border-transparent text-primary-500 hover:text-primary-600 hover:border-primary-500/50 font-medium'
+                                    }`
+                                }
+                            >
+                                <span className="text-xl">Profile</span>
+                            </NavLink>
+                        </nav>
+                    </div>
                 </div>
             </div>
-        </>
 
+            {/* Child Route Content */}
+            <Outlet context={{
+                poaps,
+                meta,
+                totalMomentsCount,
+                dropsWithMoments,
+                // Cached profile data
+                collections,
+                latestMoments,
+                aiSummary,
+                aiGenerationTime,
+                profileDataLoaded
+            }} />
+        </>
     );
 }
