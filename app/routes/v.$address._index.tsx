@@ -267,7 +267,34 @@ export default function POAPIndex() {
             newSearchParams.delete(`filter_${key}`);
         }
         
-        setSearchParams(newSearchParams);
+        try {
+            setSearchParams(newSearchParams);
+        } catch (error) {
+            console.error('Error calling setSearchParams:', error);
+        }
+    };
+    
+    // Batch filter update function to handle multiple filters at once
+    const handleBatchFilterChange = (filtersToUpdate: { [key: string]: string[] }) => {
+        const newSearchParams = new URLSearchParams(searchParams);
+        
+        // Apply all filter changes to the same URLSearchParams object
+        Object.entries(filtersToUpdate).forEach(([key, values]) => {
+            if (values.length > 0) {
+                newSearchParams.set(`filter_${key}`, values.join(','));
+            } else {
+                newSearchParams.delete(`filter_${key}`);
+            }
+        });
+        
+        try {
+            setSearchParams(newSearchParams);
+        
+        try {
+            setSearchParams(newSearchParams);
+        } catch (error) {
+            console.error('Error calling setSearchParams for batch update:', error);
+        }
     };
 
     // Handle sort change
@@ -290,6 +317,7 @@ export default function POAPIndex() {
                 ]}
                 selectedFilters={selectedFilters}
                 onFilterChange={handleFilterChange}
+                onBatchFilterChange={handleBatchFilterChange}
                 allPoaps={poaps}
                 filteredPoaps={filteredPoaps}
             />

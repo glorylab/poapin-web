@@ -1,6 +1,7 @@
-import React from 'react';
-import { Chip, Button } from '@heroui/react';
+import React, { useState, useEffect } from 'react';
+import { Chip, Button, Spinner } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { useNavigation } from '@remix-run/react';
 
 interface ActiveFiltersDisplayProps {
     selectedFilters: { [key: string]: string[] };
@@ -8,14 +9,78 @@ interface ActiveFiltersDisplayProps {
     onClearAll: () => void;
 }
 
-export function ActiveFiltersDisplay({ 
-    selectedFilters, 
-    onFilterRemove, 
-    onClearAll 
+export function ActiveFiltersDisplay({
+    selectedFilters,
+    onFilterRemove,
+    onClearAll
 }: ActiveFiltersDisplayProps) {
+    const navigation = useNavigation();
+
+    // Loading states
+    const [loadingFilters, setLoadingFilters] = useState<Set<string>>(new Set());
+    const [isClearingAll, setIsClearingAll] = useState(false);
+    const [previousFilters, setPreviousFilters] = useState(selectedFilters);
+
+    // Monitor navigation state and filter changes to clear loading states
+    useEffect(() => {
+        // If navigation is idle and filters have changed, clear loading states
+        if (navigation.state === 'idle') {
+            // Check if filters have actually changed
+            const filtersChanged = JSON.stringify(selectedFilters) !== JSON.stringify(previousFilters);
+
+            if (filtersChanged) {
+                // Clear loading states after a short delay to show the spinner briefly
+                const timer = setTimeout(() => {
+                    setLoadingFilters(new Set());
+                    setIsClearingAll(false);
+                    setPreviousFilters(selectedFilters);
+                }, 300);
+
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [navigation.state, selectedFilters, previousFilters]);
+
+    // Handle filter removal with loading state
+    const handleFilterRemove = async (key: string, value: string) => {
+        const filterId = `${key}-${value}`;
+        if (loadingFilters.has(filterId) || isClearingAll) return; // Prevent duplicate clicks
+
+        setLoadingFilters(prev => new Set(prev).add(filterId));
+
+        try {
+            await onFilterRemove(key, value);
+        } catch (error) {
+            // If there's an error, clear the loading state immediately
+            setLoadingFilters(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(filterId);
+                return newSet;
+            });
+            throw error;
+        }
+        // Loading state will be cleared by useEffect when navigation completes
+    };
+
+    // Handle clear all with loading state
+    const handleClearAll = async () => {
+        if (isClearingAll || loadingFilters.size > 0) return; // Prevent duplicate clicks
+
+        setIsClearingAll(true);
+
+        try {
+            await onClearAll();
+        } catch (error) {
+            // If there's an error, clear the loading state immediately
+            setIsClearingAll(false);
+            throw error;
+        }
+        // Loading state will be cleared by useEffect when navigation completes
+    };
+
     // Check if any filters are active
     const hasActiveFilters = Object.values(selectedFilters).some(values => values.length > 0);
-    
+
     if (!hasActiveFilters) {
         return null;
     }
@@ -37,35 +102,62 @@ export function ActiveFiltersDisplay({
                     size="sm"
                     variant="flat"
                     color="danger"
-                    startContent={<Icon icon="heroicons:x-mark" className="w-4 h-4" />}
-                    onPress={onClearAll}
+                    startContent={
+                        isClearingAll ? (
+                            <Spinner size="sm" className="w-4 h-4" />
+                        ) : (
+                            <Icon icon="heroicons:x-mark" className="w-4 h-4" />
+                        )
+                    }
+                    onPress={handleClearAll}
+                    isDisabled={isClearingAll || loadingFilters.size > 0}
                     className="text-xs"
                 >
-                    Clear All
+                    {isClearingAll ? 'Clearing...' : 'Clear All'}
                 </Button>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
-                {activeFilterEntries.map(([filterKey, values]) => 
-                    values.map((value) => (
-                        <Chip
-                            key={`${filterKey}-${value}`}
-                            variant="flat"
-                            color="primary"
-                            size="sm"
-                            onClose={() => onFilterRemove(filterKey, value)}
-                            classNames={{
-                                base: "bg-gradient-to-r from-background-100 to-background-100 border border-background-200/50 hover:from-background-200 hover:to-background-200 transition-all duration-200",
-                                content: "text-background-800 font-medium",
-                                closeButton: "text-background-600 hover:text-background-800"
-                            }}
-                        >
-                            <span className="flex items-center gap-1">
-                                <span className="text-xs opacity-75">{filterKey}:</span>
-                                <span>{value}</span>
-                            </span>
-                        </Chip>
-                    ))
+                {activeFilterEntries.map(([filterKey, values]) =>
+                    values.map((value) => {
+                        const filterId = `${filterKey}-${value}`;
+                        const isLoading = loadingFilters.has(filterId);
+
+                        return (
+                            <Chip
+                                key={filterId}
+                                variant="flat"
+                                color="primary"
+                                size="sm"
+                                onClose={isLoading || isClearingAll ? undefined : () => handleFilterRemove(filterKey, value)}
+                                classNames={{
+                                    base: `bg-gradient-to-r from-background-100 to-background-100 border border-background-200/50 hover:from-background-200 hover:to-background-200 transition-all duration-200 ${isLoading || isClearingAll ? 'opacity-60 cursor-not-allowed' : ''}`,
+                                    content: "text-background-800 font-medium",
+                                    closeButton: "text-background-600 hover:text-background-800"
+                                }}
+                                endContent={
+                                    isLoading ? (
+                                        <div className="flex items-center justify-center w-4 h-4">
+                                            <Spinner 
+                                                size="sm" 
+                                                color='warning'
+                                                classNames={{
+                                                    wrapper: "w-3 h-3",
+                                                    circle1: "w-3 h-3",
+                                                    circle2: "w-3 h-3"
+                                                }}
+                                            />
+                                        </div>
+                                    ) : undefined
+                                }
+                            >
+                                <span className="flex items-center gap-1">
+                                    <span className="text-xs opacity-75">{filterKey}:</span>
+                                    <span>{value}</span>
+                                </span>
+                            </Chip>
+                        );
+                    })
                 )}
             </div>
         </div>

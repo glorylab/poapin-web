@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Chip, Avatar } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import type { Filter } from "~/types/filter";
@@ -9,6 +9,7 @@ interface FloatingFilterBarProps {
     filters: Filter[];
     selectedFilters: { [key: string]: string[] };
     onFilterChange: (key: string, values: string[]) => void;
+    onBatchFilterChange?: (filtersToUpdate: { [key: string]: string[] }) => void;
     allPoaps: POAP[];
     filteredPoaps: POAP[];
 }
@@ -53,15 +54,58 @@ export function FloatingFilterBar({
     filters,
     selectedFilters,
     onFilterChange,
+    onBatchFilterChange,
     allPoaps,
     filteredPoaps
 }: FloatingFilterBarProps) {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
+    // Temporary filter state for the modal (doesn't affect URL until Apply is clicked)
+    const [tempSelectedFilters, setTempSelectedFilters] = useState<{ [key: string]: string[] }>({});
+    
     // Store previous filter states for intelligent toggle
-    const [previousFilterStates, setPreviousFilterStates] = React.useState<Record<string, Record<string, string[]>>>({});
+    const [previousFilterStates, setPreviousFilterStates] = useState<Record<string, Record<string, string[]>>>({});
+    
+    // Initialize temp state when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setTempSelectedFilters({ ...selectedFilters });
+        }
+    }, [isOpen, selectedFilters]);
+    
+    // Calculate filtered POAPs based on temp state for preview
+    const tempFilteredPoaps = React.useMemo(() => {
+        if (Object.values(tempSelectedFilters).every(values => values.length === 0)) {
+            return allPoaps;
+        }
+        
+        return allPoaps.filter((poap) => {
+            const activeFilters = Object.entries(tempSelectedFilters).filter(([key, values]) => values.length > 0);
+            if (activeFilters.length === 0) return true;
+            
+            return activeFilters.some(([key, values]) => {
+                switch (key) {
+                    case "Country":
+                        return values.includes(poap.event.country || "(None)");
+                    case "City":
+                        return values.includes(poap.event.city || "(None)");
+                    case "Chain":
+                        return values.includes(poap.chain);
+                    case "Year":
+                        return values.includes(poap.event.year.toString());
+                    case "Has Moments":
+                        const hasDropsWithMoments = filteredPoaps.some(fp => fp.tokenId === poap.tokenId);
+                        if (values.includes("Yes")) return hasDropsWithMoments;
+                        if (values.includes("No")) return !hasDropsWithMoments;
+                        return false;
+                    default:
+                        return false;
+                }
+            });
+        });
+    }, [tempSelectedFilters, allPoaps, filteredPoaps]);
 
-    // Function to get selection state of a filter option
+    // Function to get selection state of a filter option (using temp state)
     const getSelectionState = (filterTitle: string, optionValue: string) => {
         // Get all POAPs that match this option
         const matchingPoaps = allPoaps.filter(poap => {
@@ -79,13 +123,13 @@ export function FloatingFilterBar({
             }
         });
 
-        // Get POAPs that match this option AND are currently visible
+        // Get POAPs that match this option AND are currently visible in temp filtered results
         const visibleMatchingPoaps = matchingPoaps.filter(poap =>
-            filteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
+            tempFilteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
         );
 
-        // Check if this option is explicitly selected
-        const isExplicitlySelected = selectedFilters[filterTitle]?.includes(optionValue) || false;
+        // Check if this option is explicitly selected in temp state
+        const isExplicitlySelected = tempSelectedFilters[filterTitle]?.includes(optionValue) || false;
 
         if (isExplicitlySelected) {
             return 'fully-selected'; // User explicitly selected this option
@@ -93,7 +137,7 @@ export function FloatingFilterBar({
             return 'partially-selected'; // Some POAPs visible due to other filters
         } else if (visibleMatchingPoaps.length === matchingPoaps.length && matchingPoaps.length > 0) {
             // Check if this is truly a default state (no filters applied) or a result of other filters
-            const hasAnyFilters = Object.values(selectedFilters).some(filters => filters.length > 0);
+            const hasAnyFilters = Object.values(tempSelectedFilters).some(filters => filters.length > 0);
             if (!hasAnyFilters) {
                 return 'unselected'; // Default state - no filters applied, treat as unselected
             } else {
@@ -104,36 +148,34 @@ export function FloatingFilterBar({
         }
     };
 
-    // Enhanced filter change handler with intelligent toggle
+    // Enhanced filter change handler with intelligent toggle (using temp state)
     const handleIntelligentFilterChange = (filterTitle: string, optionValue: string) => {
         const currentState = getSelectionState(filterTitle, optionValue);
-        const currentSelections = selectedFilters[filterTitle] || [];
-        const hasAnyFilters = Object.values(selectedFilters).some(filters => filters.length > 0);
-
-        console.log('handleIntelligentFilterChange:', {
-            filterTitle,
-            optionValue,
-            currentState,
-            currentSelections,
-            hasAnyFilters
-        });
+        const currentSelections = tempSelectedFilters[filterTitle] || [];
+        const hasAnyFilters = Object.values(tempSelectedFilters).some(filters => filters.length > 0);
 
         if (currentState === 'unselected') {
             // Check if this is the default state (no filters applied)
             if (!hasAnyFilters) {
                 // Default state: clicking should single-select this option
-                onFilterChange(filterTitle, [optionValue]);
+                setTempSelectedFilters(prev => ({
+                    ...prev,
+                    [filterTitle]: [optionValue]
+                }));
             } else {
                 // Normal unselected state: add this option to existing selections
                 const newSelections = [...currentSelections, optionValue];
-                onFilterChange(filterTitle, newSelections);
+                setTempSelectedFilters(prev => ({
+                    ...prev,
+                    [filterTitle]: newSelections
+                }));
             }
         } else if (currentState === 'partially-selected') {
             // Store current state and add this option to current filter (expand to full selection)
             const stateKey = `${filterTitle}-${optionValue}`;
             setPreviousFilterStates(prev => ({
                 ...prev,
-                [stateKey]: { ...selectedFilters }
+                [stateKey]: { ...tempSelectedFilters }
             }));
 
             // Add this option to the current filter's selections
@@ -141,17 +183,18 @@ export function FloatingFilterBar({
             const newSelections = currentSelections.includes(optionValue)
                 ? currentSelections
                 : [...currentSelections, optionValue];
-            onFilterChange(filterTitle, newSelections);
+            setTempSelectedFilters(prev => ({
+                ...prev,
+                [filterTitle]: newSelections
+            }));
         } else if (currentState === 'fully-selected') {
             // Check if we have a previous state to restore
             const stateKey = `${filterTitle}-${optionValue}`;
             const previousState = previousFilterStates[stateKey];
 
-            if (previousState && selectedFilters[filterTitle]?.includes(optionValue)) {
+            if (previousState && tempSelectedFilters[filterTitle]?.includes(optionValue)) {
                 // Restore previous partial state
-                Object.entries(previousState).forEach(([key, values]) => {
-                    onFilterChange(key, values);
-                });
+                setTempSelectedFilters({ ...previousState });
 
                 // Clear the stored state
                 setPreviousFilterStates(prev => {
@@ -162,7 +205,10 @@ export function FloatingFilterBar({
             } else {
                 // Remove this option (deselect)
                 const newSelections = currentSelections.filter(val => val !== optionValue);
-                onFilterChange(filterTitle, newSelections);
+                setTempSelectedFilters(prev => ({
+                    ...prev,
+                    [filterTitle]: newSelections
+                }));
             }
         }
     };
@@ -188,14 +234,14 @@ export function FloatingFilterBar({
         // Get the selection state for this option
         const selectionState = getSelectionState(filterTitle, optionValue);
 
-        // POAPs that match this option AND are currently visible (filtered)
+        // POAPs that match this option AND are currently visible (temp filtered)
         const visiblePoaps = matchingPoaps.filter(poap =>
-            filteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
+            tempFilteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
         );
 
-        // POAPs that match this option but are NOT currently visible (filtered out)
+        // POAPs that match this option but are NOT currently visible (temp filtered out)
         const hiddenPoaps = matchingPoaps.filter(poap =>
-            !filteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
+            !tempFilteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
         );
 
         // Determine how to display based on selection state
@@ -285,7 +331,7 @@ export function FloatingFilterBar({
         );
     };
 
-    // Check if any filters are active
+    // Check if any filters are active (use actual applied filters for the badge)
     const hasActiveFilters = Object.values(selectedFilters).some(values => values.length > 0);
     const activeFilterCount = Object.values(selectedFilters).reduce((count, values) => count + values.length, 0);
 
@@ -337,7 +383,7 @@ export function FloatingFilterBar({
                                     <Icon icon="heroicons:funnel" className="w-5 h-5 text-emerald-600" />
                                     <h2 className="text-xl font-semibold">Filter POAPs</h2>
                                     <span className="ml-2 text-sm font-normal text-gray-500">
-                                        ({filteredPoaps.length}/{allPoaps.length} selected)
+                                        ({tempFilteredPoaps.length}/{allPoaps.length} preview)
                                     </span>
                                 </div>
                                 <p className="text-sm text-gray-600">
@@ -347,20 +393,16 @@ export function FloatingFilterBar({
                             <ModalBody>
                                 <div className="grid grid-cols-1 gap-4">
                                     {filters.map((filter, index) => {
-                                        // Calculate counts for this filter
-                                        const { allCounts, filteredCounts } = calculateOptionCounts(allPoaps, filteredPoaps, filter.title);
-                                        console.log(`Filter: ${filter.title}`, { allCounts, filteredCounts, allPoapsLength: allPoaps.length, filteredPoapsLength: filteredPoaps.length });
-
                                         return (
                                             <div key={`filter-${index}`} className="space-y-2">
                                                 <Select
                                                     label={filter.title}
                                                     placeholder={`Select ${filter.title.toLowerCase()}`}
                                                     selectionMode="multiple"
-                                                    selectedKeys={selectedFilters[filter.title] || []}
+                                                    selectedKeys={tempSelectedFilters[filter.title] || []}
                                                     onSelectionChange={(keys) => {
                                                         const newValues = keys === "all" ? [] : Array.from(keys).map(key => String(key));
-                                                        const currentValues = selectedFilters[filter.title] || [];
+                                                        const currentValues = tempSelectedFilters[filter.title] || [];
 
                                                         // Find which option was clicked (added or removed)
                                                         const addedValues = newValues.filter(v => !currentValues.includes(v));
@@ -375,8 +417,11 @@ export function FloatingFilterBar({
                                                             const optionValue = removedValues[0];
                                                             handleIntelligentFilterChange(filter.title, optionValue);
                                                         } else {
-                                                            // Multiple changes or other cases - use original logic
-                                                            onFilterChange(filter.title, newValues);
+                                                            // Multiple changes or other cases - use temp state directly
+                                                            setTempSelectedFilters(prev => ({
+                                                                ...prev,
+                                                                [filter.title]: newValues
+                                                            }));
                                                         }
                                                     }}
                                                     variant="faded"
@@ -449,10 +494,12 @@ export function FloatingFilterBar({
                                     color="danger"
                                     variant="light"
                                     onPress={() => {
-                                        // Clear all filters
+                                        // Clear all temp filters
+                                        const clearedFilters: { [key: string]: string[] } = {};
                                         filters.forEach(filter => {
-                                            onFilterChange(filter.title, []);
+                                            clearedFilters[filter.title] = [];
                                         });
+                                        setTempSelectedFilters(clearedFilters);
                                     }}
                                 >
                                     Clear All
@@ -460,7 +507,23 @@ export function FloatingFilterBar({
                                 <Button
                                     color="primary"
                                     className="bg-emerald-600 hover:bg-emerald-700"
-                                    onPress={onClose}
+                                    onPress={() => {
+                                        
+                                        // Apply temp filters to actual state (URL)
+                                        // Use batch update to avoid multiple URL updates
+                                        
+                                        if (onBatchFilterChange) {
+                                            // Use batch update if available
+                                            onBatchFilterChange(tempSelectedFilters);
+                                        } else {
+                                            // Fallback to individual updates
+                                            filters.forEach(filter => {
+                                                const values = tempSelectedFilters[filter.title] || [];
+                                                onFilterChange(filter.title, values);
+                                            });
+                                        }
+                                        onClose();
+                                    }}
                                 >
                                     Apply Filters
                                 </Button>
