@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Chip, Button, Spinner } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useNavigation } from '@remix-run/react';
+import { useAtom } from 'jotai';
+import { filterStateAtom, hasActiveFiltersAtom, activeFilterCountAtom } from '~/atoms/filter-atoms';
 
 interface ActiveFiltersDisplayProps {
-    selectedFilters: { [key: string]: string[] };
     onFilterRemove: (key: string, value: string) => void;
     onClearAll: () => void;
 }
 
 export function ActiveFiltersDisplay({
-    selectedFilters,
     onFilterRemove,
     onClearAll
 }: ActiveFiltersDisplayProps) {
+    // Use Jotai global state
+    const [selectedFilters] = useAtom(filterStateAtom);
+    const [hasActiveFilters] = useAtom(hasActiveFiltersAtom);
+    const [totalActiveFilters] = useAtom(activeFilterCountAtom);
     const navigation = useNavigation();
 
     // Loading states
@@ -78,16 +82,12 @@ export function ActiveFiltersDisplay({
         // Loading state will be cleared by useEffect when navigation completes
     };
 
-    // Check if any filters are active
-    const hasActiveFilters = Object.values(selectedFilters).some(values => values.length > 0);
-
     if (!hasActiveFilters) {
         return null;
     }
 
     // Get all active filter entries
     const activeFilterEntries = Object.entries(selectedFilters).filter(([key, values]) => values.length > 0);
-    const totalActiveFilters = Object.values(selectedFilters).reduce((count, values) => count + values.length, 0);
 
     return (
         <div className="mb-6 p-4 bg-gradient-to-r from-background-50/80 to-background-50/50 backdrop-blur-sm rounded-xl border border-background-200/50 shadow-sm">

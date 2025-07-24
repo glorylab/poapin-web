@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useOutletContext, useSearchParams } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
+import { useAtom } from 'jotai';
+import { filterStateAtom, sortStateAtom } from '~/atoms/filter-atoms';
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "~/types/filter";
 import type { POAP } from "~/types/poap";
@@ -98,40 +100,83 @@ export default function POAPIndex() {
         for (const [key, value] of searchParams.entries()) {
             if (key.startsWith('filter_')) {
                 const filterKey = key.replace('filter_', '');
-                filters[filterKey] = value.split(',').filter(v => v.length > 0);
+                filters[filterKey] = value.split(',').filter(v => v.trim() !== '');
             }
         }
         return filters;
     };
     
-    const selectedFilters = getFiltersFromURL();
-    const selectedSort = searchParams.get('sort') || 'collected_newest';
+    // Global filter and sort state using Jotai
+    const [globalFilters, setGlobalFilters] = useAtom(filterStateAtom);
+    const [globalSort, setGlobalSort] = useAtom(sortStateAtom);
+    
+    // Sync global state with URL on mount and URL changes
+    useEffect(() => {
+        const urlFilters = getFiltersFromURL();
+        const urlSort = searchParams.get('sort') || 'collected_newest';
+        
+        // Only update global state if URL has different values (to avoid infinite loops)
+        const filtersChanged = JSON.stringify(urlFilters) !== JSON.stringify(globalFilters);
+        const sortChanged = urlSort !== globalSort;
+        
+        if (filtersChanged) {
+            setGlobalFilters(urlFilters);
+        }
+        if (sortChanged) {
+            setGlobalSort(urlSort);
+        }
+    }, [searchParams, globalFilters, globalSort, setGlobalFilters, setGlobalSort]);
+    
+    // Helper function to update URL without trailing '?' when no parameters
+    const updateURL = (searchParams: URLSearchParams) => {
+        const queryString = searchParams.toString();
+        const newURL = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+        window.history.replaceState({}, '', newURL);
+    };
+    
+    const selectedFilters = globalFilters;
+    const selectedSort = globalSort;
 
     // Handle removing a single filter
     const handleFilterRemove = (key: string, value: string) => {
-        const newSearchParams = new URLSearchParams(searchParams);
         const currentValues = selectedFilters[key] || [];
         const newValues = currentValues.filter(v => v !== value);
         
+        // Update global state immediately for instant UI feedback
+        setGlobalFilters(prev => ({
+            ...prev,
+            [key]: newValues
+        }));
+        
+        // Update URL asynchronously for sharing
+        const newSearchParams = new URLSearchParams(searchParams);
         if (newValues.length > 0) {
             newSearchParams.set(`filter_${key}`, newValues.join(','));
         } else {
             newSearchParams.delete(`filter_${key}`);
         }
         
-        setSearchParams(newSearchParams);
+        // Use replace to avoid triggering route reload
+        updateURL(newSearchParams);
     };
 
     // Handle clearing all filters
     const handleClearAllFilters = () => {
+        // Update global state immediately for instant UI feedback
+        setGlobalFilters({});
+        
+        // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
+        
         // Remove all filter parameters
         for (const [key] of searchParams.entries()) {
             if (key.startsWith('filter_')) {
                 newSearchParams.delete(key);
             }
         }
-        setSearchParams(newSearchParams);
+        
+        // Use replace to avoid triggering route reload
+        updateURL(newSearchParams);
     };
 
     // Create filters
@@ -259,6 +304,13 @@ export default function POAPIndex() {
     }, [filteredPoaps.length, setFilteredPoapCount]);
 
     const handleFilterChange = (key: string, values: string[]) => {
+        // Update global state immediately for instant UI feedback
+        setGlobalFilters((prev: { [key: string]: string[] }) => ({
+            ...prev,
+            [key]: values
+        }));
+        
+        // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
         
         if (values.length > 0) {
@@ -267,15 +319,16 @@ export default function POAPIndex() {
             newSearchParams.delete(`filter_${key}`);
         }
         
-        try {
-            setSearchParams(newSearchParams);
-        } catch (error) {
-            console.error('Error calling setSearchParams:', error);
-        }
+        // Use replace to avoid triggering route reload
+        updateURL(newSearchParams);
     };
     
     // Batch filter update function to handle multiple filters at once
     const handleBatchFilterChange = (filtersToUpdate: { [key: string]: string[] }) => {
+        // Update global state immediately for instant UI feedback
+        setGlobalFilters(filtersToUpdate);
+        
+        // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
         
         // Apply all filter changes to the same URLSearchParams object
@@ -287,18 +340,21 @@ export default function POAPIndex() {
             }
         });
         
-        try {
-            setSearchParams(newSearchParams);
-        } catch (error) {
-            console.error('Error calling setSearchParams for batch update:', error);
-        }
+        // Use replace to avoid triggering route reload
+        updateURL(newSearchParams);
     };
 
     // Handle sort change
     const handleSortChange = (sort: string) => {
+        // Update global state immediately for instant UI feedback
+        setGlobalSort(sort);
+        
+        // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.set('sort', sort);
-        setSearchParams(newSearchParams);
+        
+        // Use replace to avoid triggering route reload
+        updateURL(newSearchParams);
     };
 
     return (
@@ -312,7 +368,7 @@ export default function POAPIndex() {
                     chainFilter,
                     momentsFilter,
                 ]}
-                selectedFilters={selectedFilters}
+
                 onFilterChange={handleFilterChange}
                 onBatchFilterChange={handleBatchFilterChange}
                 allPoaps={poaps}
@@ -331,7 +387,6 @@ export default function POAPIndex() {
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl mx-auto">
                         {/* Active Filters Display */}
                         <ActiveFiltersDisplay
-                            selectedFilters={selectedFilters}
                             onFilterRemove={handleFilterRemove}
                             onClearAll={handleClearAllFilters}
                         />

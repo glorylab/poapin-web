@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Chip, Avatar } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { useAtom } from 'jotai';
+import { filterStateAtom, hasActiveFiltersAtom, activeFilterCountAtom } from '~/atoms/filter-atoms';
 import type { Filter } from "~/types/filter";
 import type { POAP } from "~/types/poap";
 import { cn } from '~/src/cn';
 
 interface FloatingFilterBarProps {
     filters: Filter[];
-    selectedFilters: { [key: string]: string[] };
     onFilterChange: (key: string, values: string[]) => void;
     onBatchFilterChange?: (filtersToUpdate: { [key: string]: string[] }) => void;
     allPoaps: POAP[];
@@ -52,12 +53,15 @@ const calculateOptionCounts = (allPoaps: POAP[], filteredPoaps: POAP[], filterTi
 
 export function FloatingFilterBar({
     filters,
-    selectedFilters,
     onFilterChange,
     onBatchFilterChange,
     allPoaps,
     filteredPoaps
 }: FloatingFilterBarProps) {
+    // Use Jotai global state
+    const [selectedFilters] = useAtom(filterStateAtom);
+    const [hasActiveFilters] = useAtom(hasActiveFiltersAtom);
+    const [activeFilterCount] = useAtom(activeFilterCountAtom);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     // Temporary filter state for the modal (doesn't affect URL until Apply is clicked)
@@ -332,8 +336,7 @@ export function FloatingFilterBar({
     };
 
     // Check if any filters are active (use actual applied filters for the badge)
-    const hasActiveFilters = Object.values(selectedFilters).some(values => values.length > 0);
-    const activeFilterCount = Object.values(selectedFilters).reduce((count, values) => count + values.length, 0);
+    // Note: hasActiveFilters and activeFilterCount are now provided by Jotai atoms
 
     return (
         <>
