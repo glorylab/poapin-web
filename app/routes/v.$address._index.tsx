@@ -119,7 +119,7 @@ export default function POAPIndex() {
                 return acc;
             }
             return [{ title: country, value: country }];
-        }, []),
+        }, [] as Filter["options"]),
     };
 
     const cityFilter: Filter = {
@@ -134,35 +134,46 @@ export default function POAPIndex() {
                 return acc;
             }
             return [{ title: city, value: city }];
-        }, []),
-    };
-
-    const chainFilter: Filter = {
-        type: FilterTypeEnum.CheckboxGroup,
-        title: "Chain",
-        options: poaps.reduce((acc: Filter["options"], poap) => {
-            if (acc) {
-                if (!acc.find((option) => option.value === poap.chain)) {
-                    acc.push({ title: poap.chain, value: poap.chain });
-                }
-                return acc;
-            }
-            return [{ title: poap.chain, value: poap.chain }];
-        }, []),
+        }, [] as Filter["options"]),
     };
 
     const yearFilter: Filter = {
         type: FilterTypeEnum.CheckboxGroup,
         title: "Year",
         options: poaps.reduce((acc: Filter["options"], poap) => {
+            const year = new Date(poap.created).getFullYear().toString();
             if (acc) {
-                if (!acc.find((option) => option.value === poap.event.year.toString())) {
-                    acc.push({ title: poap.event.year.toString(), value: poap.event.year.toString() });
+                if (!acc.find((option) => option.value === year)) {
+                    acc.push({ title: year, value: year });
                 }
                 return acc;
             }
-            return [{ title: poap.event.year.toString(), value: poap.event.year.toString() }];
-        }, []),
+            return [{ title: year, value: year }];
+        }, [] as Filter["options"]).sort((a, b) => b.value.localeCompare(a.value)),
+    };
+
+    const chainFilter: Filter = {
+        type: FilterTypeEnum.CheckboxGroup,
+        title: "Chain",
+        options: poaps.reduce((acc: Filter["options"], poap) => {
+            const chain = poap.chain || "mainnet";
+            if (acc) {
+                if (!acc.find((option) => option.value === chain)) {
+                    acc.push({ title: chain, value: chain });
+                }
+                return acc;
+            }
+            return [{ title: chain, value: chain }];
+        }, [] as Filter["options"]),
+    };
+
+    const momentsFilter: Filter = {
+        type: FilterTypeEnum.CheckboxGroup,
+        title: "Moments",
+        options: [
+            { title: "Has Moments", value: "has_moments" },
+            { title: "No Moments", value: "no_moments" },
+        ],
     };
 
     // Filter and sort POAPs
@@ -183,7 +194,12 @@ export default function POAPIndex() {
                 case "Chain":
                     return values.includes(poap.chain);
                 case "Year":
-                    return values.includes(poap.event.year.toString());
+                    return values.includes(new Date(poap.created).getFullYear().toString());
+                case "Moments":
+                    const hasMoments = dropsWithMoments.includes(poap.event.id);
+                    if (values.includes("has_moments") && hasMoments) return true;
+                    if (values.includes("no_moments") && !hasMoments) return true;
+                    return false;
                 default:
                     return false;
             }
@@ -225,6 +241,7 @@ export default function POAPIndex() {
                     cityFilter,
                     yearFilter,
                     chainFilter,
+                    momentsFilter,
                 ]}
                 selectedFilters={selectedFilters}
                 onFilterChange={handleFilterChange}
