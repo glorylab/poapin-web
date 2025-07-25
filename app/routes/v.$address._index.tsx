@@ -7,11 +7,14 @@ import { filterStateAtom, sortStateAtom } from '~/atoms/filter-atoms';
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "~/types/filter";
 import type { POAP } from "~/types/poap";
+import { Button, ButtonGroup } from "@heroui/react";
+import { Icon } from '@iconify/react';
 // Components
 import { FloatingFilterBar } from "~/components/poap/floating-filter-bar";
 import { FloatingSortBar } from "~/components/poap/floating-sort-bar";
 import { PoapGrid } from "~/components/poap/poap-grid";
 import { ActiveFiltersDisplay } from "~/components/poap/active-filters-display";
+import { MomentsTimeline } from "~/components/poap/moments-timeline";
 
 export const meta: MetaFunction = ({ params, matches }) => {
     const parentMatch = matches.find(match => match.id === "routes/v.$address");
@@ -94,6 +97,9 @@ export default function POAPIndex() {
     const { poaps, meta, totalMomentsCount, dropsWithMoments, filteredPoapCount, setFilteredPoapCount } = useOutletContext<OutletContext>();
     const [searchParams, setSearchParams] = useSearchParams();
     
+    // View state - 'classic' or 'timeline'
+    const [currentView, setCurrentView] = useState<'classic' | 'timeline'>('classic');
+    
     // Get filter state from URL search params
     const getFiltersFromURL = (): { [key: string]: string[] } => {
         const filters: { [key: string]: string[] } = {};
@@ -139,7 +145,7 @@ export default function POAPIndex() {
 
     // Handle removing a single filter
     const handleFilterRemove = (key: string, value: string) => {
-        const currentValues = selectedFilters[key] || [];
+        const currentValues = selectedFilters[key] ?? [];
         const newValues = currentValues.filter(v => v !== value);
         
         // Update global state immediately for instant UI feedback
@@ -385,16 +391,53 @@ export default function POAPIndex() {
             <div className="flex justify-center mb-8">
                 <div className="w-full max-w-6xl flex-col">
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl mx-auto">
-                        {/* Active Filters Display */}
-                        <ActiveFiltersDisplay
-                            onFilterRemove={handleFilterRemove}
-                            onClearAll={handleClearAllFilters}
-                        />
+                        {/* View Toggle */}
+                        <div className="flex justify-center items-center mb-4">
+                            <div className="flex items-center gap-4">
+                                <ButtonGroup size="sm" variant="flat" className="shadow-md">
+                                    <Button
+                                        variant={currentView === 'classic' ? 'solid' : 'flat'}
+                                        startContent={<Icon icon="system-uicons:grid-small" className="w-6" />}
+                                        onClick={() => setCurrentView('classic')}
+                                        size="lg"
+                                        className={currentView==='classic'?"bg-white text-background-700 font-bold":"bg-background-600 text-background-100"}
+                                    >
+                                        Classic
+                                    </Button>
+                                    <Button
+                                        variant={currentView === 'timeline' ? 'solid' : 'flat'}
+                                        startContent={<Icon icon="fluent:timeline-20-filled" className="w-6" />}
+                                        onClick={() => setCurrentView('timeline')}
+                                        size="lg"
+                                        className={currentView==='timeline'?"bg-white text-background-700 font-bold":"bg-background-600 text-background-100"}
+                                    >
+                                        Timeline
+                                    </Button>
+                                </ButtonGroup>
+                                
+                            </div>
+                        </div>
                         
-                        <PoapGrid
-                            poaps={filteredPoaps}
-                            dropsWithMoments={dropsWithMoments}
-                        />
+                        {/* Active Filters Display - only show in classic view */}
+                        {currentView === 'classic' && (
+                            <ActiveFiltersDisplay
+                                onFilterRemove={handleFilterRemove}
+                                onClearAll={handleClearAllFilters}
+                            />
+                        )}
+                        
+                        {/* Content based on current view */}
+                        {currentView === 'classic' ? (
+                            <PoapGrid
+                                poaps={filteredPoaps}
+                                dropsWithMoments={dropsWithMoments}
+                            />
+                        ) : (
+                            <MomentsTimeline
+                                address={meta.address}
+                                poaps={poaps}
+                            />
+                        )}
                     </main>
                 </div>
             </div>
