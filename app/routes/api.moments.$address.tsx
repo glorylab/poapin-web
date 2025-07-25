@@ -111,10 +111,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     return json({ error: "Address parameter is required" }, { status: 400 });
   }
 
-  try {
-    console.log('🔍 Fetching moments for address:', address, 'page:', page, 'limit:', limit);
-    console.log('⚙️ Using address directly (no resolution needed, frontend passes owner address)');
-    
+  try {    
     const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
 
     // First, get the total count
@@ -163,7 +160,6 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     }
 
     const data = await response.json() as any;
-    console.log('📦 GraphQL Response:', JSON.stringify(data, null, 2));
 
     if (data.errors) {
       console.error('❌ GraphQL errors:', data.errors);
@@ -171,13 +167,6 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     }
 
     const moments = data.data?.moments || [];
-    
-    console.log('📊 Moments stats:', {
-      totalCount,
-      currentPage: page,
-      momentsInPage: moments.length,
-      offset
-    });
 
     const hasMore = offset + limit < totalCount;
 

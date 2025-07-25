@@ -4,6 +4,7 @@ import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { useAtom } from 'jotai';
 import { filterStateAtom, sortStateAtom } from '~/atoms/filter-atoms';
+import { timeCapsuleModeAtom } from '~/atoms/time-capsule-atoms';
 import { FilterTypeEnum } from "~/types/filter";
 import type { Filter } from "~/types/filter";
 import type { POAP } from "~/types/poap";
@@ -98,7 +99,22 @@ export default function POAPIndex() {
     const [searchParams, setSearchParams] = useSearchParams();
     
     // View state - 'classic' or 'timeline'
-    const [currentView, setCurrentView] = useState<'classic' | 'timeline'>('classic');
+    const [filters, setFilters] = useAtom(filterStateAtom);
+    const [sortBy, setSortBy] = useAtom(sortStateAtom);
+    const [isTimeCapsuleMode, setIsTimeCapsuleMode] = useAtom(timeCapsuleModeAtom);
+  
+    // Animation states for view transitions
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [showClassic, setShowClassic] = useState(!isTimeCapsuleMode);
+    const [showTimeline, setShowTimeline] = useState(isTimeCapsuleMode);
+    
+    // Sync animation states when Time Capsule mode changes externally
+    useEffect(() => {
+        if (!isTransitioning) {
+            setShowClassic(!isTimeCapsuleMode);
+            setShowTimeline(isTimeCapsuleMode);
+        }
+    }, [isTimeCapsuleMode, isTransitioning]);
     
     // Get filter state from URL search params
     const getFiltersFromURL = (): { [key: string]: string[] } => {
@@ -363,80 +379,124 @@ export default function POAPIndex() {
         updateURL(newSearchParams);
     };
 
+    // Handle animated view transition
+    const handleViewTransition = () => {
+        if (isTransitioning) return;
+        
+        setIsTransitioning(true);
+        
+        if (!isTimeCapsuleMode) {
+            // Transitioning to timeline: start fade out animation, then switch mode
+            setShowClassic(false);  // Trigger fade out animation
+            
+            setTimeout(() => {
+                setIsTimeCapsuleMode(true);  // Update global state for background
+                setShowTimeline(true);       // Show timeline
+            }, 300); // Wait for fade out animation
+            
+            setTimeout(() => {
+                setIsTransitioning(false);
+            }, 800); // Complete transition
+        } else {
+            // Transitioning to classic: fade out timeline, then fade in classic
+            setShowTimeline(false);
+            
+            setTimeout(() => {
+                setIsTimeCapsuleMode(false); // Update global state for background
+                setShowClassic(true);        // Show classic
+            }, 300); // Wait for fade out animation
+            
+            setTimeout(() => {
+                setIsTransitioning(false);
+            }, 800); // Complete transition
+        }
+    };
+
     return (
         <>
-            {/* Floating Filter Bar */}
-            <FloatingFilterBar
-                filters={[
-                    countryFilter,
-                    cityFilter,
-                    yearFilter,
-                    chainFilter,
-                    momentsFilter,
-                ]}
-
-                onFilterChange={handleFilterChange}
-                onBatchFilterChange={handleBatchFilterChange}
-                allPoaps={poaps}
-                filteredPoaps={filteredPoaps}
-            />
+            {/* Floating Filter Bar - only show in classic mode */}
+            {!isTimeCapsuleMode && (
+                <FloatingFilterBar
+                    filters={[
+                        countryFilter,
+                        cityFilter,
+                        yearFilter,
+                        chainFilter,
+                        momentsFilter,
+                    ]}
+                    onFilterChange={handleFilterChange}
+                    onBatchFilterChange={handleBatchFilterChange}
+                    allPoaps={poaps}
+                    filteredPoaps={filteredPoaps}
+                />
+            )}
             
-            {/* Floating Sort Bar */}
-            <FloatingSortBar
-                selectedSort={selectedSort}
-                onSortChange={handleSortChange}
-            />
+            {/* Floating Sort Bar - only show in classic mode */}
+            {!isTimeCapsuleMode && (
+                <FloatingSortBar
+                    selectedSort={selectedSort}
+                    onSortChange={handleSortChange}
+                />
+            )}
             
             {/* Centered Main Content */}
             <div className="flex justify-center mb-8">
                 <div className="w-full max-w-6xl flex-col">
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl mx-auto">
-                        {/* View Toggle */}
+                        {/* Time Capsule Toggle */}
                         <div className="flex justify-center items-center mb-4">
-                            <div className="flex items-center gap-4">
-                                <ButtonGroup size="sm" variant="flat" className="shadow-md">
-                                    <Button
-                                        variant={currentView === 'classic' ? 'solid' : 'flat'}
-                                        startContent={<Icon icon="system-uicons:grid-small" className="w-6" />}
-                                        onClick={() => setCurrentView('classic')}
-                                        size="lg"
-                                        className={currentView==='classic'?"bg-white text-background-700 font-bold":"bg-background-600 text-background-100"}
-                                    >
-                                        Classic
-                                    </Button>
-                                    <Button
-                                        variant={currentView === 'timeline' ? 'solid' : 'flat'}
-                                        startContent={<Icon icon="fluent:timeline-20-filled" className="w-6" />}
-                                        onClick={() => setCurrentView('timeline')}
-                                        size="lg"
-                                        className={currentView==='timeline'?"bg-white text-background-700 font-bold":"bg-background-600 text-background-100"}
-                                    >
-                                        Timeline
-                                    </Button>
-                                </ButtonGroup>
-                                
-                            </div>
+                            <Button
+                                variant="flat"
+                                startContent={<Icon icon="fluent:timeline-20-filled" className="w-5" />}
+                                onClick={handleViewTransition}
+                                size="lg"
+                                className="text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                disabled={isTransitioning}
+                            >
+                                {!isTimeCapsuleMode ? 'Time Capsule' : 'Back to Grid'}
+                            </Button>
                         </div>
                         
-                        {/* Active Filters Display - only show in classic view */}
-                        {currentView === 'classic' && (
-                            <ActiveFiltersDisplay
-                                onFilterRemove={handleFilterRemove}
-                                onClearAll={handleClearAllFilters}
-                            />
+                        {/* Active Filters Display - with smooth animation */}
+                        {!isTimeCapsuleMode && (
+                            <div className={`transition-all duration-300 ease-in-out transform ${
+                                showClassic 
+                                    ? 'opacity-100 scale-100' 
+                                    : 'opacity-0 scale-90'
+                            }`}>
+                                <ActiveFiltersDisplay
+                                    onFilterRemove={handleFilterRemove}
+                                    onClearAll={handleClearAllFilters}
+                                />
+                            </div>
                         )}
                         
-                        {/* Content based on current view */}
-                        {currentView === 'classic' ? (
-                            <PoapGrid
-                                poaps={filteredPoaps}
-                                dropsWithMoments={dropsWithMoments}
-                            />
-                        ) : (
-                            <MomentsTimeline
-                                address={meta.address}
-                                poaps={poaps}
-                            />
+                        {/* Classic Grid View with smooth animation */}
+                        {!isTimeCapsuleMode && (
+                            <div className={`transition-all duration-300 ease-in-out transform ${
+                                showClassic 
+                                    ? 'opacity-100 scale-100' 
+                                    : 'opacity-0 scale-90'
+                            }`}>
+                                <PoapGrid
+                                    poaps={filteredPoaps}
+                                    dropsWithMoments={dropsWithMoments}
+                                />
+                            </div>
+                        )}
+                        
+                        {/* Timeline View with smooth animation */}
+                        {isTimeCapsuleMode && (
+                            <div className={`transition-all duration-500 ease-in-out transform ${
+                                showTimeline 
+                                    ? 'opacity-100 scale-100' 
+                                    : 'opacity-0 scale-90'
+                            }`}>
+                                <MomentsTimeline
+                                    address={meta.address}
+                                    poaps={poaps}
+                                />
+                            </div>
                         )}
                     </main>
                 </div>

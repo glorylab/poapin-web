@@ -1,6 +1,6 @@
 import baseStylesHref from "~/tailwind.css";
 import sharedStylesHref from "~/styles/shared.css";
-import { useAtom } from "jotai";
+import { useAtom, Provider as JotaiProvider } from "jotai";
 import type { LinksFunction, LoaderFunction, MetaFunction } from "@remix-run/cloudflare";
 import { cssBundleHref } from "@remix-run/css-bundle";
 
@@ -25,6 +25,7 @@ import footerPositionAtom from "./atoms/footer-position-atom";
 import { getSubdomain } from "./utils/subdomain.server";
 import { redirect } from "@remix-run/cloudflare";
 import { usePlausiblePageview } from "./utils/usePlausible";
+import { timeCapsuleModeAtom } from '~/atoms/time-capsule-atoms';
 
 interface LoaderData {
   gaTrackingId: string;
@@ -69,6 +70,23 @@ export const links: LinksFunction = () => [
   { rel: "mask-icon", href: "/safari-pinned-tab.svg", color: "#5bbad5" },
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
+
+// Component to handle time capsule background changes
+function TimeCapsuleBackground({ children }: { children: React.ReactNode }) {
+  const [isTimeCapsuleMode] = useAtom(timeCapsuleModeAtom);
+  
+  return (
+    <main 
+      className={`dot-background transition-all duration-700 ease-in-out ${
+        isTimeCapsuleMode 
+          ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' 
+          : ''
+      }`}
+    >
+      {children}
+    </main>
+  );
+}
 
 export default function App() {
 
@@ -132,16 +150,18 @@ export default function App() {
           </>
         )}
         <HeroUIProvider className="bg-background">
-          <NavBarComponent />
-          <main className="dot-background">
-            <Outlet />
-          </main>
-          <ScrollRestoration />
-          <Scripts />
-          <LiveReload />
-          <footer ref={footerRef}>
-            <FooterComponent />
-          </footer>
+          <JotaiProvider>
+            <NavBarComponent />
+            <TimeCapsuleBackground>
+              <Outlet />
+            </TimeCapsuleBackground>
+            <ScrollRestoration />
+            <Scripts />
+            <LiveReload />
+            <footer ref={footerRef}>
+              <FooterComponent />
+            </footer>
+          </JotaiProvider>
         </HeroUIProvider>
         {/* Cloudflare Web Analytics */}
         <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5387257fc59043ac86fa9cc73eb33541"}'></script>

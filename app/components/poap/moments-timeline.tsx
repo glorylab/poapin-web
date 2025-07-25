@@ -199,6 +199,31 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
     };
   }, []);
 
+  // Scroll animation effect for timeline sections
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.remove('opacity-0', 'translate-y-8');
+          entry.target.classList.add('opacity-100', 'translate-y-0');
+        }
+      });
+    }, observerOptions);
+
+    // Observe all elements with animate-on-scroll class
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach((el) => observer.observe(el));
+
+    return () => {
+      animatedElements.forEach((el) => observer.unobserve(el));
+    };
+  }, [moments.length]); // Re-run when moments are loaded
+
   // Group moments by drop_id for easier lookup
   const momentsByDrop: Record<number, Moment[]> = {};
   moments.forEach(moment => {
@@ -265,23 +290,88 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <Spinner size="lg" />
-        <span className="ml-3">Loading moments...</span>
+      <div className="min-h-screen flex flex-col justify-center items-center relative">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-purple-900/20 animate-pulse" />
+        
+        {/* Main loading content */}
+        <div className="relative z-10 flex flex-col items-center space-y-6">
+          {/* Enhanced spinner with glow effect */}
+          <div className="relative">
+            <Spinner 
+              size="lg" 
+              className="w-12 h-12"
+              classNames={{
+                circle1: "border-b-purple-500",
+                circle2: "border-b-pink-500"
+              }}
+            />
+            <div className="absolute inset-0 w-12 h-12 rounded-full bg-purple-500/20 blur-xl animate-pulse" />
+          </div>
+          
+          {/* Loading text with animation */}
+          <div className="text-center space-y-2">
+            <h3 className="text-xl font-semibold text-primary/80">
+              Entering Time Capsule
+            </h3>
+            <p className="text-primary/60 animate-pulse">
+              Loading your moments timeline...
+            </p>
+          </div>
+          
+          {/* Floating particles animation */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className={`absolute w-2 h-2 bg-purple-400/30 rounded-full animate-bounce`}
+                style={{
+                  left: `${20 + i * 15}%`,
+                  top: `${30 + (i % 3) * 20}%`,
+                  animationDelay: `${i * 0.2}s`,
+                  animationDuration: `${2 + i * 0.1}s`
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="text-red-500 mb-4">Error: {error}</div>
-        <button
-          onClick={() => fetchMoments()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Retry
-        </button>
+      <div className="min-h-screen flex flex-col justify-center items-center relative">
+        {/* Error background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-red-900/10 via-gray-900/5 to-red-900/10" />
+        
+        {/* Error content */}
+        <div className="relative z-10 flex flex-col items-center space-y-6 max-w-md mx-auto text-center">
+          {/* Error icon */}
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          
+          {/* Error message */}
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              Unable to Load Timeline
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              {error}
+            </p>
+          </div>
+          
+          {/* Retry button */}
+          <button
+            onClick={() => fetchMoments()}
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -306,6 +396,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
           {/* Interleaved Timeline */}
           <div className="space-y-6">
             {timelineStructure.map((segment, segmentIndex) => {
+              // Animation class for slide-up effect
+              const animationClass = "transform transition-all duration-700 ease-out opacity-0 translate-y-8 animate-on-scroll";
               if (Array.isArray(segment)) {
                 // This is a batch of POAPs without moments - smart layout: flat row or poker-card stacking
                 const totalItems = segment.length;
@@ -320,7 +412,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 if (useFlat) {
                   // Flat row layout
                   return (
-                    <div key={`batch-${segmentIndex}`} className="my-8">
+                    <div key={`batch-${segmentIndex}`} className={`my-8 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
                       <div className="flex gap-4 justify-center">
                         {segment.map((item, index) => {
                           // const opacity = 1 - (index * 0.8) / (totalItems - 1); // From 1 to 0.2
@@ -328,7 +420,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
 
                           return (
                             <div
-                              key={`poap-${item.poap.event.id}`}
+                              key={`poap-scroll-${item.poap.event.id}-${index}`}
                               className="w-32 h-32 flex-shrink-0 aspect-square transition-all duration-300 hover:scale-95"
                               style={{
                                 opacity: Math.max(opacity, 0.2)
@@ -355,7 +447,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                   const stepSize = totalItems > 1 ? stackWidth / (totalItems - 1) : 0;
                   
                   return (
-                    <div key={`batch-${segmentIndex}`} className="my-8 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    <div key={`batch-${segmentIndex}`} className={`my-8 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
                       <div 
                         className="relative mx-auto" 
                         style={{ width: `${cardWidth + stackWidth}px`, height: '128px' }}
@@ -367,7 +459,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                           const opacity = 1; // Fixed opacity for all cards
                           return (
                             <div
-                              key={`poap-${item.poap.event.id}`}
+                              key={`poap-stack-${item.poap.event.id}-${index}`}
                               className="absolute top-0 w-32 h-32 flex-shrink-0 aspect-square transition-all duration-300 hover:scale-95"
                               style={{
                                 left: `${offsetX}px`,
@@ -394,7 +486,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 // This is a single POAP with moments
                 const item = segment;
                 return (
-                  <Card key={`poap-with-moments-${item.poap.event.id}`} className="overflow-hidden">
+                  <Card key={`poap-with-moments-${item.poap.event.id}`} className={`overflow-hidden ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
                     {/* Mobile Layout: Stack vertically */}
                     <div className="block sm:hidden">
                       {/* POAP Info */}

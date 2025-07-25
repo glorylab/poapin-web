@@ -191,9 +191,6 @@ export async function getMomentsCountByAuthor({
         allDropIds.push(...firstBatchDropIds);
         offset += pageSize;
 
-        console.log("First batch - Total moments:", totalMoments);
-        console.log("First batch - Drop IDs:", firstBatchDropIds.length);
-
         // Continue fetching if there are more pages
         while (offset < totalMoments && hasMore) {
             const pageQuery = `
@@ -236,17 +233,10 @@ export async function getMomentsCountByAuthor({
 
             allDropIds.push(...pageDropIds);
             offset += pageSize;
-
-            console.log(`Page ${Math.floor(offset / pageSize)} - Drop IDs:`, pageDropIds.length);
         }
 
         // Remove duplicates and ensure all are valid numbers
         const uniqueDropIds = [...new Set(allDropIds)];
-
-        console.log("Final results for author:", author);
-        console.log("Total moments:", totalMoments);
-        console.log("Unique drop IDs count:", uniqueDropIds.length);
-        console.log("Sample drop IDs:", uniqueDropIds.slice(0, 10));
         
         return {
             totalMoments,
