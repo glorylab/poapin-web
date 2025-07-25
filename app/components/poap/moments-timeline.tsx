@@ -253,15 +253,119 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
     };
   }).sort((a, b) => b.date.getTime() - a.date.getTime());
 
-  // Create interleaved timeline structure
-  const timelineStructure: (typeof allTimelineItems[0] | typeof allTimelineItems[0][])[] = [];
+  // Helper functions for intelligent grouping
+  const getDateString = (date: Date) => {
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
+  
+  const getMonthString = (date: Date) => {
+    return date.toISOString().substring(0, 7); // YYYY-MM format
+  };
+  
+  const getQuarterString = (date: Date) => {
+    const year = date.getFullYear();
+    const quarter = Math.floor(date.getMonth() / 3) + 1;
+    return `${year}-Q${quarter}`; // YYYY-Q1 format
+  };
+  
+  const determineGroupingStrategy = (items: typeof allTimelineItems[0][]) => {
+    if (items.length === 0) return 'day';
+    
+    // Get unique dates
+    const uniqueDates = [...new Set(items.map(item => getDateString(item.date)))];
+    
+    // If 10 days or fewer, group by day
+    if (uniqueDates.length <= 10) return 'day';
+    
+    // Check time span
+    const dates = items.map(item => item.date).sort((a, b) => a.getTime() - b.getTime());
+    const firstDate = dates[0];
+    const lastDate = dates[dates.length - 1];
+    
+    const monthsDiff = (lastDate.getFullYear() - firstDate.getFullYear()) * 12 + 
+                      (lastDate.getMonth() - firstDate.getMonth());
+    
+    // If spans 3 months or less, group by day
+    if (monthsDiff <= 3) return 'day';
+    
+    // Try month grouping first
+    const uniqueMonths = [...new Set(items.map(item => getMonthString(item.date)))];
+    
+    // If 10 months or fewer, group by month
+    if (uniqueMonths.length <= 10) return 'month';
+    
+    // Otherwise, group by quarter
+    return 'quarter';
+  };
+  
+  // Legacy function for backward compatibility
+  const shouldGroupByMonth = (items: typeof allTimelineItems[0][]) => {
+    return determineGroupingStrategy(items) !== 'day';
+  };
+
+  // Create interleaved timeline structure with date-based grouping
+  const timelineStructure: (typeof allTimelineItems[0] | typeof allTimelineItems[0][][])[] = [];
   let currentBatch: typeof allTimelineItems[0][] = [];
 
   allTimelineItems.forEach((item, index) => {
     if (item.hasMoments) {
       // If we have accumulated POAPs without moments, add them as a batch first
       if (currentBatch.length > 0) {
-        timelineStructure.push([...currentBatch]);
+        // Determine the best grouping strategy
+        const groupingStrategy = determineGroupingStrategy(currentBatch);
+        
+        if (groupingStrategy === 'quarter') {
+          // Group POAPs without moments by quarter
+          const groupedByQuarter = currentBatch.reduce((groups, poap) => {
+            const quarterKey = getQuarterString(poap.date);
+            if (!groups[quarterKey]) {
+              groups[quarterKey] = [];
+            }
+            groups[quarterKey].push(poap);
+            return groups;
+          }, {} as Record<string, typeof allTimelineItems[0][]>);
+          
+          // Convert to array of quarter groups, sorted by quarter (newest first)
+          const quarterGroups = Object.entries(groupedByQuarter)
+            .sort(([a], [b]) => b.localeCompare(a))
+            .map(([, poaps]) => poaps);
+          
+          timelineStructure.push(quarterGroups);
+        } else if (groupingStrategy === 'month') {
+          // Group POAPs without moments by month
+          const groupedByMonth = currentBatch.reduce((groups, poap) => {
+            const monthKey = getMonthString(poap.date);
+            if (!groups[monthKey]) {
+              groups[monthKey] = [];
+            }
+            groups[monthKey].push(poap);
+            return groups;
+          }, {} as Record<string, typeof allTimelineItems[0][]>);
+          
+          // Convert to array of month groups, sorted by month (newest first)
+          const monthGroups = Object.entries(groupedByMonth)
+            .sort(([a], [b]) => b.localeCompare(a))
+            .map(([, poaps]) => poaps);
+          
+          timelineStructure.push(monthGroups);
+        } else {
+          // Group POAPs without moments by date
+          const groupedByDate = currentBatch.reduce((groups, poap) => {
+            const dateKey = getDateString(poap.date);
+            if (!groups[dateKey]) {
+              groups[dateKey] = [];
+            }
+            groups[dateKey].push(poap);
+            return groups;
+          }, {} as Record<string, typeof allTimelineItems[0][]>);
+          
+          // Convert to array of date groups, sorted by date (newest first)
+          const dateGroups = Object.entries(groupedByDate)
+            .sort(([a], [b]) => b.localeCompare(a))
+            .map(([, poaps]) => poaps);
+          
+          timelineStructure.push(dateGroups);
+        }
         currentBatch = [];
       }
       // Add the POAP with moments as a single item
@@ -274,7 +378,61 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
 
   // Add any remaining POAPs without moments
   if (currentBatch.length > 0) {
-    timelineStructure.push(currentBatch);
+    // Determine the best grouping strategy
+    const groupingStrategy = determineGroupingStrategy(currentBatch);
+    
+    if (groupingStrategy === 'quarter') {
+      // Group POAPs without moments by quarter
+      const groupedByQuarter = currentBatch.reduce((groups, poap) => {
+        const quarterKey = getQuarterString(poap.date);
+        if (!groups[quarterKey]) {
+          groups[quarterKey] = [];
+        }
+        groups[quarterKey].push(poap);
+        return groups;
+      }, {} as Record<string, typeof allTimelineItems[0][]>);
+      
+      // Convert to array of quarter groups, sorted by quarter (newest first)
+      const quarterGroups = Object.entries(groupedByQuarter)
+        .sort(([a], [b]) => b.localeCompare(a))
+        .map(([, poaps]) => poaps);
+      
+      timelineStructure.push(quarterGroups);
+    } else if (groupingStrategy === 'month') {
+      // Group POAPs without moments by month
+      const groupedByMonth = currentBatch.reduce((groups, poap) => {
+        const monthKey = getMonthString(poap.date);
+        if (!groups[monthKey]) {
+          groups[monthKey] = [];
+        }
+        groups[monthKey].push(poap);
+        return groups;
+      }, {} as Record<string, typeof allTimelineItems[0][]>);
+      
+      // Convert to array of month groups, sorted by month (newest first)
+      const monthGroups = Object.entries(groupedByMonth)
+        .sort(([a], [b]) => b.localeCompare(a))
+        .map(([, poaps]) => poaps);
+      
+      timelineStructure.push(monthGroups);
+    } else {
+      // Group POAPs without moments by date
+      const groupedByDate = currentBatch.reduce((groups, poap) => {
+        const dateKey = getDateString(poap.date);
+        if (!groups[dateKey]) {
+          groups[dateKey] = [];
+        }
+        groups[dateKey].push(poap);
+        return groups;
+      }, {} as Record<string, typeof allTimelineItems[0][]>);
+      
+      // Convert to array of date groups, sorted by date (newest first)
+      const dateGroups = Object.entries(groupedByDate)
+        .sort(([a], [b]) => b.localeCompare(a))
+        .map(([, poaps]) => poaps);
+      
+      timelineStructure.push(dateGroups);
+    }
   }
 
   const withMomentsCount = allTimelineItems.filter(item => item.hasMoments).length;
@@ -286,6 +444,18 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
       month: 'short',
       day: 'numeric'
     });
+  };
+  
+  const formatMonth = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; // YYYY-MM format
+  };
+  
+  const formatQuarter = (dateString: string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const quarter = Math.floor(date.getMonth() / 3) + 1;
+    return `${year} Q${quarter}`; // YYYY Q1 format
   };
 
   if (loading) {
@@ -399,41 +569,109 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
               // Animation class for slide-up effect
               const animationClass = "transform transition-all duration-700 ease-out opacity-0 translate-y-8 animate-on-scroll";
               if (Array.isArray(segment)) {
-                // This is a batch of POAPs without moments - smart layout: flat row or poker-card stacking
-                const totalItems = segment.length;
+                // This is a batch of date-grouped POAPs without moments
+                // segment is now an array of arrays, where each inner array contains POAPs from the same date
+                const dateGroups = segment as typeof allTimelineItems[0][][];
                 const cardWidth = 128; // 32 * 4 = 128px (w-32)
-                const cardGap = 16; // gap between cards when flat
+                const cardGap = 16; // gap between date groups when flat
+                const verticalOffset = 8; // vertical offset for stacking within same date
+                const maxVerticalHeight = cardWidth + verticalOffset; // Maximum height: 2 POAPs
                 const availableWidth = containerWidth; // Dynamic container width
-                const flatRowWidth = totalItems * cardWidth + (totalItems - 1) * cardGap;
                 
-                // Decide layout: flat row if fits, otherwise poker-card stacking
+                // Calculate total width needed for flat layout
+                const flatRowWidth = dateGroups.length * cardWidth + (dateGroups.length - 1) * cardGap;
+                
+                // Decide layout: flat row if fits, otherwise horizontal stacking like original
                 const useFlat = flatRowWidth <= availableWidth;
                 
                 if (useFlat) {
-                  // Flat row layout
+                  // Flat row layout with vertical stacking within each date group
                   return (
-                    <div key={`batch-${segmentIndex}`} className={`my-8 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
+                    <div key={`date-groups-flat-${segmentIndex}`} className={`my-8 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
                       <div className="flex gap-4 justify-center">
-                        {segment.map((item, index) => {
-                          // const opacity = 1 - (index * 0.8) / (totalItems - 1); // From 1 to 0.2
-                          const opacity = 1; // Fixed opacity for all cards
-
+                        {dateGroups.map((dateGroup, dateIndex) => {
+                          const itemsInGroup = dateGroup.length;
+                          // Show up to 10 items, then +N for the rest
+                          const visibleItems = Math.min(itemsInGroup, 10);
+                          const actualHeight = cardWidth + (Math.min(visibleItems, 2) - 1) * verticalOffset;
+                          
+                          // Determine if this is a month group or date group
+                          const firstItem = dateGroup[0];
+                          const groupKey = getDateString(firstItem.date);
+                          const isMonthGroup = shouldGroupByMonth([firstItem]) && dateGroup.some(item => 
+                            getDateString(item.date) !== groupKey
+                          );
+                          
                           return (
-                            <div
-                              key={`poap-scroll-${item.poap.event.id}-${index}`}
-                              className="w-32 h-32 flex-shrink-0 aspect-square transition-all duration-300 hover:scale-95"
-                              style={{
-                                opacity: Math.max(opacity, 0.2)
-                              }}
-                              title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
-                            >
-                              <Card className="w-full h-full p-0 overflow-hidden shadow-none hover:shadow-xl transition-shadow rounded-full">
-                                <img
-                                  src={item.poap.event.image_url}
-                                  alt={item.poap.event.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </Card>
+                            <div key={`date-group-flat-${dateIndex}`} className="flex flex-col items-center">
+                              {/* Vertical stacking container */}
+                              <div 
+                                className="relative"
+                                style={{ 
+                                  width: `${cardWidth}px`, 
+                                  height: `${actualHeight}px` 
+                                }}
+                              >
+                                {dateGroup.slice(0, Math.min(visibleItems, 2)).map((item, itemIndex) => {
+                                  const zIndex = Math.min(visibleItems, 2) - itemIndex; // First item has highest z-index
+                                  const offsetY = itemIndex * verticalOffset; // Vertical stacking
+                                  
+                                  return (
+                                    <div
+                                      key={`poap-flat-${item.poap.event.id}-${itemIndex}`}
+                                      className="absolute w-32 h-32 transition-all duration-300 hover:scale-95 hover:z-50"
+                                      style={{
+                                        top: `${offsetY}px`,
+                                        left: '0px',
+                                        zIndex: zIndex
+                                      }}
+                                      title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
+                                    >
+                                      <Card className="w-full h-full p-0 overflow-hidden shadow-md hover:shadow-xl transition-shadow rounded-full border-2 border-white">
+                                        <img
+                                          src={item.poap.event.image_url}
+                                          alt={item.poap.event.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </Card>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {/* Show +N indicator if more than 10 items */}
+                                {itemsInGroup > 10 && (
+                                  <div 
+                                    className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                    style={{
+                                      top: `${cardWidth - 16}px`,
+                                      right: '-8px',
+                                      zIndex: 100
+                                    }}
+                                  >
+                                    +{itemsInGroup - 10}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Date/Month/Quarter label below */}
+                              <div className="text-xs text-gray-500 mt-2 font-medium">
+                                {(() => {
+                                  const groupingStrategy = determineGroupingStrategy(dateGroup);
+                                  const quarterKey = getQuarterString(firstItem.date);
+                                  const monthKey = getMonthString(firstItem.date);
+                                  
+                                  const isQuarterGroup = dateGroup.some(item => getQuarterString(item.date) !== quarterKey) ||
+                                                       groupingStrategy === 'quarter';
+                                  const isMonthGroupLocal = !isQuarterGroup && (dateGroup.some(item => getMonthString(item.date) !== monthKey) ||
+                                                           groupingStrategy === 'month');
+                                  
+                                  return isQuarterGroup 
+                                    ? formatQuarter(dateGroup[0].poap.event.start_date)
+                                    : isMonthGroupLocal 
+                                      ? formatMonth(dateGroup[0].poap.event.start_date)
+                                      : formatDate(dateGroup[0].poap.event.start_date);
+                                })()}
+                              </div>
                             </div>
                           );
                         })}
@@ -441,40 +679,112 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                     </div>
                   );
                 } else {
-                  // Poker-card stacking layout
+                  // Horizontal stacking layout (like original poker-card stacking)
+                  const totalDateGroups = dateGroups.length;
                   const maxSpread = 800; // Maximum spread width for stacking
                   const stackWidth = Math.min(maxSpread, availableWidth - cardWidth);
-                  const stepSize = totalItems > 1 ? stackWidth / (totalItems - 1) : 0;
+                  const stepSize = totalDateGroups > 1 ? stackWidth / (totalDateGroups - 1) : 0;
                   
                   return (
-                    <div key={`batch-${segmentIndex}`} className={`my-8 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
+                    <div key={`date-groups-stack-${segmentIndex}`} className={`my-8 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
                       <div 
                         className="relative mx-auto" 
-                        style={{ width: `${cardWidth + stackWidth}px`, height: '128px' }}
+                        style={{ width: `${cardWidth + stackWidth}px`, height: `${maxVerticalHeight + 32}px` }} // Extra height for date labels
                       >
-                        {segment.map((item, index) => {
-                          const zIndex = totalItems - index; // First item has highest z-index
-                          const offsetX = index * stepSize; // Evenly distributed from left to right
-                          // const opacity = 1 - (index * 0.8) / (totalItems - 1); // From 1 to 0.2
-                          const opacity = 1; // Fixed opacity for all cards
+                        {dateGroups.map((dateGroup, dateIndex) => {
+                          const zIndex = totalDateGroups - dateIndex; // First group has highest z-index
+                          const offsetX = dateIndex * stepSize; // Horizontal distribution
+                          const itemsInGroup = dateGroup.length;
+                          // Show up to 10 items, then +N for the rest
+                          const visibleItems = Math.min(itemsInGroup, 10);
+                          
+                          // Determine if this is a month group or date group
+                          const firstItem = dateGroup[0];
+                          const groupKey = getDateString(firstItem.date);
+                          const isMonthGroup = shouldGroupByMonth([firstItem]) && dateGroup.some(item => 
+                            getDateString(item.date) !== groupKey
+                          );
+                          
                           return (
                             <div
-                              key={`poap-stack-${item.poap.event.id}-${index}`}
-                              className="absolute top-0 w-32 h-32 flex-shrink-0 aspect-square transition-all duration-300 hover:scale-95"
+                              key={`date-group-stack-${dateIndex}`}
+                              className="absolute top-0"
                               style={{
                                 left: `${offsetX}px`,
-                                zIndex: zIndex,
-                                opacity: Math.max(opacity, 0.2)
+                                zIndex: zIndex
                               }}
-                              title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
                             >
-                              <Card className="w-full h-full p-0 overflow-hidden shadow-none hover:shadow-xl transition-shadow rounded-full">
-                                <img
-                                  src={item.poap.event.image_url}
-                                  alt={item.poap.event.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </Card>
+                              {/* Vertical stacking container */}
+                              <div 
+                                className="relative"
+                                style={{ 
+                                  width: `${cardWidth}px`, 
+                                  height: `${maxVerticalHeight}px` 
+                                }}
+                              >
+                                {dateGroup.slice(0, Math.min(visibleItems, 2)).map((item, itemIndex) => {
+                                  const itemZIndex = Math.min(visibleItems, 2) - itemIndex;
+                                  const offsetY = itemIndex * verticalOffset;
+                                  
+                                  return (
+                                    <div
+                                      key={`poap-stack-${item.poap.event.id}-${itemIndex}`}
+                                      className="absolute w-32 h-32 transition-all duration-300 hover:scale-95 hover:z-50"
+                                      style={{
+                                        top: `${offsetY}px`,
+                                        left: '0px',
+                                        zIndex: itemZIndex
+                                      }}
+                                      title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
+                                    >
+                                      <Card className="w-full h-full p-0 overflow-hidden shadow-md hover:shadow-xl transition-shadow rounded-full border-2 border-white">
+                                        <img
+                                          src={item.poap.event.image_url}
+                                          alt={item.poap.event.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </Card>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {/* Show +N indicator if more than 10 items */}
+                                {itemsInGroup > 10 && (
+                                  <div 
+                                    className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
+                                    style={{
+                                      top: `${cardWidth - 16}px`,
+                                      right: '-8px',
+                                      zIndex: 100
+                                    }}
+                                  >
+                                    +{itemsInGroup - 10}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Date/Month label below */}
+                              <div 
+                                className="text-xs text-gray-500 mt-2 font-medium text-center"
+                                style={{ width: `${cardWidth}px` }}
+                              >
+                                {(() => {
+                                  const groupingStrategy = determineGroupingStrategy(dateGroup);
+                                  const quarterKey = getQuarterString(firstItem.date);
+                                  const monthKey = getMonthString(firstItem.date);
+                                  
+                                  const isQuarterGroup = dateGroup.some(item => getQuarterString(item.date) !== quarterKey) ||
+                                                       groupingStrategy === 'quarter';
+                                  const isMonthGroupLocal = !isQuarterGroup && (dateGroup.some(item => getMonthString(item.date) !== monthKey) ||
+                                                           groupingStrategy === 'month');
+                                  
+                                  return isQuarterGroup 
+                                    ? formatQuarter(dateGroup[0].poap.event.start_date)
+                                    : isMonthGroupLocal 
+                                      ? formatMonth(dateGroup[0].poap.event.start_date)
+                                      : formatDate(dateGroup[0].poap.event.start_date);
+                                })()}
+                              </div>
                             </div>
                           );
                         })}
