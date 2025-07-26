@@ -21,24 +21,24 @@ export const meta: MetaFunction = ({ params, matches }) => {
     const parentMatch = matches.find(match => match.id === "routes/v.$address");
     const parentData = parentMatch?.data as any;
     const address = params.address;
-    
+
     // Get parent data for fallbacks
     const parentMeta = parentData?.meta;
     const poapCount = parentData?.poaps?.length || 0;
     const parentOgImage = parentMeta?.ogimageurl || `https://poap.in/api/og/${address}`;
-    
+
     // POAP collection specific meta
     const collectionTitle = `${address} - ${poapCount} POAPs Collection | POAPin`;
     const collectionDescription = `Browse ${address}'s complete POAP collection of ${poapCount} tokens. Filter by country, city, chain, and year. Discover their Web3 journey through proof of attendance.`;
     const canonicalUrl = `https://poap.in/v/${address}`;
-    
+
     const collectionMeta = [
         { title: collectionTitle },
         { name: "title", content: collectionTitle },
         { name: "description", content: collectionDescription },
         { name: "keywords", content: `${address}, POAP, collection, NFT, Web3, proof of attendance, ${poapCount} tokens` },
         { name: "robots", content: "index, follow, max-image-preview:large" },
-        
+
         // Open Graph - Collection specific
         { property: "og:title", content: collectionTitle },
         { property: "og:description", content: collectionDescription },
@@ -46,7 +46,7 @@ export const meta: MetaFunction = ({ params, matches }) => {
         { property: "og:type", content: "website" },
         { property: "og:image", content: parentOgImage },
         { property: "og:image:alt", content: `${address}'s POAP collection of ${poapCount} tokens` },
-        
+
         // Twitter Cards - Collection specific
         { name: "twitter:title", content: collectionTitle },
         { name: "twitter:description", content: collectionDescription },
@@ -55,15 +55,15 @@ export const meta: MetaFunction = ({ params, matches }) => {
         { name: "twitter:data1", content: poapCount.toString() },
         { name: "twitter:label2", content: "Collection" },
         { name: "twitter:data2", content: "Web3 Identity" },
-        
+
         // Canonical URL for collection
         { rel: "canonical", href: canonicalUrl },
-        
+
         // Collection-specific meta
         { name: "author", content: address },
         { name: "application-name", content: "POAPin Collection" },
     ];
-    
+
     // Frame metadata for Farcaster
     const frameMetadata = getFrameMetadata({
         buttons: [
@@ -76,7 +76,7 @@ export const meta: MetaFunction = ({ params, matches }) => {
         image: parentOgImage,
     });
     const frameMeta = Object.entries(frameMetadata).map(([key, value]) => ({ name: key, content: value }));
-    
+
     return [...collectionMeta, ...frameMeta];
 };
 
@@ -97,17 +97,17 @@ interface OutletContext {
 export default function POAPIndex() {
     const { poaps, meta, totalMomentsCount, dropsWithMoments, filteredPoapCount, setFilteredPoapCount } = useOutletContext<OutletContext>();
     const [searchParams, setSearchParams] = useSearchParams();
-    
+
     // View state - 'classic' or 'timeline'
     const [filters, setFilters] = useAtom(filterStateAtom);
     const [sortBy, setSortBy] = useAtom(sortStateAtom);
     const [isTimeCapsuleMode, setIsTimeCapsuleMode] = useAtom(timeCapsuleModeAtom);
-  
+
     // Animation states for view transitions
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showClassic, setShowClassic] = useState(!isTimeCapsuleMode);
     const [showTimeline, setShowTimeline] = useState(isTimeCapsuleMode);
-    
+
     // Sync animation states when Time Capsule mode changes externally
     useEffect(() => {
         if (!isTransitioning) {
@@ -115,7 +115,7 @@ export default function POAPIndex() {
             setShowTimeline(isTimeCapsuleMode);
         }
     }, [isTimeCapsuleMode, isTransitioning]);
-    
+
     // Get filter state from URL search params
     const getFiltersFromURL = (): { [key: string]: string[] } => {
         const filters: { [key: string]: string[] } = {};
@@ -127,20 +127,20 @@ export default function POAPIndex() {
         }
         return filters;
     };
-    
+
     // Global filter and sort state using Jotai
     const [globalFilters, setGlobalFilters] = useAtom(filterStateAtom);
     const [globalSort, setGlobalSort] = useAtom(sortStateAtom);
-    
+
     // Sync global state with URL on mount and URL changes
     useEffect(() => {
         const urlFilters = getFiltersFromURL();
         const urlSort = searchParams.get('sort') || 'collected_newest';
-        
+
         // Only update global state if URL has different values (to avoid infinite loops)
         const filtersChanged = JSON.stringify(urlFilters) !== JSON.stringify(globalFilters);
         const sortChanged = urlSort !== globalSort;
-        
+
         if (filtersChanged) {
             setGlobalFilters(urlFilters);
         }
@@ -148,14 +148,14 @@ export default function POAPIndex() {
             setGlobalSort(urlSort);
         }
     }, [searchParams, globalFilters, globalSort, setGlobalFilters, setGlobalSort]);
-    
+
     // Helper function to update URL without trailing '?' when no parameters
     const updateURL = (searchParams: URLSearchParams) => {
         const queryString = searchParams.toString();
         const newURL = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
         window.history.replaceState({}, '', newURL);
     };
-    
+
     const selectedFilters = globalFilters;
     const selectedSort = globalSort;
 
@@ -163,13 +163,13 @@ export default function POAPIndex() {
     const handleFilterRemove = (key: string, value: string) => {
         const currentValues = selectedFilters[key] ?? [];
         const newValues = currentValues.filter(v => v !== value);
-        
+
         // Update global state immediately for instant UI feedback
         setGlobalFilters(prev => ({
             ...prev,
             [key]: newValues
         }));
-        
+
         // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
         if (newValues.length > 0) {
@@ -177,7 +177,7 @@ export default function POAPIndex() {
         } else {
             newSearchParams.delete(`filter_${key}`);
         }
-        
+
         // Use replace to avoid triggering route reload
         updateURL(newSearchParams);
     };
@@ -186,17 +186,17 @@ export default function POAPIndex() {
     const handleClearAllFilters = () => {
         // Update global state immediately for instant UI feedback
         setGlobalFilters({});
-        
+
         // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
-        
+
         // Remove all filter parameters
         for (const [key] of searchParams.entries()) {
             if (key.startsWith('filter_')) {
                 newSearchParams.delete(key);
             }
         }
-        
+
         // Use replace to avoid triggering route reload
         updateURL(newSearchParams);
     };
@@ -275,10 +275,10 @@ export default function POAPIndex() {
     const filteredPoaps = poaps.filter((poap) => {
         // Get all active filter entries (with non-empty values)
         const activeFilters = Object.entries(selectedFilters).filter(([key, values]) => values.length > 0);
-        
+
         // If no filters are active, show all POAPs
         if (activeFilters.length === 0) return true;
-        
+
         // Check if POAP matches ANY of the active filter values (OR logic)
         return activeFilters.some(([key, values]) => {
             switch (key) {
@@ -331,28 +331,28 @@ export default function POAPIndex() {
             ...prev,
             [key]: values
         }));
-        
+
         // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
-        
+
         if (values.length > 0) {
             newSearchParams.set(`filter_${key}`, values.join(','));
         } else {
             newSearchParams.delete(`filter_${key}`);
         }
-        
+
         // Use replace to avoid triggering route reload
         updateURL(newSearchParams);
     };
-    
+
     // Batch filter update function to handle multiple filters at once
     const handleBatchFilterChange = (filtersToUpdate: { [key: string]: string[] }) => {
         // Update global state immediately for instant UI feedback
         setGlobalFilters(filtersToUpdate);
-        
+
         // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
-        
+
         // Apply all filter changes to the same URLSearchParams object
         Object.entries(filtersToUpdate).forEach(([key, values]) => {
             if (values.length > 0) {
@@ -361,7 +361,7 @@ export default function POAPIndex() {
                 newSearchParams.delete(`filter_${key}`);
             }
         });
-        
+
         // Use replace to avoid triggering route reload
         updateURL(newSearchParams);
     };
@@ -370,11 +370,11 @@ export default function POAPIndex() {
     const handleSortChange = (sort: string) => {
         // Update global state immediately for instant UI feedback
         setGlobalSort(sort);
-        
+
         // Update URL asynchronously for sharing
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.set('sort', sort);
-        
+
         // Use replace to avoid triggering route reload
         updateURL(newSearchParams);
     };
@@ -382,30 +382,30 @@ export default function POAPIndex() {
     // Handle animated view transition
     const handleViewTransition = () => {
         if (isTransitioning) return;
-        
+
         setIsTransitioning(true);
-        
+
         if (!isTimeCapsuleMode) {
             // Transitioning to timeline: start fade out animation, then switch mode
             setShowClassic(false);  // Trigger fade out animation
-            
+
             setTimeout(() => {
                 setIsTimeCapsuleMode(true);  // Update global state for background
                 setShowTimeline(true);       // Show timeline
             }, 300); // Wait for fade out animation
-            
+
             setTimeout(() => {
                 setIsTransitioning(false);
             }, 800); // Complete transition
         } else {
             // Transitioning to classic: fade out timeline, then fade in classic
             setShowTimeline(false);
-            
+
             setTimeout(() => {
                 setIsTimeCapsuleMode(false); // Update global state for background
                 setShowClassic(true);        // Show classic
             }, 300); // Wait for fade out animation
-            
+
             setTimeout(() => {
                 setIsTransitioning(false);
             }, 800); // Complete transition
@@ -430,7 +430,7 @@ export default function POAPIndex() {
                     filteredPoaps={filteredPoaps}
                 />
             )}
-            
+
             {/* Floating Sort Bar - only show in classic mode */}
             {!isTimeCapsuleMode && (
                 <FloatingSortBar
@@ -438,60 +438,71 @@ export default function POAPIndex() {
                     onSortChange={handleSortChange}
                 />
             )}
-            
+
             {/* Centered Main Content */}
             <div className="flex justify-center mb-8">
                 <div className="w-full max-w-6xl flex-col">
                     <main className="mt-4 h-full w-full overflow-visible px-1 sm:pr-2 max-w-5xl mx-auto">
-                        {/* Time Capsule Toggle */}
-                        <div className="flex justify-center items-center mb-4">
-                            <Button
-                                variant="flat"
-                                startContent={<Icon icon="fluent:timeline-20-filled" className="w-5" />}
-                                onClick={handleViewTransition}
-                                size="lg"
-                                className="text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                                disabled={isTransitioning}
-                            >
-                                {!isTimeCapsuleMode ? 'Time Capsule' : 'Back to Grid'}
-                            </Button>
-                        </div>
-                        
+                        {/* Time Capsule Toggle - only show if there are moments */}
+                        {totalMomentsCount > 0 && (
+                            <div className="flex justify-center items-center mb-6">
+                                <Button
+                                    variant={isTimeCapsuleMode ? "solid" : "flat"}
+                                    startContent={!isTimeCapsuleMode ? <Icon icon="fluent:timeline-20-filled" className={`w-6 h-6 ${isTimeCapsuleMode ? 'text-white' : ''}`} /> : <Icon icon="fluent:grid-20-filled" className={`w-6 h-6 ${isTimeCapsuleMode ? 'text-white' : ''}`} />}
+                                    onClick={handleViewTransition}
+                                    size="lg"
+                                    className={`px-8 py-6 text-base font-medium transition-all duration-300 hover:scale-105 ${isTimeCapsuleMode
+                                            ? 'bg-gradient-to-r from-background-600 to-background-600 text-white border-2 border-background-400/50'
+                                            : 'text-white border-2 border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10'
+                                        }`}
+                                    disabled={isTransitioning}
+                                >
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-sm opacity-80">
+                                            {!isTimeCapsuleMode ?
+                                                <div><span className="font-semibold font-mono">{totalMomentsCount}</span> Moments</div> :
+                                                <div><span className="font-semibold font-mono">{poaps.length}</span> POAPs</div>}
+                                        </span>
+                                        <span className="text-xl font-semibold">
+                                            {!isTimeCapsuleMode ? 'Open Time Capsule' : 'Back to Classic View'}
+                                        </span>
+                                    </div>
+                                </Button>
+                            </div>
+                        )}
+
                         {/* Active Filters Display - with smooth animation */}
                         {!isTimeCapsuleMode && (
-                            <div className={`transition-all duration-300 ease-in-out transform ${
-                                showClassic 
-                                    ? 'opacity-100 scale-100' 
+                            <div className={`transition-all duration-300 ease-in-out transform ${showClassic
+                                    ? 'opacity-100 scale-100'
                                     : 'opacity-0 scale-90'
-                            }`}>
+                                }`}>
                                 <ActiveFiltersDisplay
                                     onFilterRemove={handleFilterRemove}
                                     onClearAll={handleClearAllFilters}
                                 />
                             </div>
                         )}
-                        
+
                         {/* Classic Grid View with smooth animation */}
                         {!isTimeCapsuleMode && (
-                            <div className={`transition-all duration-300 ease-in-out transform ${
-                                showClassic 
-                                    ? 'opacity-100 scale-100' 
+                            <div className={`transition-all duration-300 ease-in-out transform ${showClassic
+                                    ? 'opacity-100 scale-100'
                                     : 'opacity-0 scale-90'
-                            }`}>
+                                }`}>
                                 <PoapGrid
                                     poaps={filteredPoaps}
                                     dropsWithMoments={dropsWithMoments}
                                 />
                             </div>
                         )}
-                        
+
                         {/* Timeline View with smooth animation */}
                         {isTimeCapsuleMode && (
-                            <div className={`transition-all duration-500 ease-in-out transform ${
-                                showTimeline 
-                                    ? 'opacity-100 scale-100' 
+                            <div className={`transition-all duration-500 ease-in-out transform ${showTimeline
+                                    ? 'opacity-100 scale-100'
                                     : 'opacity-0 scale-90'
-                            }`}>
+                                }`}>
                                 <MomentsTimeline
                                     address={meta.address}
                                     poaps={poaps}

@@ -462,7 +462,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center relative">
         {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-purple-900/20 animate-pulse" />
+        <div className="absolute inset-0" />
         
         {/* Main loading content */}
         <div className="relative z-10 flex flex-col items-center space-y-6">
@@ -476,7 +476,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 circle2: "border-b-pink-500"
               }}
             />
-            <div className="absolute inset-0 w-12 h-12 rounded-full bg-purple-500/20 blur-xl animate-pulse" />
+            <div className="absolute inset-0 w-12 h-12 rounded-full bg-background-500/20 blur-xl animate-pulse" />
           </div>
           
           {/* Loading text with animation */}
