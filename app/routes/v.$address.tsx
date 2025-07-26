@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { POAP, Moment } from "~/types/poap";
 import { RateLimitError, getPoapsOfAddress } from "~/lib/poap";
+import { getMomentsCountFromGraphQL } from "~/utils/moments";
 import { getMomentsCountByAuthor, Collection } from "~/lib/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { Outlet, useLoaderData, useParams, NavLink, useLocation } from "@remix-run/react";
@@ -113,10 +114,24 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         const metaDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${poapTitles}`;
 
-        // Get basic moments count for SEO (but defer detailed moments loading)
-        const momentsCount = await getMomentsCountByAuthor({ context, author: ethAddress });
-        const dropsWithMoments = momentsCount.uniqueDropIds;
-        const totalMomentsCount = momentsCount.totalMoments;
+        // Get accurate moments count using POAP Graph API
+        let totalMomentsCount = 0;
+        let dropsWithMoments: number[] = [];
+        try {
+            totalMomentsCount = await getMomentsCountFromGraphQL(ethAddress, context);
+        } catch (error) {
+            console.error('Failed to fetch moments count:', error);
+            totalMomentsCount = 0;
+        }
+        
+        // Get basic moments count for SEO fallback (keep for dropsWithMoments)
+        try {
+            const momentsCount = await getMomentsCountByAuthor({ context, author: ethAddress });
+            dropsWithMoments = momentsCount.uniqueDropIds;
+        } catch (error) {
+            console.error('Failed to fetch drops with moments:', error);
+            dropsWithMoments = [];
+        }
 
         // Generate OG image on server-side (needed immediately for display and SEO)
         let ogImageUrl = "";
@@ -143,7 +158,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         let finalDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
 
         // Add moments count if available
-        if (momentsCount && totalMomentsCount && totalMomentsCount > 0) {
+        if (totalMomentsCount && totalMomentsCount > 0) {
             finalDescription += ` ${address} created ${totalMomentsCount} POAP moments.`;
         }
 

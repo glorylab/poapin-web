@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useOutletContext, useSearchParams } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
@@ -115,6 +115,71 @@ export default function POAPIndex() {
             setShowTimeline(isTimeCapsuleMode);
         }
     }, [isTimeCapsuleMode, isTransitioning]);
+
+    // Handle animated view transition
+    const handleViewTransition = useCallback(() => {
+        if (isTransitioning) return;
+
+        setIsTransitioning(true);
+
+        if (!isTimeCapsuleMode) {
+            // Transitioning to timeline: start fade out animation, then switch mode
+            setShowClassic(false);  // Trigger fade out animation
+
+            setTimeout(() => {
+                setIsTimeCapsuleMode(true);  // Update global state for background
+                setShowTimeline(true);       // Show timeline
+            }, 300); // Wait for fade out
+
+            setTimeout(() => {
+                setIsTransitioning(false);
+            }, 800); // Complete transition
+        } else {
+            // Transitioning to classic: fade out timeline, then fade in classic
+            setShowTimeline(false);
+
+            setTimeout(() => {
+                setIsTimeCapsuleMode(false); // Update global state for background
+                setShowClassic(true);        // Show classic
+            }, 300); // Wait for fade out
+
+            setTimeout(() => {
+                setIsTransitioning(false);
+            }, 800); // Complete transition
+        }
+    }, [isTimeCapsuleMode, isTransitioning, setIsTimeCapsuleMode]);
+
+    // Auto-activate time capsule if URL parameter is present and conditions are met
+    useEffect(() => {
+        const autoTimeCapsule = searchParams.get('auto_time_capsule');
+        console.log('🔍 Auto time capsule check:', {
+            autoTimeCapsule,
+            totalMomentsCount,
+            isTimeCapsuleMode,
+            isTransitioning,
+            shouldActivate: autoTimeCapsule === 'true' && totalMomentsCount > 0 && !isTimeCapsuleMode && !isTransitioning
+        });
+        
+        if (autoTimeCapsule === 'true' && totalMomentsCount > 0 && !isTimeCapsuleMode && !isTransitioning) {
+            console.log('✅ Auto-activating time capsule in 2 seconds...');
+            
+            // Remove the query parameter from URL to clean it up
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.delete('auto_time_capsule');
+            const newURL = window.location.pathname + (newSearchParams.toString() ? '?' + newSearchParams.toString() : '');
+            window.history.replaceState({}, '', newURL);
+            
+            // Auto-activate time capsule after 2 seconds
+            const timer = setTimeout(() => {
+                if (!isTimeCapsuleMode && !isTransitioning) {
+                    console.log('🚀 Auto-activating time capsule now!');
+                    handleViewTransition();
+                }
+            }, 2000);
+            
+            return () => clearTimeout(timer);
+        }
+    }, [searchParams, totalMomentsCount, isTimeCapsuleMode, isTransitioning, handleViewTransition]);
 
     // Get filter state from URL search params
     const getFiltersFromURL = (): { [key: string]: string[] } => {
@@ -379,39 +444,6 @@ export default function POAPIndex() {
         updateURL(newSearchParams);
     };
 
-    // Handle animated view transition
-    const handleViewTransition = () => {
-        if (isTransitioning) return;
-
-        setIsTransitioning(true);
-
-        if (!isTimeCapsuleMode) {
-            // Transitioning to timeline: start fade out animation, then switch mode
-            setShowClassic(false);  // Trigger fade out animation
-
-            setTimeout(() => {
-                setIsTimeCapsuleMode(true);  // Update global state for background
-                setShowTimeline(true);       // Show timeline
-            }, 300); // Wait for fade out animation
-
-            setTimeout(() => {
-                setIsTransitioning(false);
-            }, 800); // Complete transition
-        } else {
-            // Transitioning to classic: fade out timeline, then fade in classic
-            setShowTimeline(false);
-
-            setTimeout(() => {
-                setIsTimeCapsuleMode(false); // Update global state for background
-                setShowClassic(true);        // Show classic
-            }, 300); // Wait for fade out animation
-
-            setTimeout(() => {
-                setIsTransitioning(false);
-            }, 800); // Complete transition
-        }
-    };
-
     return (
         <>
             {/* Floating Filter Bar - only show in classic mode */}
@@ -457,7 +489,7 @@ export default function POAPIndex() {
                                         }`}
                                     disabled={isTransitioning}
                                 >
-                                    <div className="flex flex-col items-start">
+                                    <div className="flex flex-col items-start py-2 gap-1">
                                         <span className="text-sm opacity-80">
                                             {!isTimeCapsuleMode ?
                                                 <div><span className="font-semibold font-mono">{totalMomentsCount}</span> Moments</div> :
