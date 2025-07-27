@@ -285,8 +285,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
     const monthsDiff = (lastDate.getFullYear() - firstDate.getFullYear()) * 12 + 
                       (lastDate.getMonth() - firstDate.getMonth());
     
-    // If spans 3 months or less, group by day
-    if (monthsDiff <= 3) return 'day';
+    // If spans less than 1 month, group by day
+    if (monthsDiff < 1) return 'day';
     
     // Try month grouping first
     const uniqueMonths = [...new Set(items.map(item => getMonthString(item.date)))];
@@ -656,18 +656,14 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                               {/* Date/Month/Quarter label below */}
                               <div className="text-xs text-gray-500 mt-2 font-medium">
                                 {(() => {
-                                  const groupingStrategy = determineGroupingStrategy(dateGroup);
-                                  const quarterKey = getQuarterString(firstItem.date);
-                                  const monthKey = getMonthString(firstItem.date);
+                                  // Use the same grouping strategy for all columns in this row
+                                  // by determining strategy based on all items in all dateGroups
+                                  const allItemsInRow = dateGroups.flat();
+                                  const rowGroupingStrategy = determineGroupingStrategy(allItemsInRow);
                                   
-                                  const isQuarterGroup = dateGroup.some(item => getQuarterString(item.date) !== quarterKey) ||
-                                                       groupingStrategy === 'quarter';
-                                  const isMonthGroupLocal = !isQuarterGroup && (dateGroup.some(item => getMonthString(item.date) !== monthKey) ||
-                                                           groupingStrategy === 'month');
-                                  
-                                  return isQuarterGroup 
+                                  return rowGroupingStrategy === 'quarter'
                                     ? formatQuarter(dateGroup[0].poap.event.start_date)
-                                    : isMonthGroupLocal 
+                                    : rowGroupingStrategy === 'month'
                                       ? formatMonth(dateGroup[0].poap.event.start_date)
                                       : formatDate(dateGroup[0].poap.event.start_date);
                                 })()}
@@ -769,18 +765,14 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                 style={{ width: `${cardWidth}px` }}
                               >
                                 {(() => {
-                                  const groupingStrategy = determineGroupingStrategy(dateGroup);
-                                  const quarterKey = getQuarterString(firstItem.date);
-                                  const monthKey = getMonthString(firstItem.date);
+                                  // Use the same grouping strategy for all columns in this row
+                                  // by determining strategy based on all items in all dateGroups
+                                  const allItemsInRow = dateGroups.flat();
+                                  const rowGroupingStrategy = determineGroupingStrategy(allItemsInRow);
                                   
-                                  const isQuarterGroup = dateGroup.some(item => getQuarterString(item.date) !== quarterKey) ||
-                                                       groupingStrategy === 'quarter';
-                                  const isMonthGroupLocal = !isQuarterGroup && (dateGroup.some(item => getMonthString(item.date) !== monthKey) ||
-                                                           groupingStrategy === 'month');
-                                  
-                                  return isQuarterGroup 
+                                  return rowGroupingStrategy === 'quarter'
                                     ? formatQuarter(dateGroup[0].poap.event.start_date)
-                                    : isMonthGroupLocal 
+                                    : rowGroupingStrategy === 'month'
                                       ? formatMonth(dateGroup[0].poap.event.start_date)
                                       : formatDate(dateGroup[0].poap.event.start_date);
                                 })()}
