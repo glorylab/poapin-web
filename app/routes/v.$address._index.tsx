@@ -152,16 +152,8 @@ export default function POAPIndex() {
     // Auto-activate time capsule if URL parameter is present and conditions are met
     useEffect(() => {
         const autoTimeCapsule = searchParams.get('auto_time_capsule');
-        console.log('🔍 Auto time capsule check:', {
-            autoTimeCapsule,
-            totalMomentsCount,
-            isTimeCapsuleMode,
-            isTransitioning,
-            shouldActivate: autoTimeCapsule === 'true' && totalMomentsCount > 0 && !isTimeCapsuleMode && !isTransitioning
-        });
         
         if (autoTimeCapsule === 'true' && totalMomentsCount > 0 && !isTimeCapsuleMode && !isTransitioning) {
-            console.log('✅ Auto-activating time capsule in 2 seconds...');
             
             // Remove the query parameter from URL to clean it up
             const newSearchParams = new URLSearchParams(searchParams);
@@ -172,7 +164,6 @@ export default function POAPIndex() {
             // Auto-activate time capsule after 2 seconds
             const timer = setTimeout(() => {
                 if (!isTimeCapsuleMode && !isTransitioning) {
-                    console.log('🚀 Auto-activating time capsule now!');
                     handleViewTransition();
                 }
             }, 2000);

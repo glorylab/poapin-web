@@ -24,6 +24,9 @@ export async function getMomentsCountFromGraphQL(address: string, context: any):
   try {
     const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
 
+    // Parse the address to small case
+    address = address.toLowerCase();
+
     const countResponse = await fetch(poapGraphQLBaseUrl, {
       method: 'POST',
       headers: {
