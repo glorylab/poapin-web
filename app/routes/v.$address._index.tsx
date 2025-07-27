@@ -25,7 +25,7 @@ export const meta: MetaFunction = ({ params, matches }) => {
     // Get parent data for fallbacks
     const parentMeta = parentData?.meta;
     const poapCount = parentData?.poaps?.length || 0;
-    const parentOgImage = parentMeta?.ogimageurl || `https://poap.in/api/og/${address}`;
+    const parentOgImage = parentMeta?.ogimageurl || `https://og.poap.in/api/poap/v/${address}`;
 
     // POAP collection specific meta
     const collectionTitle = `${address} - ${poapCount} POAPs Collection | POAPin`;
