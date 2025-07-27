@@ -638,8 +638,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   );
                                 })}
                                 
-                                {/* Show +N indicator if more than 10 items */}
-                                {itemsInGroup > 10 && (
+                                {/* Show +N indicator if more than 2 items */}
+                                {itemsInGroup > 2 && (
                                   <div 
                                     className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
                                     style={{
@@ -648,7 +648,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                       zIndex: 100
                                     }}
                                   >
-                                    +{itemsInGroup - 10}
+                                    +{itemsInGroup - 2}
                                   </div>
                                 )}
                               </div>
@@ -744,8 +744,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   );
                                 })}
                                 
-                                {/* Show +N indicator if more than 10 items */}
-                                {itemsInGroup > 10 && (
+                                {/* Show +N indicator if more than 2 items */}
+                                {itemsInGroup > 2 && (
                                   <div 
                                     className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
                                     style={{
@@ -754,7 +754,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                       zIndex: 100
                                     }}
                                   >
-                                    +{itemsInGroup - 10}
+                                    +{itemsInGroup - 2}
                                   </div>
                                 )}
                               </div>
