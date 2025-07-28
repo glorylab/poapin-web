@@ -29,6 +29,11 @@ export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarP
         return currentOption?.label || "Sort";
     };
 
+    const getCurrentSortIcon = () => {
+        const currentOption = sortOptions.find(option => option.key === selectedSort);
+        return currentOption?.icon || "heroicons:bars-arrow-up";
+    };
+
     return (
         <>
             {/* Floating Sort Button */}
@@ -42,6 +47,14 @@ export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarP
                     >
                         <Icon icon="heroicons:bars-arrow-up" className="w-6 h-6" />
                     </Button>
+                    
+                    {/* Sort Badge - always show current sort icon */}
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-white/50 to-white/20 rounded-full flex items-center justify-center shadow-lg border-2 border-white backdrop-blur-sm">
+                        <Icon 
+                            icon={getCurrentSortIcon()} 
+                            className="w-3 h-3 text-white/90" 
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -80,24 +93,38 @@ export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarP
                                 list: "max-h-[300px] overflow-scroll",
                             }}
                         >
-                            {sortOptions.map((option) => (
-                                <ListboxItem
-                                    key={option.key}
-                                    startContent={
-                                        <Icon 
-                                            icon={option.icon} 
-                                            className="w-5 h-5 text-gray-500" 
-                                        />
-                                    }
-                                    classNames={{
-                                        base: "py-3 px-4 hover:bg-gray-50 data-[selected=true]:bg-primary-50 data-[selected=true]:text-primary-700",
-                                        title: "text-gray-900 font-medium",
-                                        selectedIcon: "text-primary-600",
-                                    }}
-                                >
-                                    {option.label}
-                                </ListboxItem>
-                            ))}
+                            {sortOptions.map((option) => {
+                                const isSelected = option.key === selectedSort;
+                                
+                                return (
+                                    <ListboxItem
+                                        key={option.key}
+                                        startContent={
+                                            <Icon 
+                                                icon={option.icon} 
+                                                className={`w-5 h-5 ${
+                                                    isSelected ? 'text-green-700' : 'text-gray-500'
+                                                }`} 
+                                            />
+                                        }
+                                        classNames={{
+                                            base: `py-3 px-4 cursor-pointer rounded-md ${
+                                                isSelected 
+                                                    ? '!bg-green-100 hover:!bg-green-200 active:!bg-green-50' 
+                                                    : '!bg-gray-50 hover:!bg-gray-100 active:!bg-gray-25'
+                                            }`,
+                                            title: `${
+                                                isSelected 
+                                                    ? 'text-green-700 font-bold' 
+                                                    : 'text-gray-900 font-medium'
+                                            }`,
+                                            selectedIcon: "text-green-700",
+                                        }}
+                                    >
+                                        {option.label}
+                                    </ListboxItem>
+                                );
+                            })}
                         </Listbox>
                     </ModalBody>
                 </ModalContent>
