@@ -25,25 +25,22 @@ export function ActiveFiltersDisplay({
     const [isClearingAll, setIsClearingAll] = useState(false);
     const [previousFilters, setPreviousFilters] = useState(selectedFilters);
 
-    // Monitor navigation state and filter changes to clear loading states
+    // Monitor filter changes to clear loading states
     useEffect(() => {
-        // If navigation is idle and filters have changed, clear loading states
-        if (navigation.state === 'idle') {
-            // Check if filters have actually changed
-            const filtersChanged = JSON.stringify(selectedFilters) !== JSON.stringify(previousFilters);
+        // Check if filters have actually changed
+        const filtersChanged = JSON.stringify(selectedFilters) !== JSON.stringify(previousFilters);
 
-            if (filtersChanged) {
-                // Clear loading states after a short delay to show the spinner briefly
-                const timer = setTimeout(() => {
-                    setLoadingFilters(new Set());
-                    setIsClearingAll(false);
-                    setPreviousFilters(selectedFilters);
-                }, 300);
+        if (filtersChanged) {
+            // Clear loading states after a short delay to show the spinner briefly
+            const timer = setTimeout(() => {
+                setLoadingFilters(new Set());
+                setIsClearingAll(false);
+                setPreviousFilters(selectedFilters);
+            }, 200);
 
-                return () => clearTimeout(timer);
-            }
+            return () => clearTimeout(timer);
         }
-    }, [navigation.state, selectedFilters, previousFilters]);
+    }, [selectedFilters, previousFilters]);
 
     // Handle filter removal with loading state
     const handleFilterRemove = async (key: string, value: string) => {

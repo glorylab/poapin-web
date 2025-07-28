@@ -20,29 +20,24 @@ export function useUrlSync() {
         return filters;
     };
 
-    // Helper function to update URL without trailing '?' when no parameters
-    const updateURL = (searchParams: URLSearchParams) => {
-        const queryString = searchParams.toString();
+    // Helper function to update URL for sharing without triggering route reload
+    const updateURL = (newSearchParams: URLSearchParams) => {
+        const queryString = newSearchParams.toString();
         const newURL = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+        
+        // Update URL without triggering route reload (for sharing purposes only)
         window.history.replaceState({}, '', newURL);
     };
 
-    // Sync global state with URL on mount and URL changes
+    // Initialize global state from URL on mount and handle URL changes
     useEffect(() => {
         const urlFilters = getFiltersFromURL();
         const urlSort = searchParams.get('sort') || 'collected_newest';
 
-        // Only update global state if URL has different values (to avoid infinite loops)
-        const filtersChanged = JSON.stringify(urlFilters) !== JSON.stringify(globalFilters);
-        const sortChanged = urlSort !== globalSort;
-
-        if (filtersChanged) {
-            setGlobalFilters(urlFilters);
-        }
-        if (sortChanged) {
-            setGlobalSort(urlSort);
-        }
-    }, [searchParams, globalFilters, globalSort, setGlobalFilters, setGlobalSort]);
+        // Always sync state with URL (for initial load and browser navigation)
+        setGlobalFilters(urlFilters);
+        setGlobalSort(urlSort);
+    }, [searchParams, setGlobalFilters, setGlobalSort]); // Only depend on searchParams and setters
 
     return {
         searchParams,
