@@ -574,8 +574,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 const dateGroups = segment as typeof allTimelineItems[0][][];
                 const cardWidth = 128; // 32 * 4 = 128px (w-32)
                 const cardGap = 16; // gap between date groups when flat
-                const verticalOffset = 8; // vertical offset for stacking within same date
-                const maxVerticalHeight = cardWidth + verticalOffset; // Maximum height: 2 POAPs
+                const verticalOffset = 16; // vertical offset for stacking within same date
+                const maxVerticalHeight = cardWidth; // Maximum height: 2 POAPs
                 const availableWidth = containerWidth; // Dynamic container width
                 
                 // Calculate total width needed for flat layout
@@ -612,8 +612,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   height: `${actualHeight}px` 
                                 }}
                               >
-                                {dateGroup.slice(0, Math.min(visibleItems, 2)).map((item, itemIndex) => {
-                                  const zIndex = Math.min(visibleItems, 2) - itemIndex; // First item has highest z-index
+                                {dateGroup.slice(0, Math.min(visibleItems, 3)).map((item, itemIndex) => {
+                                  const zIndex = Math.min(visibleItems, 3) - itemIndex; // First item has highest z-index
                                   const offsetY = itemIndex * verticalOffset; // Vertical stacking
                                   
                                   return (
@@ -639,22 +639,22 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                 })}
                                 
                                 {/* Show +N indicator if more than 2 items */}
-                                {itemsInGroup > 2 && (
+                                {itemsInGroup > 3 && (
                                   <div 
                                     className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
                                     style={{
-                                      top: `${cardWidth - 16}px`,
+                                      top: `${cardWidth + verticalOffset / 2}px`,
                                       right: '-8px',
                                       zIndex: 100
                                     }}
                                   >
-                                    +{itemsInGroup - 2}
+                                    +{itemsInGroup - 3}
                                   </div>
                                 )}
                               </div>
                               
                               {/* Date/Month/Quarter label below */}
-                              <div className="text-xs text-gray-500 mt-2 font-medium">
+                              <div className="text-xs text-white/80 mt-6 font-medium">
                                 {(() => {
                                   // Use the same grouping strategy for all columns in this row
                                   // by determining strategy based on all items in all dateGroups
@@ -718,8 +718,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   height: `${maxVerticalHeight}px` 
                                 }}
                               >
-                                {dateGroup.slice(0, Math.min(visibleItems, 2)).map((item, itemIndex) => {
-                                  const itemZIndex = Math.min(visibleItems, 2) - itemIndex;
+                                {dateGroup.slice(0, Math.min(visibleItems, 3)).map((item, itemIndex) => {
+                                  const itemZIndex = Math.min(visibleItems, 3) - itemIndex;
                                   const offsetY = itemIndex * verticalOffset;
                                   
                                   return (
@@ -744,17 +744,17 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   );
                                 })}
                                 
-                                {/* Show +N indicator if more than 2 items */}
-                                {itemsInGroup > 2 && (
+                                {/* Show +N indicator if more than 3 items */}
+                                {itemsInGroup > 3 && (
                                   <div 
                                     className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
                                     style={{
-                                      top: `${cardWidth - 16}px`,
+                                      top: `${cardWidth + verticalOffset / 2}px`,
                                       right: '-8px',
                                       zIndex: 100
                                     }}
                                   >
-                                    +{itemsInGroup - 2}
+                                    +{itemsInGroup - 3}
                                   </div>
                                 )}
                               </div>
