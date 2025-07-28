@@ -619,10 +619,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   return (
                                     <div
                                       key={`poap-flat-${item.poap.event.id}-${itemIndex}`}
-                                      className={`absolute w-32 h-32 transition-all duration-300 ease-out ${itemIndex === 1 ? 'group-hover:translate-y-0.5' :
-                                          itemIndex === 2 ? 'group-hover:translate-y-1' :
-                                            ''
-                                        }`}
+                                      className={`absolute w-32 h-32 transition-all duration-300 ease-out ${
+                                        itemIndex === 0 ? 'group-hover:scale-[1.01] group-hover:-translate-y-0.5' :
+                                        itemIndex === 1 ? 'group-hover:scale-[0.99] group-hover:translate-y-0.5' :
+                                        itemIndex === 2 ? 'group-hover:scale-[0.97] group-hover:translate-y-1' :
+                                        ''
+                                      }`}
                                       style={{
                                         top: `${baseOffsetY}px`,
                                         left: '0px',
@@ -729,10 +731,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   return (
                                     <div
                                       key={`poap-stack-${item.poap.event.id}-${itemIndex}`}
-                                      className={`absolute w-32 h-32 transition-all duration-300 ease-out ${itemIndex === 1 ? 'group-hover:translate-y-0.5' :
-                                          itemIndex === 2 ? 'group-hover:translate-y-1' :
-                                            ''
-                                        }`}
+                                      className={`absolute w-32 h-32 transition-all duration-300 ease-out ${
+                                        itemIndex === 0 ? 'group-hover:scale-[1.01] group-hover:-translate-y-0.5' :
+                                        itemIndex === 1 ? 'group-hover:scale-[0.99] group-hover:translate-y-0.5' :
+                                        itemIndex === 2 ? 'group-hover:scale-[0.97] group-hover:translate-y-1' :
+                                        ''
+                                      }`}
                                       style={{
                                         top: `${baseOffsetY}px`,
                                         left: '0px',
