@@ -118,8 +118,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
         console.error('❌ API Error Response:', errorText);
         throw new Error(`API request failed: ${response.status} - ${errorText}`);
       }
-      
-      const data = await response.json() as MomentsApiResponse;      
+
+      const data = await response.json() as MomentsApiResponse;
       if (data.error) {
         throw new Error(data.error);
       }
@@ -134,7 +134,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
       } else {
         setMoments(data.moments);
       }
-      
+
       setHasMore(data.pagination.hasMore);
       setPage(pageNum);
     } catch (err) {
@@ -192,7 +192,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
 
     // Add resize listener
     window.addEventListener('resize', updateContainerWidth);
-    
+
     // Cleanup
     return () => {
       window.removeEventListener('resize', updateContainerWidth);
@@ -257,47 +257,47 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
   const getDateString = (date: Date) => {
     return date.toISOString().split('T')[0]; // YYYY-MM-DD format
   };
-  
+
   const getMonthString = (date: Date) => {
     return date.toISOString().substring(0, 7); // YYYY-MM format
   };
-  
+
   const getQuarterString = (date: Date) => {
     const year = date.getFullYear();
     const quarter = Math.floor(date.getMonth() / 3) + 1;
     return `${year}-Q${quarter}`; // YYYY-Q1 format
   };
-  
+
   const determineGroupingStrategy = (items: typeof allTimelineItems[0][]) => {
     if (items.length === 0) return 'day';
-    
+
     // Get unique dates
     const uniqueDates = [...new Set(items.map(item => getDateString(item.date)))];
-    
+
     // If 10 days or fewer, group by day
     if (uniqueDates.length <= 10) return 'day';
-    
+
     // Check time span
     const dates = items.map(item => item.date).sort((a, b) => a.getTime() - b.getTime());
     const firstDate = dates[0];
     const lastDate = dates[dates.length - 1];
-    
-    const monthsDiff = (lastDate.getFullYear() - firstDate.getFullYear()) * 12 + 
-                      (lastDate.getMonth() - firstDate.getMonth());
-    
+
+    const monthsDiff = (lastDate.getFullYear() - firstDate.getFullYear()) * 12 +
+      (lastDate.getMonth() - firstDate.getMonth());
+
     // If spans less than 1 month, group by day
     if (monthsDiff < 1) return 'day';
-    
+
     // Try month grouping first
     const uniqueMonths = [...new Set(items.map(item => getMonthString(item.date)))];
-    
+
     // If 10 months or fewer, group by month
     if (uniqueMonths.length <= 10) return 'month';
-    
+
     // Otherwise, group by quarter
     return 'quarter';
   };
-  
+
   // Legacy function for backward compatibility
   const shouldGroupByMonth = (items: typeof allTimelineItems[0][]) => {
     return determineGroupingStrategy(items) !== 'day';
@@ -313,7 +313,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
       if (currentBatch.length > 0) {
         // Determine the best grouping strategy
         const groupingStrategy = determineGroupingStrategy(currentBatch);
-        
+
         if (groupingStrategy === 'quarter') {
           // Group POAPs without moments by quarter
           const groupedByQuarter = currentBatch.reduce((groups, poap) => {
@@ -324,12 +324,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
             groups[quarterKey].push(poap);
             return groups;
           }, {} as Record<string, typeof allTimelineItems[0][]>);
-          
+
           // Convert to array of quarter groups, sorted by quarter (newest first)
           const quarterGroups = Object.entries(groupedByQuarter)
             .sort(([a], [b]) => b.localeCompare(a))
             .map(([, poaps]) => poaps);
-          
+
           timelineStructure.push(quarterGroups);
         } else if (groupingStrategy === 'month') {
           // Group POAPs without moments by month
@@ -341,12 +341,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
             groups[monthKey].push(poap);
             return groups;
           }, {} as Record<string, typeof allTimelineItems[0][]>);
-          
+
           // Convert to array of month groups, sorted by month (newest first)
           const monthGroups = Object.entries(groupedByMonth)
             .sort(([a], [b]) => b.localeCompare(a))
             .map(([, poaps]) => poaps);
-          
+
           timelineStructure.push(monthGroups);
         } else {
           // Group POAPs without moments by date
@@ -358,12 +358,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
             groups[dateKey].push(poap);
             return groups;
           }, {} as Record<string, typeof allTimelineItems[0][]>);
-          
+
           // Convert to array of date groups, sorted by date (newest first)
           const dateGroups = Object.entries(groupedByDate)
             .sort(([a], [b]) => b.localeCompare(a))
             .map(([, poaps]) => poaps);
-          
+
           timelineStructure.push(dateGroups);
         }
         currentBatch = [];
@@ -380,7 +380,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
   if (currentBatch.length > 0) {
     // Determine the best grouping strategy
     const groupingStrategy = determineGroupingStrategy(currentBatch);
-    
+
     if (groupingStrategy === 'quarter') {
       // Group POAPs without moments by quarter
       const groupedByQuarter = currentBatch.reduce((groups, poap) => {
@@ -391,12 +391,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
         groups[quarterKey].push(poap);
         return groups;
       }, {} as Record<string, typeof allTimelineItems[0][]>);
-      
+
       // Convert to array of quarter groups, sorted by quarter (newest first)
       const quarterGroups = Object.entries(groupedByQuarter)
         .sort(([a], [b]) => b.localeCompare(a))
         .map(([, poaps]) => poaps);
-      
+
       timelineStructure.push(quarterGroups);
     } else if (groupingStrategy === 'month') {
       // Group POAPs without moments by month
@@ -408,12 +408,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
         groups[monthKey].push(poap);
         return groups;
       }, {} as Record<string, typeof allTimelineItems[0][]>);
-      
+
       // Convert to array of month groups, sorted by month (newest first)
       const monthGroups = Object.entries(groupedByMonth)
         .sort(([a], [b]) => b.localeCompare(a))
         .map(([, poaps]) => poaps);
-      
+
       timelineStructure.push(monthGroups);
     } else {
       // Group POAPs without moments by date
@@ -425,12 +425,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
         groups[dateKey].push(poap);
         return groups;
       }, {} as Record<string, typeof allTimelineItems[0][]>);
-      
+
       // Convert to array of date groups, sorted by date (newest first)
       const dateGroups = Object.entries(groupedByDate)
         .sort(([a], [b]) => b.localeCompare(a))
         .map(([, poaps]) => poaps);
-      
+
       timelineStructure.push(dateGroups);
     }
   }
@@ -445,12 +445,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
       day: 'numeric'
     });
   };
-  
+
   const formatMonth = (dateString: string) => {
     const date = new Date(dateString);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; // YYYY-MM format
   };
-  
+
   const formatQuarter = (dateString: string) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -463,13 +463,13 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
       <div className="min-h-screen flex flex-col justify-center items-center relative">
         {/* Animated background gradient */}
         <div className="absolute inset-0" />
-        
+
         {/* Main loading content */}
         <div className="relative z-10 flex flex-col items-center space-y-6">
           {/* Enhanced spinner with glow effect */}
           <div className="relative">
-            <Spinner 
-              size="lg" 
+            <Spinner
+              size="lg"
               className="w-12 h-12"
               classNames={{
                 circle1: "border-b-purple-500",
@@ -478,7 +478,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
             />
             <div className="absolute inset-0 w-12 h-12 rounded-full bg-background-500/20 blur-xl animate-pulse" />
           </div>
-          
+
           {/* Loading text with animation */}
           <div className="text-center space-y-2">
             <h3 className="text-xl font-semibold text-primary/80">
@@ -488,7 +488,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
               Loading your moments timeline...
             </p>
           </div>
-          
+
           {/* Floating particles animation */}
           <div className="absolute inset-0 pointer-events-none">
             {[...Array(6)].map((_, i) => (
@@ -514,7 +514,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
       <div className="min-h-screen flex flex-col justify-center items-center relative">
         {/* Error background */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-900/10 via-gray-900/5 to-red-900/10" />
-        
+
         {/* Error content */}
         <div className="relative z-10 flex flex-col items-center space-y-6 max-w-md mx-auto text-center">
           {/* Error icon */}
@@ -523,7 +523,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          
+
           {/* Error message */}
           <div className="space-y-2">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
@@ -533,7 +533,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
               {error}
             </p>
           </div>
-          
+
           {/* Retry button */}
           <button
             onClick={() => fetchMoments()}
@@ -577,13 +577,13 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 const verticalOffset = 16; // vertical offset for stacking within same date
                 const maxVerticalHeight = cardWidth; // Maximum height: 2 POAPs
                 const availableWidth = containerWidth; // Dynamic container width
-                
+
                 // Calculate total width needed for flat layout
                 const flatRowWidth = dateGroups.length * cardWidth + (dateGroups.length - 1) * cardGap;
-                
+
                 // Decide layout: flat row if fits, otherwise horizontal stacking like original
                 const useFlat = flatRowWidth <= availableWidth;
-                
+
                 if (useFlat) {
                   // Flat row layout with vertical stacking within each date group
                   return (
@@ -594,40 +594,43 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                           // Show up to 10 items, then +N for the rest
                           const visibleItems = Math.min(itemsInGroup, 10);
                           const actualHeight = cardWidth + (Math.min(visibleItems, 2) - 1) * verticalOffset;
-                          
+
                           // Determine if this is a month group or date group
                           const firstItem = dateGroup[0];
                           const groupKey = getDateString(firstItem.date);
-                          const isMonthGroup = shouldGroupByMonth([firstItem]) && dateGroup.some(item => 
+                          const isMonthGroup = shouldGroupByMonth([firstItem]) && dateGroup.some(item =>
                             getDateString(item.date) !== groupKey
                           );
-                          
+
                           return (
-                            <div key={`date-group-flat-${dateIndex}`} className="flex flex-col items-center">
+                            <div key={`date-group-flat-${dateIndex}`} className="flex flex-col items-center group cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/30 p-2 -m-2">
                               {/* Vertical stacking container */}
-                              <div 
+                              <div
                                 className="relative"
-                                style={{ 
-                                  width: `${cardWidth}px`, 
-                                  height: `${actualHeight}px` 
+                                style={{
+                                  width: `${cardWidth}px`,
+                                  height: `${actualHeight}px`
                                 }}
                               >
                                 {dateGroup.slice(0, Math.min(visibleItems, 3)).map((item, itemIndex) => {
                                   const zIndex = Math.min(visibleItems, 3) - itemIndex; // First item has highest z-index
-                                  const offsetY = itemIndex * verticalOffset; // Vertical stacking
-                                  
+                                  const baseOffsetY = itemIndex * verticalOffset; // Base vertical stacking
+
                                   return (
                                     <div
                                       key={`poap-flat-${item.poap.event.id}-${itemIndex}`}
-                                      className="absolute w-32 h-32 transition-all duration-300 hover:scale-95 hover:z-50"
+                                      className={`absolute w-32 h-32 transition-all duration-300 ease-out ${itemIndex === 1 ? 'group-hover:translate-y-0.5' :
+                                          itemIndex === 2 ? 'group-hover:translate-y-1' :
+                                            ''
+                                        }`}
                                       style={{
-                                        top: `${offsetY}px`,
+                                        top: `${baseOffsetY}px`,
                                         left: '0px',
                                         zIndex: zIndex
                                       }}
                                       title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
                                     >
-                                      <Card className="w-full h-full p-0 overflow-hidden shadow-md hover:shadow-xl transition-shadow rounded-full border-2 border-white">
+                                      <Card className="w-full h-full p-0 overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 rounded-full border-2 border-white">
                                         <img
                                           src={item.poap.event.image_url}
                                           alt={item.poap.event.name}
@@ -637,10 +640,10 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                     </div>
                                   );
                                 })}
-                                
+
                                 {/* Show +N indicator if more than 2 items */}
                                 {itemsInGroup > 3 && (
-                                  <div 
+                                  <div
                                     className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
                                     style={{
                                       top: `${cardWidth + verticalOffset / 2}px`,
@@ -652,15 +655,16 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   </div>
                                 )}
                               </div>
-                              
+
                               {/* Date/Month/Quarter label below */}
-                              <div className="text-xs text-white/80 mt-6 font-medium">
+                              <div
+                                className="transition-all text-xs text-white/80 mt-6 font-medium group-hover:text-white group-hover:translate-y-1">
                                 {(() => {
                                   // Use the same grouping strategy for all columns in this row
                                   // by determining strategy based on all items in all dateGroups
                                   const allItemsInRow = dateGroups.flat();
                                   const rowGroupingStrategy = determineGroupingStrategy(allItemsInRow);
-                                  
+
                                   return rowGroupingStrategy === 'quarter'
                                     ? formatQuarter(dateGroup[0].poap.event.start_date)
                                     : rowGroupingStrategy === 'month'
@@ -680,11 +684,11 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                   const maxSpread = 800; // Maximum spread width for stacking
                   const stackWidth = Math.min(maxSpread, availableWidth - cardWidth);
                   const stepSize = totalDateGroups > 1 ? stackWidth / (totalDateGroups - 1) : 0;
-                  
+
                   return (
                     <div key={`date-groups-stack-${segmentIndex}`} className={`my-8 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
-                      <div 
-                        className="relative mx-auto" 
+                      <div
+                        className="relative mx-auto"
                         style={{ width: `${cardWidth + stackWidth}px`, height: `${maxVerticalHeight + 32}px` }} // Extra height for date labels
                       >
                         {dateGroups.map((dateGroup, dateIndex) => {
@@ -693,47 +697,50 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                           const itemsInGroup = dateGroup.length;
                           // Show up to 10 items, then +N for the rest
                           const visibleItems = Math.min(itemsInGroup, 10);
-                          
+
                           // Determine if this is a month group or date group
                           const firstItem = dateGroup[0];
                           const groupKey = getDateString(firstItem.date);
-                          const isMonthGroup = shouldGroupByMonth([firstItem]) && dateGroup.some(item => 
+                          const isMonthGroup = shouldGroupByMonth([firstItem]) && dateGroup.some(item =>
                             getDateString(item.date) !== groupKey
                           );
-                          
+
                           return (
                             <div
                               key={`date-group-stack-${dateIndex}`}
-                              className="absolute top-0"
+                              className="absolute top-0 group cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/10 p-2 -m-2"
                               style={{
                                 left: `${offsetX}px`,
                                 zIndex: zIndex
                               }}
                             >
                               {/* Vertical stacking container */}
-                              <div 
+                              <div
                                 className="relative"
-                                style={{ 
-                                  width: `${cardWidth}px`, 
-                                  height: `${maxVerticalHeight}px` 
+                                style={{
+                                  width: `${cardWidth}px`,
+                                  height: `${maxVerticalHeight}px`
                                 }}
                               >
                                 {dateGroup.slice(0, Math.min(visibleItems, 3)).map((item, itemIndex) => {
                                   const itemZIndex = Math.min(visibleItems, 3) - itemIndex;
-                                  const offsetY = itemIndex * verticalOffset;
-                                  
+                                  const baseOffsetY = itemIndex * verticalOffset;
+
                                   return (
                                     <div
                                       key={`poap-stack-${item.poap.event.id}-${itemIndex}`}
-                                      className="absolute w-32 h-32 transition-all duration-300 hover:scale-95 hover:z-50"
+                                      className={`absolute w-32 h-32 transition-all duration-300 ease-out ${itemIndex === 1 ? 'group-hover:translate-y-0.5' :
+                                          itemIndex === 2 ? 'group-hover:translate-y-1' :
+                                            ''
+                                        }`}
                                       style={{
-                                        top: `${offsetY}px`,
+                                        top: `${baseOffsetY}px`,
                                         left: '0px',
                                         zIndex: itemZIndex
                                       }}
                                       title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
                                     >
-                                      <Card className="w-full h-full p-0 overflow-hidden shadow-md hover:shadow-xl transition-shadow rounded-full border-2 border-white">
+                                      <Card className="w-full h-full p-0 overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 rounded-full border-2 border-white">
                                         <img
                                           src={item.poap.event.image_url}
                                           alt={item.poap.event.name}
@@ -743,10 +750,10 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                     </div>
                                   );
                                 })}
-                                
+
                                 {/* Show +N indicator if more than 3 items */}
                                 {itemsInGroup > 3 && (
-                                  <div 
+                                  <div
                                     className="absolute w-8 h-8 bg-gray-600 text-white text-xs rounded-full flex items-center justify-center font-bold"
                                     style={{
                                       top: `${cardWidth + verticalOffset / 2}px`,
@@ -758,10 +765,10 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   </div>
                                 )}
                               </div>
-                              
+
                               {/* Date/Month label below */}
-                              <div 
-                                className="text-xs text-gray-500 mt-2 font-medium text-center"
+                              <div
+                                className="transition-all text-xs text-white/80 mt-6 font-medium text-center group-hover:text-white group-hover:translate-y-1"
                                 style={{ width: `${cardWidth}px` }}
                               >
                                 {(() => {
@@ -769,7 +776,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   // by determining strategy based on all items in all dateGroups
                                   const allItemsInRow = dateGroups.flat();
                                   const rowGroupingStrategy = determineGroupingStrategy(allItemsInRow);
-                                  
+
                                   return rowGroupingStrategy === 'quarter'
                                     ? formatQuarter(dateGroup[0].poap.event.start_date)
                                     : rowGroupingStrategy === 'month'
@@ -809,22 +816,22 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Moments - Single column on mobile */}
                       <div className="grid grid-cols-1 gap-0">
                         {item.moments.map((moment: Moment) => {
-                          const thumbnailMedia = moment.media?.find(m => 
+                          const thumbnailMedia = moment.media?.find(m =>
                             m.gateways?.some(g => g.metadata?.gateway_type === 'thumbnail')
                           );
-                          const thumbnailGateway = thumbnailMedia?.gateways?.find(g => 
+                          const thumbnailGateway = thumbnailMedia?.gateways?.find(g =>
                             g.metadata?.gateway_type === 'thumbnail'
                           ) || thumbnailMedia?.gateways?.[0];
-                          
+
                           const hasMedia = !!thumbnailGateway;
                           const hasDescription = !!moment.description;
                           const hasLinks = moment.links?.length > 0;
                           const linkPreview = hasLinks ? moment.links?.[0] : null;
-                          
+
                           return (
                             <div key={moment.id} className="relative">
                               {hasMedia ? (
@@ -908,7 +915,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Moments - Responsive grid with overlay title */}
                       <div className="flex-1 relative">
                         {/* Overlay POAP Title */}
@@ -917,38 +924,36 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                             {item.poap.event.name}
                           </h3>
                         </div>
-                        
-                        <div className={`grid gap-0 auto-rows-[12rem] ${
-                          item.moments.length === 1 ? 'grid-cols-1' :
-                          item.moments.length === 2 ? 'grid-cols-2' :
-                          'grid-cols-2 lg:grid-cols-4'
-                        }`}>
+
+                        <div className={`grid gap-0 auto-rows-[12rem] ${item.moments.length === 1 ? 'grid-cols-1' :
+                            item.moments.length === 2 ? 'grid-cols-2' :
+                              'grid-cols-2 lg:grid-cols-4'
+                          }`}>
                           {item.moments.map((moment: Moment, idx) => {
-                            const thumbnailMedia = moment.media?.find(m => 
+                            const thumbnailMedia = moment.media?.find(m =>
                               m.gateways?.some(g => g.metadata?.gateway_type === 'thumbnail')
                             );
-                            const thumbnailGateway = thumbnailMedia?.gateways?.find(g => 
+                            const thumbnailGateway = thumbnailMedia?.gateways?.find(g =>
                               g.metadata?.gateway_type === 'thumbnail'
                             ) || thumbnailMedia?.gateways?.[0];
-                            
+
                             // Check if this is a video moment
-                            const videoMedia = moment.media?.find(m => 
+                            const videoMedia = moment.media?.find(m =>
                               m.mime_type?.startsWith('video/')
                             );
                             const isVideoMoment = !!videoMedia && !thumbnailGateway;
-                            
+
                             const hasMedia = !!thumbnailGateway;
                             const hasDescription = !!moment.description;
                             const hasLinks = moment.links?.length > 0;
                             const linkPreview = hasLinks ? moment.links?.[0] : null;
                             const isOddLast = item.moments.length % 2 === 1 && idx === item.moments.length - 1 && item.moments.length > 2;
-                            
+
                             return (
-                              <div 
-                                key={moment.id} 
-                                className={`relative overflow-hidden ${
-                                  isOddLast ? 'col-span-2 lg:col-span-1' : ''
-                                }`}
+                              <div
+                                key={moment.id}
+                                className={`relative overflow-hidden ${isOddLast ? 'col-span-2 lg:col-span-1' : ''
+                                  }`}
                               >
                                 {hasMedia ? (
                                   <div className="relative h-full">
@@ -1043,8 +1048,8 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     onPress={loadMore}
                     className="text-default-600 hover:text-primary"
                   >
@@ -1057,7 +1062,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
               )}
             </div>
           )}
-          
+
           {/* Show completion message when all loaded */}
           {!hasMore && moments.length > 0 && (
             <div className="p-4 text-center text-default-500">
