@@ -1,37 +1,45 @@
 import React from 'react';
 import { Button, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, Listbox, ListboxItem } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import type { SortState } from '~/atoms/poap-state';
 
 interface FloatingSortBarProps {
-    selectedSort: string;
-    onSortChange: (sort: string) => void;
+    selectedSort: SortState;
+    onSortChange: (sort: SortState) => void;
 }
 
 export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarProps) {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const sortOptions = [
-        { key: "collected_newest", label: "Collected date: Newest", icon: "heroicons:arrow-down" },
-        { key: "collected_oldest", label: "Collected date: Oldest", icon: "heroicons:arrow-up" },
-        { key: "start_date_newest", label: "Start Date: Newest", icon: "heroicons:calendar" },
-        { key: "start_date_oldest", label: "Start Date: Oldest", icon: "heroicons:calendar" },
-        { key: "most_popular", label: "Most Popular", icon: "heroicons:fire" },
-        { key: "most_moments", label: "Most Moments", icon: "heroicons:photo" }
+        { key: "date", direction: "desc" as const, label: "Collected date: Newest", icon: "heroicons:arrow-down" },
+        { key: "date", direction: "asc" as const, label: "Collected date: Oldest", icon: "heroicons:arrow-up" },
+        { key: "start_date", direction: "desc" as const, label: "Start Date: Newest", icon: "heroicons:calendar" },
+        { key: "start_date", direction: "asc" as const, label: "Start Date: Oldest", icon: "heroicons:calendar" },
+        { key: "popularity", direction: "desc" as const, label: "Most Popular", icon: "heroicons:fire" },
+        { key: "moments", direction: "desc" as const, label: "Most Moments", icon: "heroicons:photo" }
     ];
 
-    const handleSortSelect = (key: string) => {
-        onSortChange(key);
+    const handleSortSelect = (optionKey: string) => {
+        const option = sortOptions.find(opt => `${opt.key}_${opt.direction}` === optionKey);
+        if (option) {
+            onSortChange({ key: option.key, direction: option.direction });
+        }
         onClose();
     };
 
     const getCurrentSortLabel = () => {
-        const currentOption = sortOptions.find(option => option.key === selectedSort);
+        const currentOption = sortOptions.find(option => 
+            option.key === selectedSort.key && option.direction === selectedSort.direction
+        );
         return currentOption?.label || "Sort";
     };
 
     const getCurrentSortIcon = () => {
-        const currentOption = sortOptions.find(option => option.key === selectedSort);
-        return currentOption?.icon || "heroicons:bars-arrow-up";
+        const currentOption = sortOptions.find(option => 
+            option.key === selectedSort.key && option.direction === selectedSort.direction
+        );
+        return currentOption?.icon || "heroicons:bars-3";
     };
 
     return (
@@ -80,7 +88,7 @@ export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarP
                     <ModalBody>
                         <Listbox
                             aria-label="Sort options"
-                            selectedKeys={[selectedSort]}
+                            selectedKeys={[`${selectedSort.key}_${selectedSort.direction}`]}
                             selectionMode="single"
                             onSelectionChange={(keys) => {
                                 const selectedKey = Array.from(keys)[0];
@@ -94,11 +102,12 @@ export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarP
                             }}
                         >
                             {sortOptions.map((option) => {
-                                const isSelected = option.key === selectedSort;
+                                const optionKey = `${option.key}_${option.direction}`;
+                                const isSelected = option.key === selectedSort.key && option.direction === selectedSort.direction;
                                 
                                 return (
                                     <ListboxItem
-                                        key={option.key}
+                                        key={optionKey}
                                         startContent={
                                             <Icon 
                                                 icon={option.icon} 

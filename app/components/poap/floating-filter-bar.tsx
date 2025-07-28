@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Chip, Avatar } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { useAtom } from 'jotai';
-import { filterStateAtom, hasActiveFiltersAtom, activeFilterCountAtom } from '~/atoms/filter-atoms';
 import type { Filter } from "~/types/filter";
 import type { POAP } from "~/types/poap";
+import type { FilterState } from '~/hooks/use-persistent-poap-state';
 import { cn } from '~/src/cn';
 
 interface FloatingFilterBarProps {
     filters: Filter[];
+    selectedFilters: FilterState;
+    hasActiveFilters: boolean;
+    activeFilterCount: number;
     onFilterChange: (key: string, values: string[]) => void;
     onBatchFilterChange?: (filtersToUpdate: { [key: string]: string[] }) => void;
     allPoaps: POAP[];
@@ -33,15 +35,14 @@ const getPoapValue = (poap: POAP, filterTitle: string): string => {
 
 export function FloatingFilterBar({
     filters,
+    selectedFilters,
+    hasActiveFilters,
+    activeFilterCount,
     onFilterChange,
     onBatchFilterChange,
     allPoaps,
     filteredPoaps
 }: FloatingFilterBarProps) {
-    // Use Jotai global state
-    const [selectedFilters] = useAtom(filterStateAtom);
-    const [hasActiveFilters] = useAtom(hasActiveFiltersAtom);
-    const [activeFilterCount] = useAtom(activeFilterCountAtom);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     // Temporary filter state for the modal (doesn't affect URL until Apply is clicked)

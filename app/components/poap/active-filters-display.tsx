@@ -2,45 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { Chip, Button, Spinner } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useNavigation } from '@remix-run/react';
-import { useAtom } from 'jotai';
-import { filterStateAtom, hasActiveFiltersAtom, activeFilterCountAtom } from '~/atoms/filter-atoms';
+import type { FilterState } from '~/hooks/use-persistent-poap-state';
 
 interface ActiveFiltersDisplayProps {
+    filters: FilterState;
+    hasActiveFilters: boolean;
+    activeFilterCount: number;
     onFilterRemove: (key: string, value: string) => void;
     onClearAll: () => void;
 }
 
 export function ActiveFiltersDisplay({
+    filters,
+    hasActiveFilters,
+    activeFilterCount,
     onFilterRemove,
     onClearAll
 }: ActiveFiltersDisplayProps) {
-    // Use Jotai global state
-    const [selectedFilters] = useAtom(filterStateAtom);
-    const [hasActiveFilters] = useAtom(hasActiveFiltersAtom);
-    const [totalActiveFilters] = useAtom(activeFilterCountAtom);
     const navigation = useNavigation();
 
     // Loading states
     const [loadingFilters, setLoadingFilters] = useState<Set<string>>(new Set());
     const [isClearingAll, setIsClearingAll] = useState(false);
-    const [previousFilters, setPreviousFilters] = useState(selectedFilters);
+    const [previousFilters, setPreviousFilters] = useState(filters);
 
     // Monitor filter changes to clear loading states
     useEffect(() => {
         // Check if filters have actually changed
-        const filtersChanged = JSON.stringify(selectedFilters) !== JSON.stringify(previousFilters);
-
-        if (filtersChanged) {
-            // Clear loading states after a short delay to show the spinner briefly
-            const timer = setTimeout(() => {
-                setLoadingFilters(new Set());
-                setIsClearingAll(false);
-                setPreviousFilters(selectedFilters);
-            }, 200);
-
-            return () => clearTimeout(timer);
+        const currentFilterString = JSON.stringify(filters);
+        const previousFilterString = JSON.stringify(previousFilters);
+        
+        if (currentFilterString !== previousFilterString) {
+            // Clear loading states when filters change
+            setLoadingFilters(new Set());
+            setIsClearingAll(false);
+            setPreviousFilters(filters);
         }
-    }, [selectedFilters, previousFilters]);
+    }, [filters, previousFilters]);
 
     // Handle filter removal with loading state
     const handleFilterRemove = async (key: string, value: string) => {
@@ -84,7 +82,7 @@ export function ActiveFiltersDisplay({
     }
 
     // Get all active filter entries
-    const activeFilterEntries = Object.entries(selectedFilters).filter(([key, values]) => values.length > 0);
+    const activeFilterEntries = Object.entries(filters).filter(([key, values]) => (values as string[]).length > 0);
 
     return (
         <div className="mb-6 p-4 bg-gradient-to-r from-background-50/80 to-background-50/50 backdrop-blur-sm rounded-xl border border-background-200/50 shadow-sm">
@@ -92,7 +90,7 @@ export function ActiveFiltersDisplay({
                 <div className="flex items-center gap-2">
                     <Icon icon="heroicons:funnel" className="w-5 h-5 text-blue-600" />
                     <span className="text-sm font-semibold text-background-800">
-                        Active Filters ({totalActiveFilters})
+                        Active Filters ({activeFilterCount})
                     </span>
                 </div>
                 <Button

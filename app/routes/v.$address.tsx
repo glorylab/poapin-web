@@ -7,6 +7,8 @@ import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { Outlet, useLoaderData, useParams, NavLink, useLocation } from "@remix-run/react";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
+// State management
+import { usePersistentPoapState } from "~/hooks/use-persistent-poap-state";
 // Components
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
 import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
@@ -238,6 +240,9 @@ export default function POAPLayout() {
     
     // Filter state for tracking filtered POAP count
     const [filteredPoapCount, setFilteredPoapCount] = useState<number>(poaps?.length || 0);
+    
+    // Unified state management - initialized once at parent level
+    const poapState = usePersistentPoapState(meta.address);
 
     // Load profile data once and cache it
     useEffect(() => {
@@ -372,7 +377,9 @@ export default function POAPLayout() {
                 profileDataLoaded,
                 // Filter state
                 filteredPoapCount,
-                setFilteredPoapCount
+                setFilteredPoapCount,
+                // Unified POAP state - prevents reset on tab switch
+                poapState
             }} />
         </>
     );

@@ -1,4 +1,5 @@
 import type { POAP } from "~/types/poap";
+import type { SortState } from "~/atoms/poap-state";
 
 export function filterPoaps(
     poaps: POAP[],
@@ -37,27 +38,32 @@ export function filterPoaps(
 
 export function sortPoaps(
     poaps: POAP[],
-    selectedSort: string,
+    sortState: SortState,
     dropsWithMoments: number[]
 ): POAP[] {
     return poaps.sort((a, b) => {
-        switch (selectedSort) {
-            case "collected_newest":
-                return new Date(b.created).getTime() - new Date(a.created).getTime();
-            case "collected_oldest":
-                return new Date(a.created).getTime() - new Date(b.created).getTime();
-            case "start_date_newest":
-                return new Date(b.event.start_date).getTime() - new Date(a.event.start_date).getTime();
-            case "start_date_oldest":
-                return new Date(a.event.start_date).getTime() - new Date(b.event.start_date).getTime();
-            case "most_moments":
-                // Use inline function since getMomentsCountOfDrop was moved to utils
+        let comparison = 0;
+        
+        switch (sortState.key) {
+            case "date":
+            case "collected":
+                comparison = new Date(b.created).getTime() - new Date(a.created).getTime();
+                break;
+            case "start_date":
+                comparison = new Date(b.event.start_date).getTime() - new Date(a.event.start_date).getTime();
+                break;
+            case "moments":
                 const getMomentsCount = (poap: POAP) => dropsWithMoments.includes(poap.event.id) ? 1 : 0;
-                return getMomentsCount(b) - getMomentsCount(a);
-            case "most_popular":
-                return b.event.supply - a.event.supply;
+                comparison = getMomentsCount(b) - getMomentsCount(a);
+                break;
+            case "popularity":
+                comparison = b.event.supply - a.event.supply;
+                break;
             default:
-                return new Date(b.created).getTime() - new Date(a.created).getTime();
+                comparison = new Date(b.created).getTime() - new Date(a.created).getTime();
         }
+        
+        // Apply direction (asc/desc)
+        return sortState.direction === 'asc' ? -comparison : comparison;
     });
 }

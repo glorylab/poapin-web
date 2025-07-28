@@ -11,10 +11,7 @@ import { ActiveFiltersDisplay } from "~/components/poap/active-filters-display";
 import { MomentsTimeline } from "~/components/poap/moments-timeline";
 import { TimeCapsuleButton } from "~/components/poap/time-capsule-button";
 // Hooks
-import { useViewTransition } from "~/hooks/use-view-transition";
-import { useUrlSync } from "~/hooks/use-url-sync";
 import { useAutoTimeCapsule } from "~/hooks/use-auto-time-capsule";
-import { useFilterHandlers } from "~/hooks/use-filter-handlers";
 import { useTabPreloader } from "~/hooks/use-tab-preloader";
 // Utils
 import { filterPoaps, sortPoaps } from "~/utils/poap-filter-sort";
@@ -101,21 +98,39 @@ interface OutletContext {
     dropsWithMoments: number[];
     filteredPoapCount: number;
     setFilteredPoapCount: (count: number) => void;
+    // Unified state from parent
+    poapState: ReturnType<typeof import('~/hooks/use-persistent-poap-state').usePersistentPoapState>;
 }
 
 export default function POAPIndex() {
-    const { poaps, meta, totalMomentsCount, dropsWithMoments, filteredPoapCount, setFilteredPoapCount } = useOutletContext<OutletContext>();
+    const { 
+        poaps, 
+        meta, 
+        totalMomentsCount, 
+        dropsWithMoments, 
+        filteredPoapCount, 
+        setFilteredPoapCount,
+        poapState 
+    } = useOutletContext<OutletContext>();
     
-    // Use custom hooks for state management
-    const { isTimeCapsuleMode, isTransitioning, showClassic, showTimeline, handleViewTransition } = useViewTransition();
-    const { globalFilters, globalSort } = useUrlSync();
+    // Use unified state from parent (prevents reset on tab switch)
     const {
+        filters: globalFilters,
+        sort: globalSort,
+        timeCapsuleMode: isTimeCapsuleMode,
+        isTransitioning,
+        showClassic,
+        showTimeline,
+        hasActiveFilters,
+        activeFilterCount,
         handleFilterRemove,
-        handleClearAllFilters,
+        clearAllFilters: handleClearAllFilters,
         handleFilterChange,
         handleBatchFilterChange,
-        handleSortChange
-    } = useFilterHandlers();
+        handleSortChange,
+        handleViewTransition,
+        isInitialized
+    } = poapState;
     
     // Tab preloading for better UX
     const { isPreloading } = useTabPreloader({
@@ -164,6 +179,9 @@ export default function POAPIndex() {
                         chainFilter,
                         momentsFilter,
                     ]}
+                    selectedFilters={globalFilters}
+                    hasActiveFilters={hasActiveFilters}
+                    activeFilterCount={activeFilterCount}
                     onFilterChange={handleFilterChange}
                     onBatchFilterChange={handleBatchFilterChange}
                     allPoaps={poaps}
@@ -201,6 +219,9 @@ export default function POAPIndex() {
                                     : 'opacity-0 scale-90'
                                 }`}>
                                 <ActiveFiltersDisplay
+                                    filters={globalFilters}
+                                    hasActiveFilters={hasActiveFilters}
+                                    activeFilterCount={activeFilterCount}
                                     onFilterRemove={handleFilterRemove}
                                     onClearAll={handleClearAllFilters}
                                 />

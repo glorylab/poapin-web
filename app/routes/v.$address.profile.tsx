@@ -94,6 +94,8 @@ interface OutletContext {
     aiSummary: string;
     aiGenerationTime: string | null;
     profileDataLoaded: boolean;
+    // Unified state from parent
+    poapState: ReturnType<typeof import('~/hooks/use-persistent-poap-state').usePersistentPoapState>;
 }
 
 export default function POAPProfile() {
@@ -106,7 +108,8 @@ export default function POAPProfile() {
         latestMoments,
         aiSummary,
         aiGenerationTime,
-        profileDataLoaded
+        profileDataLoaded,
+        poapState
     } = useOutletContext<OutletContext>();
 
     // Tab preloading for better UX
