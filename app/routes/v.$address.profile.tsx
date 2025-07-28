@@ -3,6 +3,8 @@ import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import type { POAP, Moment } from "~/types/poap";
 import type { Collection } from "~/lib/poap-graph";
+// Hooks
+import { useTabPreloader } from "~/hooks/use-tab-preloader";
 // Components
 import { PageHeader } from "~/components/poap/page-header";
 import { AiSummary } from "~/components/poap/ai-summary";
@@ -106,6 +108,14 @@ export default function POAPProfile() {
         aiGenerationTime,
         profileDataLoaded
     } = useOutletContext<OutletContext>();
+
+    // Tab preloading for better UX
+    const { isPreloading } = useTabPreloader({
+        address: meta.address,
+        currentTab: 'profile',
+        delay: 1500, // Start preloading after 1.5s
+        enabled: profileDataLoaded // Only preload after profile data is loaded
+    });
 
     if (!profileDataLoaded) {
         return (

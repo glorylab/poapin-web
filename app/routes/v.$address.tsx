@@ -11,6 +11,7 @@ import { getEnv } from "~/src/env";
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
 import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
 import { ErrorState } from "~/components/poap/error-state";
+import { AdvancedTabPreloader } from "~/components/poap/advanced-tab-preloader";
 import { Chip } from "@heroui/react";
 
 export const meta: MetaFunction = ({ data }) => {
@@ -308,6 +309,7 @@ export default function POAPLayout() {
                             <NavLink
                                 to={`/v/${address}`}
                                 end
+                                prefetch="intent"
                                 onClick={(e) => handleTabClick(e, `/v/${address}`)}
                                 className={({ isActive }) =>
                                     `py-2 px-1 border-b-2 flex items-center gap-2 ${isActive
@@ -333,6 +335,7 @@ export default function POAPLayout() {
                             </NavLink>
                             <NavLink
                                 to={`/v/${address}/profile`}
+                                prefetch="intent"
                                 onClick={(e) => handleTabClick(e, `/v/${address}/profile`)}
                                 className={({ isActive }) =>
                                     `py-2 px-1 border-b-2 flex items-center ${isActive
@@ -347,6 +350,13 @@ export default function POAPLayout() {
                     </div>
                 </div>
             </div>
+
+            {/* Advanced Tab Preloader */}
+            <AdvancedTabPreloader 
+                address={address || ''}
+                currentTab={location.pathname.endsWith('/profile') ? 'profile' : 'index'}
+                enabled={!error && !isRateLimit && poaps.length > 0}
+            />
 
             {/* Child Route Content */}
             <Outlet context={{

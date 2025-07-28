@@ -15,6 +15,7 @@ import { useViewTransition } from "~/hooks/use-view-transition";
 import { useUrlSync } from "~/hooks/use-url-sync";
 import { useAutoTimeCapsule } from "~/hooks/use-auto-time-capsule";
 import { useFilterHandlers } from "~/hooks/use-filter-handlers";
+import { useTabPreloader } from "~/hooks/use-tab-preloader";
 // Utils
 import { filterPoaps, sortPoaps } from "~/utils/poap-filter-sort";
 import {
@@ -115,6 +116,14 @@ export default function POAPIndex() {
         handleBatchFilterChange,
         handleSortChange
     } = useFilterHandlers();
+    
+    // Tab preloading for better UX
+    const { isPreloading } = useTabPreloader({
+        address: meta.address,
+        currentTab: 'index',
+        delay: 1500, // Start preloading after 1.5s
+        enabled: !isTimeCapsuleMode // Don't preload during animations
+    });
     
     // Auto-activate time capsule hook
     useAutoTimeCapsule({
