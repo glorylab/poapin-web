@@ -8,6 +8,7 @@ import { ResultBox } from "~/components/card/result-box";
 import { motion } from "framer-motion";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
+import { PlausibleEvents } from '~/utils/usePlausible';
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -96,9 +97,22 @@ export default function CardAddressPage() {
     useEffect(() => {
         setWalletAddress(address);
         setShowResults(true);
+        
+        // Track card generation (we'll need to get POAP count from the component)
+        // This will be called when the card page loads
+        const trackCardGeneration = () => {
+            // We'll track this with basic info for now
+            // The actual POAP count will be tracked from the ResultBox component
+            PlausibleEvents.trackCardGenerated(address, 0); // 0 as placeholder, real count from ResultBox
+        };
+        
+        // Small delay to ensure page is loaded
+        setTimeout(trackCardGeneration, 1000);
     }, [address, setWalletAddress, setShowResults]);
 
     const handleBack = () => {
+        // Track back navigation
+        PlausibleEvents.trackCardBackNavigation(address);
         navigate("/card");
     };
 

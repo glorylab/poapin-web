@@ -144,6 +144,89 @@ export const PlausibleEvents = {
       loadTime,
       loadTimeCategory: loadTime < 2000 ? 'fast' : loadTime < 5000 ? 'medium' : 'slow'
     });
+  },
+
+  // Card functionality tracking
+  trackCardPageVisit: () => {
+    trackEvent('Card Page Visited', {
+      timestamp: new Date().toISOString(),
+      source: 'direct'
+    });
+  },
+
+  trackCardGetStarted: () => {
+    trackEvent('Card Get Started', {
+      timestamp: new Date().toISOString(),
+      action: 'clicked_get_started'
+    });
+  },
+
+  trackCardAddressSubmitted: (address: string, addressType: 'ens' | 'ethereum' | 'unknown') => {
+    trackEvent('Card Address Submitted', {
+      address,
+      addressType,
+      addressLength: address.length,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackCardGenerated: (address: string, poapCount: number, loadTime?: number) => {
+    trackEvent('Card Generated', {
+      address,
+      poapCount,
+      poapCategory: poapCount === 0 ? 'none' : poapCount < 10 ? 'few' : poapCount < 50 ? 'moderate' : 'many',
+      ...(loadTime && { loadTime, loadTimeCategory: loadTime < 3000 ? 'fast' : loadTime < 8000 ? 'medium' : 'slow' }),
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackCardShared: (address: string, shareMethod: 'copy_link' | 'social' | 'download') => {
+    trackEvent('Card Shared', {
+      address,
+      shareMethod,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackCardDownloaded: (address: string, format: 'png' | 'jpg' | 'svg') => {
+    trackEvent('Card Downloaded', {
+      address,
+      format,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackCardBackNavigation: (fromAddress: string) => {
+    trackEvent('Card Back Navigation', {
+      fromAddress,
+      action: 'back_to_form',
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackCardError: (address: string, errorType: 'invalid_address' | 'no_poaps' | 'api_error' | 'generation_failed') => {
+    trackEvent('Card Error', {
+      address,
+      errorType,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackCardPreviewInteraction: (address: string, interactionType: 'hover' | 'click' | 'zoom') => {
+    trackEvent('Card Preview Interaction', {
+      address,
+      interactionType,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackCardStyleChange: (address: string, styleType: 'badge' | 'image' | 'minimal', previousStyle?: string) => {
+    trackEvent('Card Style Changed', {
+      address,
+      styleType,
+      ...(previousStyle && { previousStyle }),
+      timestamp: new Date().toISOString()
+    });
   }
 };
 

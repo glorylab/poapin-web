@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAtom } from "jotai";
 import { useNavigate } from "@remix-run/react";
 import { PreviewCard } from "~/components/card/preview-card";
 import { AddressForm } from "~/components/card/address-form";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
+import { PlausibleEvents } from '~/utils/usePlausible';
 import type { MetaFunction } from "@remix-run/node";
 
 export const meta: MetaFunction = ({ location }) => {
@@ -51,6 +52,11 @@ export default function CardIndexPage() {
     const [, setShowResults] = useAtom(showResultsAtom);
     const navigate = useNavigate();
     
+    // Track page visit on mount
+    useEffect(() => {
+        PlausibleEvents.trackCardPageVisit();
+    }, []);
+    
     // JSON-LD structured data for the POAP Card page
     const jsonLd = {
         "@context": "https://schema.org",
@@ -74,11 +80,21 @@ export default function CardIndexPage() {
     };
 
     const handleGetStarted = () => {
+        // Track get started action
+        PlausibleEvents.trackCardGetStarted();
+        
         setIsCardVisible(false);
         setTimeout(() => setIsPlaceholderVisible(true), 500);
     };
 
     const handleAddressSubmit = (address: string) => {
+        // Determine address type for tracking
+        const addressType = address.endsWith('.eth') ? 'ens' : 
+                           address.startsWith('0x') && address.length === 42 ? 'ethereum' : 'unknown';
+        
+        // Track address submission
+        PlausibleEvents.trackCardAddressSubmitted(address, addressType);
+        
         setWalletAddress(address);
         setShowResults(true);
         navigate(`/card/${address}`);
