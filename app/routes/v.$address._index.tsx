@@ -186,6 +186,7 @@ export default function POAPIndex() {
                     onBatchFilterChange={handleBatchFilterChange}
                     allPoaps={poaps}
                     filteredPoaps={filteredPoaps}
+                    address={meta.address}
                 />
             )}
 
@@ -194,6 +195,7 @@ export default function POAPIndex() {
                 <FloatingSortBar
                     selectedSort={globalSort}
                     onSortChange={handleSortChange}
+                    address={meta.address}
                 />
             )}
 
@@ -209,6 +211,7 @@ export default function POAPIndex() {
                                 totalMomentsCount={totalMomentsCount}
                                 totalPoapsCount={poaps.length}
                                 onToggle={handleViewTransition}
+                                address={meta.address}
                             />
                         )}
 

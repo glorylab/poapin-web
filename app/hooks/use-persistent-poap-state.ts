@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams, useLocation } from '@remix-run/react';
+import type { POAP } from '~/types/poap';
+import { filterPoaps, sortPoaps } from '~/utils/poap-filter-sort';
+import { PlausibleEvents } from '~/utils/usePlausible';
 
 // Types
 export interface FilterState {
@@ -244,6 +247,10 @@ export function usePersistentPoapState(address?: string) {
     
     const handleBatchFilterChange = (newFilters: FilterState) => {
         setFilters(newFilters);
+        // Track filter application
+        if (address) {
+            PlausibleEvents.trackFilterApply(newFilters, address);
+        }
     };
     
     const handleFilterRemove = (filterTitle: string, valueToRemove: string) => {
@@ -251,13 +258,21 @@ export function usePersistentPoapState(address?: string) {
             ...prev,
             [filterTitle]: prev[filterTitle]?.filter(v => v !== valueToRemove) || []
         }));
+        // Track filter removal
+        if (address) {
+            PlausibleEvents.trackFilterRemove(filterTitle, valueToRemove, address);
+        }
     };
     
     const handleSortChange = (newSort: SortState) => {
         setSort(newSort);
+        // Track sort change
+        if (address) {
+            PlausibleEvents.trackSortChange(newSort, address);
+        }
     };
     
-    const handleViewTransition = () => {
+    const handleViewTransition = (poapsCount?: number, momentsCount?: number) => {
         if (isTransitioning) return;
         
         setIsTransitioning(true);
@@ -265,6 +280,14 @@ export function usePersistentPoapState(address?: string) {
         if (!timeCapsuleMode) {
             setTimeCapsuleMode(true);
             setShowClassic(false);
+            // Track entering Time Capsule mode
+            if (address) {
+                PlausibleEvents.trackTimeCapsuleEnter(
+                    address, 
+                    momentsCount || 0, 
+                    poapsCount || 0
+                );
+            }
             setTimeout(() => {
                 setShowTimeline(true);
                 setIsTransitioning(false);
@@ -272,6 +295,10 @@ export function usePersistentPoapState(address?: string) {
         } else {
             setTimeCapsuleMode(false);
             setShowTimeline(false);
+            // Track exiting Time Capsule mode
+            if (address) {
+                PlausibleEvents.trackTimeCapsuleExit(address);
+            }
             setTimeout(() => {
                 setShowClassic(true);
                 setIsTransitioning(false);
@@ -279,7 +306,13 @@ export function usePersistentPoapState(address?: string) {
         }
     };
     
-    const clearAllFilters = () => setFilters(DEFAULT_FILTERS);
+    const clearAllFilters = () => {
+        setFilters(DEFAULT_FILTERS);
+        // Track clearing all filters
+        if (address) {
+            PlausibleEvents.trackFilterClear(address);
+        }
+    };
     const resetSort = () => setSort(DEFAULT_SORT);
     const resetAll = () => {
         setFilters(DEFAULT_FILTERS);

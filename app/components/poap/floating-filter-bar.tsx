@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import type { Filter } from "~/types/filter";
 import type { POAP } from "~/types/poap";
 import type { FilterState } from '~/hooks/use-persistent-poap-state';
+import { PlausibleEvents } from '~/utils/usePlausible';
 import { cn } from '~/src/cn';
 
 interface FloatingFilterBarProps {
@@ -15,6 +16,7 @@ interface FloatingFilterBarProps {
     onBatchFilterChange?: (filtersToUpdate: { [key: string]: string[] }) => void;
     allPoaps: POAP[];
     filteredPoaps: POAP[];
+    address?: string;
 }
 
 // Helper function to get value from POAP based on filter type
@@ -41,9 +43,19 @@ export function FloatingFilterBar({
     onFilterChange,
     onBatchFilterChange,
     allPoaps,
-    filteredPoaps
+    filteredPoaps,
+    address
 }: FloatingFilterBarProps) {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen, onOpen: originalOnOpen, onClose } = useDisclosure();
+    
+    // Custom onOpen handler with tracking
+    const handleModalOpen = () => {
+        originalOnOpen();
+        // Track filter modal opening
+        if (address) {
+            PlausibleEvents.trackFilterModalOpen(address);
+        }
+    };
 
     // Temporary filter state for the modal (doesn't affect URL until Apply is clicked)
     const [tempSelectedFilters, setTempSelectedFilters] = useState<{ [key: string]: string[] }>({});
@@ -368,7 +380,7 @@ export function FloatingFilterBar({
                         isIconOnly
                         className="w-14 h-14 bg-black/50 hover:bg-black/70 hover:!opacity-100 backdrop-blur-sm text-primary/80 shadow-lg"
                         radius="full"
-                        onPress={onOpen}
+                        onPress={handleModalOpen}
                     >
                         <Icon icon="heroicons:funnel" className="w-6 h-6" />
                     </Button>

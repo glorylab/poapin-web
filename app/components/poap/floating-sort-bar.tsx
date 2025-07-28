@@ -2,14 +2,25 @@ import React from 'react';
 import { Button, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, Listbox, ListboxItem } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import type { SortState } from '~/atoms/poap-state';
+import { PlausibleEvents } from '~/utils/usePlausible';
 
 interface FloatingSortBarProps {
     selectedSort: SortState;
     onSortChange: (sort: SortState) => void;
+    address?: string;
 }
 
-export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarProps) {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+export function FloatingSortBar({ selectedSort, onSortChange, address }: FloatingSortBarProps) {
+    const { isOpen, onOpen: originalOnOpen, onClose } = useDisclosure();
+    
+    // Custom onOpen handler with tracking
+    const handleModalOpen = () => {
+        originalOnOpen();
+        // Track sort modal opening
+        if (address) {
+            PlausibleEvents.trackSortModalOpen(address);
+        }
+    };
 
     const sortOptions = [
         { key: "date", direction: "desc" as const, label: "Collected date: Newest", icon: "heroicons:arrow-down" },
@@ -51,7 +62,7 @@ export function FloatingSortBar({ selectedSort, onSortChange }: FloatingSortBarP
                         isIconOnly
                         className="w-14 h-14 bg-black/50 hover:bg-black/70 hover:!opacity-100 backdrop-blur-sm text-primary/80 shadow-lg"
                         radius="full"
-                        onPress={onOpen}
+                        onPress={handleModalOpen}
                     >
                         <Icon icon="heroicons:bars-arrow-up" className="w-6 h-6" />
                     </Button>

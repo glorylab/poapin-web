@@ -9,6 +9,7 @@ import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
 // State management
 import { usePersistentPoapState } from "~/hooks/use-persistent-poap-state";
+import { PlausibleEvents } from '~/utils/usePlausible';
 // Components
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
 import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
@@ -228,6 +229,13 @@ export default function POAPLayout() {
         if (location.pathname === targetPath) {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            // Track tab switching
+            const fromTab = location.pathname.includes('/profile') ? 'profile' : 'index';
+            const toTab = targetPath.includes('/profile') ? 'profile' : 'index';
+            if (meta?.address) {
+                PlausibleEvents.trackTabSwitch(fromTab, toTab, meta.address);
+            }
         }
     };
 
