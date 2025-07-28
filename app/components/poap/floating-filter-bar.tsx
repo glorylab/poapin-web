@@ -54,6 +54,10 @@ export function FloatingFilterBar({
     const [isCalculating, setIsCalculating] = useState(false);
     const [calculationsReady, setCalculationsReady] = useState(false);
     
+    // Custom backdrop for Select components
+    const [selectBackdropVisible, setSelectBackdropVisible] = useState(false);
+    const [activeSelectId, setActiveSelectId] = useState<string | null>(null);
+    
     // Initialize temp state when modal opens
     useEffect(() => {
         if (isOpen) {
@@ -379,6 +383,8 @@ export function FloatingFilterBar({
                 </div>
             </div>
 
+            {/* Custom Backdrop for Select Components - handled by individual Select styling */}
+
             {/* Filter Modal */}
             <Modal
                 isOpen={isOpen}
@@ -408,7 +414,7 @@ export function FloatingFilterBar({
                                         </span>
                                     ) : (
                                         <span className="ml-2 text-sm font-normal text-gray-500">
-                                            ({tempFilteredPoaps.length}/{allPoaps.length} preview)
+                                            ({tempFilteredPoaps.length}/{allPoaps.length} selected)
                                         </span>
                                     )}
                                 </div>
@@ -419,13 +425,30 @@ export function FloatingFilterBar({
                             <ModalBody>
                                 <div className="grid grid-cols-1 gap-4">
                                     {filters.map((filter, index) => {
+                                        const selectId = `select-${filter.title.toLowerCase().replace(/\s+/g, '-')}`;
+                                        const isActiveSelect = activeSelectId === filter.title;
+                                        
                                         return (
-                                            <div key={`filter-${index}`} className="space-y-2">
+                                            <div 
+                                                key={`filter-${index}`} 
+                                                className={`space-y-2 relative transition-all duration-200 ${
+                                                    selectBackdropVisible && !isActiveSelect 
+                                                        ? 'opacity-40 blur-[1px] pointer-events-none' 
+                                                        : selectBackdropVisible && isActiveSelect
+                                                        ? 'opacity-100 blur-0 z-[60]'
+                                                        : 'opacity-100 blur-0'
+                                                }`}
+                                            >
                                                 <Select
+                                                    id={selectId}
                                                     label={filter.title}
                                                     placeholder={`Select ${filter.title.toLowerCase()}`}
                                                     selectionMode="multiple"
                                                     selectedKeys={tempSelectedFilters[filter.title] || []}
+                                                    onOpenChange={(isOpen) => {
+                                                        setSelectBackdropVisible(isOpen);
+                                                        setActiveSelectId(isOpen ? filter.title : null);
+                                                    }}
                                                     onSelectionChange={(keys) => {
                                                         const newValues = keys === "all" ? [] : Array.from(keys).map(key => String(key));
                                                         const currentValues = tempSelectedFilters[filter.title] || [];
@@ -479,6 +502,8 @@ export function FloatingFilterBar({
                                                         base: "z-100 data-[has-value=true]:text-green",
                                                         label: "text-gray-700 group-data-[has-value=true]:font-bold",
                                                         value: "text-gray-900 group-data-[has-value=true]:text-black",
+                                                        popoverContent: "bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-xl z-[60]",
+                                                        listbox: "bg-transparent",
                                                     }}
                                                 >
                                                     {filter.options?.map((option) => {
@@ -515,7 +540,13 @@ export function FloatingFilterBar({
                                     })}
                                 </div>
                             </ModalBody>
-                            <ModalFooter>
+                            <ModalFooter 
+                                className={`transition-all duration-200 ${
+                                    selectBackdropVisible 
+                                        ? 'opacity-40 blur-[1px] pointer-events-none' 
+                                        : 'opacity-100 blur-0'
+                                }`}
+                            >
                                 <Button
                                     color="danger"
                                     variant="light"
