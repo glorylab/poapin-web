@@ -31,26 +31,6 @@ const getPoapValue = (poap: POAP, filterTitle: string): string => {
     }
 };
 
-// Helper function to calculate counts for filter options
-const calculateOptionCounts = (allPoaps: POAP[], filteredPoaps: POAP[], filterTitle: string) => {
-    const allCounts: { [key: string]: number } = {};
-    const filteredCounts: { [key: string]: number } = {};
-
-    // Count in all POAPs
-    allPoaps.forEach(poap => {
-        const value = getPoapValue(poap, filterTitle);
-        allCounts[value] = (allCounts[value] || 0) + 1;
-    });
-
-    // Count in filtered POAPs
-    filteredPoaps.forEach(poap => {
-        const value = getPoapValue(poap, filterTitle);
-        filteredCounts[value] = (filteredCounts[value] || 0) + 1;
-    });
-
-    return { allCounts, filteredCounts };
-};
-
 export function FloatingFilterBar({
     filters,
     onFilterChange,
@@ -70,15 +50,31 @@ export function FloatingFilterBar({
     // Store previous filter states for intelligent toggle
     const [previousFilterStates, setPreviousFilterStates] = useState<Record<string, Record<string, string[]>>>({});
     
+    // Performance optimization: defer heavy calculations
+    const [isCalculating, setIsCalculating] = useState(false);
+    const [calculationsReady, setCalculationsReady] = useState(false);
+    
     // Initialize temp state when modal opens
     useEffect(() => {
         if (isOpen) {
             setTempSelectedFilters({ ...selectedFilters });
+            setCalculationsReady(false);
+            setIsCalculating(true);
+            
+            // Defer heavy calculations to next tick to allow modal to open immediately
+            setTimeout(() => {
+                setCalculationsReady(true);
+                setIsCalculating(false);
+            }, 0);
         }
     }, [isOpen, selectedFilters]);
     
-    // Calculate filtered POAPs based on temp state for preview
+    // Calculate filtered POAPs based on temp state for preview (only when calculations are ready)
     const tempFilteredPoaps = React.useMemo(() => {
+        if (!calculationsReady) {
+            return allPoaps; // Return all POAPs initially to avoid blocking
+        }
+        
         if (Object.values(tempSelectedFilters).every(values => values.length === 0)) {
             return allPoaps;
         }
@@ -107,10 +103,28 @@ export function FloatingFilterBar({
                 }
             });
         });
-    }, [tempSelectedFilters, allPoaps, filteredPoaps]);
+    }, [tempSelectedFilters, allPoaps, filteredPoaps, calculationsReady]);
 
     // Function to get selection state of a filter option (using temp state)
-    const getSelectionState = (filterTitle: string, optionValue: string) => {
+    const getSelectionState = (filterTitle: string, optionValue: string): 'fully-selected' | 'partially-selected' | 'unselected' => {
+        // Check if this option is explicitly selected in temp state (fast check first)
+        const isExplicitlySelected = tempSelectedFilters[filterTitle]?.includes(optionValue) || false;
+        if (isExplicitlySelected) {
+            return 'fully-selected'; // User explicitly selected this option
+        }
+
+        // If calculations are not ready, return unselected for non-selected items to avoid blocking
+        if (!calculationsReady) {
+            return 'unselected';
+        }
+
+        // For unselected options, check if they should be partially-selected
+        const hasAnyFilters = Object.values(tempSelectedFilters).some(filters => filters.length > 0);
+        if (!hasAnyFilters) {
+            return 'unselected'; // Default state - no filters applied
+        }
+
+        // Efficient check for partially-selected state
         // Get all POAPs that match this option
         const matchingPoaps = allPoaps.filter(poap => {
             switch (filterTitle) {
@@ -127,25 +141,27 @@ export function FloatingFilterBar({
             }
         });
 
-        // Get POAPs that match this option AND are currently visible in temp filtered results
-        const visibleMatchingPoaps = matchingPoaps.filter(poap =>
+        if (matchingPoaps.length === 0) {
+            return 'unselected';
+        }
+
+        // Check if any of the matching POAPs are visible in current temp filtered results
+        const hasVisibleMatches = matchingPoaps.some(poap =>
             tempFilteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
         );
 
-        // Check if this option is explicitly selected in temp state
-        const isExplicitlySelected = tempSelectedFilters[filterTitle]?.includes(optionValue) || false;
+        if (hasVisibleMatches) {
+            // Check if all matching POAPs are visible (fully available) or only some (partially available)
+            const visibleMatchCount = matchingPoaps.filter(poap =>
+                tempFilteredPoaps.some(filtered => filtered.tokenId === poap.tokenId)
+            ).length;
 
-        if (isExplicitlySelected) {
-            return 'fully-selected'; // User explicitly selected this option
-        } else if (visibleMatchingPoaps.length > 0 && visibleMatchingPoaps.length < matchingPoaps.length) {
-            return 'partially-selected'; // Some POAPs visible due to other filters
-        } else if (visibleMatchingPoaps.length === matchingPoaps.length && matchingPoaps.length > 0) {
-            // Check if this is truly a default state (no filters applied) or a result of other filters
-            const hasAnyFilters = Object.values(tempSelectedFilters).some(filters => filters.length > 0);
-            if (!hasAnyFilters) {
-                return 'unselected'; // Default state - no filters applied, treat as unselected
+            if (visibleMatchCount === matchingPoaps.length) {
+                // All POAPs for this option are visible - could be partially-selected due to other filters
+                return 'partially-selected';
             } else {
-                return 'partially-selected'; // All POAPs visible due to other filters
+                // Only some POAPs for this option are visible - definitely partially-selected
+                return 'partially-selected';
             }
         } else {
             return 'unselected'; // No POAPs visible
@@ -385,9 +401,16 @@ export function FloatingFilterBar({
                                 <div className="flex items-center gap-2">
                                     <Icon icon="heroicons:funnel" className="w-5 h-5 text-emerald-600" />
                                     <h2 className="text-xl font-semibold">Filter POAPs</h2>
-                                    <span className="ml-2 text-sm font-normal text-gray-500">
-                                        ({tempFilteredPoaps.length}/{allPoaps.length} preview)
-                                    </span>
+                                    {isCalculating ? (
+                                        <span className="ml-2 text-sm font-normal text-gray-500 flex items-center gap-1">
+                                            <Icon icon="heroicons:arrow-path" className="w-4 h-4 animate-spin" />
+                                            Loading...
+                                        </span>
+                                    ) : (
+                                        <span className="ml-2 text-sm font-normal text-gray-500">
+                                            ({tempFilteredPoaps.length}/{allPoaps.length} preview)
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="text-sm text-gray-600">
                                     Refine your POAP collection by country, city, year, or blockchain
