@@ -24,7 +24,12 @@ export function usePlausiblePageview() {
 // Helper function to safely call Plausible
 function trackEvent(event: string, properties?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && typeof window.plausible === "function") {
-    window.plausible(event, properties);
+    window.plausible(event, { props: properties });
+  } else {
+    console.warn('⚠️ Plausible not available:', {
+      windowExists: typeof window !== 'undefined',
+      plausibleExists: typeof window?.plausible === 'function'
+    });
   }
 }
 
