@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Card, CardBody, Image, Chip, Spinner, Button } from "@heroui/react";
 import type { POAP } from "~/types/poap";
+import { POAP_SIZE, TimelinePoapImage } from "./lazy-poap-image";
 
 interface MomentMedia {
   gateways: {
@@ -666,10 +667,13 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                     title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
                                   >
                                     <Card className="w-full h-full p-0 overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 rounded-full border-2 border-white">
-                                      <img
+                                      <TimelinePoapImage
                                         src={item.poap.event.image_url}
                                         alt={item.poap.event.name}
-                                        className="w-full h-full object-cover"
+                                        width={128}
+                                        height={128}
+                                        poapSize={POAP_SIZE.SMALL}
+                                        title={`${item.poap.event.name} - ${formatDate(item.poap.event.start_date)}`}
                                       />
                                     </Card>
                                   </div>
