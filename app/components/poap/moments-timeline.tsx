@@ -15,6 +15,7 @@ import {
   getDateString
 } from "./moments-timeline-utils";
 import { MomentsGrid } from "./moments-grid";
+import { PoapGroupModal } from "./poap-group-modal";
 
 
 interface MomentsTimelineProps {
@@ -32,6 +33,21 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
   // Use persistent cache instead of internal state
   const { moments, loading, error, hasMore, page } = momentsCache;
   const [loadingMore, setLoadingMore] = useState(false);
+  
+  // Modal state for POAP group display
+  const [selectedPoapGroup, setSelectedPoapGroup] = useState<typeof allTimelineItems[0][] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Handle POAP group click
+  const handlePoapGroupClick = (poapGroup: typeof allTimelineItems[0][]) => {
+    setSelectedPoapGroup(poapGroup);
+    setIsModalOpen(true);
+  };
+  
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedPoapGroup(null);
+  };
   const [containerWidth, setContainerWidth] = useState(() => {
     // Better initial value based on window width if available
     if (typeof window !== 'undefined') {
@@ -576,6 +592,7 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
                             onMouseLeave={(e) => {
                               e.currentTarget.style.zIndex = String(totalDateGroups - dateIndex);
                             }}
+                            onClick={() => handlePoapGroupClick(dateGroup)}
                           >
                             {/* Vertical stacking container */}
                             <div
@@ -834,6 +851,16 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
             </div>
           )}
         </>
+      )}
+      
+      {/* POAP Group Modal */}
+      {selectedPoapGroup && (
+        <PoapGroupModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          poaps={selectedPoapGroup.map(item => item.poap)}
+          dropsWithMoments={[]}
+        />
       )}
     </div>
   );
