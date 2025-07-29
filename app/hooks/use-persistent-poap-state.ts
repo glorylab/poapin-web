@@ -127,6 +127,9 @@ export function usePersistentPoapState(address?: string) {
                 }
             } else if (key === 'timeCapsule') {
                 urlTimeCapsule = value === 'true';
+            } else if (key === 'auto_time_capsule') {
+                // Handle auto_time_capsule parameter - it's not a filter, just a flag
+                urlTimeCapsule = value === 'true';
             } else if (value) {
                 urlFilters[key] = value.split(',').filter(Boolean);
             }
