@@ -604,7 +604,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 return (
                   <div key={`date-groups-unified-${segmentIndex}`} className={`my-8 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
                     <div 
-                      className="relative mx-auto"
+                      className="relative mx-auto group/row"
                       style={{ 
                         width: `${availableWidth}px`, 
                         height: `${maxVerticalHeight + 48}px` // Extra height for date labels
@@ -625,10 +625,16 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                         return (
                           <div
                             key={`date-group-unified-${dateIndex}`}
-                            className="absolute top-0 group cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/30 p-2 -m-2"
+                            className="absolute top-0 group cursor-pointer transition-all duration-500 ease-out rounded-lg hover:bg-white/30 p-2 -m-2 hover:scale-105 group-hover/row:blur-sm hover:!blur-none hover:!scale-110"
                             style={{
                               left: `${offsetX}px`,
                               zIndex: totalDateGroups - dateIndex
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.zIndex = '9999';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.zIndex = String(totalDateGroups - dateIndex);
                             }}
                           >
                             {/* Vertical stacking container */}
@@ -647,9 +653,9 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   <div
                                     key={`poap-unified-${item.poap.event.id}-${itemIndex}`}
                                     className={`absolute w-32 h-32 transition-all duration-300 ease-out ${
-                                      itemIndex === 0 ? 'group-hover:scale-[1.01] group-hover:-translate-y-0.5' :
-                                      itemIndex === 1 ? 'group-hover:scale-[0.99] group-hover:translate-y-0.5' :
-                                      itemIndex === 2 ? 'group-hover:scale-[0.97] group-hover:translate-y-1' :
+                                      itemIndex === 0 ? 'group-hover:scale-[1.02] group-hover:-translate-y-0.5' :
+                                      itemIndex === 1 ? 'group-hover:scale-[0.97] group-hover:translate-y-0.5' :
+                                      itemIndex === 2 ? 'group-hover:scale-[0.90] group-hover:translate-y-1' :
                                       ''
                                     }`}
                                     style={{
