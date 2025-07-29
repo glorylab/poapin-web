@@ -56,6 +56,56 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
     }
     return 800; // SSR fallback
   });
+  
+  // Track moments content width for each POAP item
+  const [momentsWidths, setMomentsWidths] = useState<Map<string, number>>(new Map());
+  
+  // Handle moments layout calculation for each POAP item
+  const handleMomentsLayoutCalculated = (poapId: string, momentsWidth: number) => {
+    setMomentsWidths(prev => {
+      const newMap = new Map(prev);
+      newMap.set(poapId, momentsWidth);
+      return newMap;
+    });
+  };
+  
+  // Calculate optimal width for a specific POAP item
+  const calculateItemOptimalWidth = (poapId: string) => {
+    const momentsWidth = momentsWidths.get(poapId);
+    if (!momentsWidth) {
+      // If moments width data is not available, return default value
+      return typeof window !== 'undefined' ? Math.min(window.innerWidth - 64, 1200) : 1200;
+    }
+    
+    const poapSectionWidth = 120; // POAP image section width (w-20 = 80px + padding)
+    const optimalWidth = poapSectionWidth + momentsWidth + 48; // Add some spacing
+    
+    // Ensure it doesn't exceed screen width, but allow natural content width
+    const maxAllowedWidth = typeof window !== 'undefined' ? window.innerWidth - 64 : 1200;
+    return Math.min(optimalWidth, maxAllowedWidth);
+  };
+  
+  // Listen for window size changes, re-calculate container width
+  useEffect(() => {
+    let resizeTimeout: NodeJS.Timeout;
+    
+    const handleResize = () => {
+      // Use debouncing to avoid frequent re-calculation
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        console.log('MomentsTimeline: Window resized, triggering layout recalculation');
+        // Force re-calculate all moments' layout
+        setMomentsWidths(new Map()); // Clear cache, trigger re-calculation
+      }, 150);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+    };
+  }, []);
+  
   const loadingRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -498,7 +548,10 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
   }
 
   return (
-    <div ref={containerRef} className="space-y-6">
+    <div 
+      ref={containerRef} 
+      className="space-y-6"
+    >
       {loading && (
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -685,7 +738,15 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
                 // This is a single POAP with moments
                 const item = segment;
                 return (
-                  <Card key={`poap-with-moments-${item.poap.event.id}`} className={`overflow-hidden ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
+                  <Card 
+                    key={`poap-with-moments-${item.poap.event.id}`} 
+                    className={`overflow-hidden ${animationClass} mx-auto`} 
+                    style={{ 
+                      animationDelay: `${segmentIndex * 100}ms`,
+                      maxWidth: `${calculateItemOptimalWidth(item.poap.tokenId)}px`,
+                      width: 'fit-content'
+                    }}
+                  >
                     {/* Mobile Layout: Stack vertically */}
                     <div className="block sm:hidden">
                       {/* POAP Info */}
@@ -815,7 +876,10 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
                           </h3>
                         </div>
 
-                        <MomentsGrid moments={item.moments} />
+                        <MomentsGrid 
+                          moments={item.moments} 
+                          onLayoutCalculated={(width) => handleMomentsLayoutCalculated(item.poap.tokenId, width)}
+                        />
                       </div>
                     </div>
                   </Card>
