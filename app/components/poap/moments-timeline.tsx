@@ -25,28 +25,29 @@ interface MomentsTimelineProps {
   momentsCache: import('~/hooks/use-persistent-poap-state').MomentsCache;
   updateMomentsCache: (update: Partial<import('~/hooks/use-persistent-poap-state').MomentsCache>) => void;
   appendMoments: (newMoments: Moment[]) => void;
+  // Persistent modal state from parent
+  modalState: import('~/hooks/use-persistent-poap-state').ModalState;
+  openModal: (poapGroup: any[]) => void;
+  closeModal: () => void;
 }
 
 // LOAD_MORE_THRESHOLD is imported from moments-timeline-types
 
-export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCache, appendMoments }: MomentsTimelineProps) {
+export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCache, appendMoments, modalState, openModal, closeModal }: MomentsTimelineProps) {
   // Use persistent cache instead of internal state
   const { moments, loading, error, hasMore, page } = momentsCache;
   const [loadingMore, setLoadingMore] = useState(false);
   
-  // Modal state for POAP group display
-  const [selectedPoapGroup, setSelectedPoapGroup] = useState<typeof allTimelineItems[0][] | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Use persistent modal state from parent
+  const { isOpen: isModalOpen, selectedPoapGroup } = modalState;
   
   // Handle POAP group click
   const handlePoapGroupClick = (poapGroup: typeof allTimelineItems[0][]) => {
-    setSelectedPoapGroup(poapGroup);
-    setIsModalOpen(true);
+    openModal(poapGroup);
   };
   
   const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedPoapGroup(null);
+    closeModal();
   };
   const [containerWidth, setContainerWidth] = useState(() => {
     // Better initial value based on window width if available
@@ -126,8 +127,12 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
     const cacheAge = Date.now() - momentsCache.lastFetchTime;
     const isCacheStale = cacheAge > 5 * 60 * 1000; // 5 minutes
     
-    if (!hasCachedData || isCacheStale) {
+    // Don't fetch if we have valid cached data (prevent unnecessary refetch on navigation return)
+    if (!hasCachedData || (isCacheStale && !loading)) {
+      console.log('MomentsTimeline: Fetching moments', { hasCachedData, isCacheStale, loading });
       fetchMoments();
+    } else {
+      console.log('MomentsTimeline: Using cached data', { momentsCount: moments.length, cacheAge });
     }
   }, [address, moments.length, momentsCache.lastFetchTime]);
 

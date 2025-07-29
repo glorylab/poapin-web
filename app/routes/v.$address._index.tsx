@@ -256,6 +256,9 @@ export default function POAPIndex() {
                                     momentsCache={poapState.momentsCache}
                                     updateMomentsCache={poapState.updateMomentsCache}
                                     appendMoments={poapState.appendMoments}
+                                    modalState={poapState.modalState}
+                                    openModal={poapState.openModal}
+                                    closeModal={poapState.closeModal}
                                 />
                             </div>
                         )}

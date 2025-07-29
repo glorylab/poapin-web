@@ -24,6 +24,11 @@ export interface MomentsCache {
     lastFetchTime: number;
 }
 
+export interface ModalState {
+    isOpen: boolean;
+    selectedPoapGroup: any[] | null; // Will be typed properly when used
+}
+
 // Default values
 export const DEFAULT_SORT: SortState = { key: 'date', direction: 'desc' };
 export const DEFAULT_FILTERS: FilterState = {};
@@ -34,6 +39,10 @@ export const DEFAULT_MOMENTS_CACHE: MomentsCache = {
     loading: false,
     error: null,
     lastFetchTime: 0
+};
+export const DEFAULT_MODAL_STATE: ModalState = {
+    isOpen: false,
+    selectedPoapGroup: null
 };
 
 /**
@@ -97,6 +106,17 @@ export function usePersistentPoapState(address?: string) {
     // Track current address to detect changes
     const [currentAddress, setCurrentAddress] = useState<string | undefined>(address);
     
+    // Modal state (persists across navigation)
+    const [modalState, setModalState] = useState<ModalState>(() => {
+        if (typeof window === 'undefined') return DEFAULT_MODAL_STATE;
+        try {
+            const stored = sessionStorage.getItem(getStorageKey('modal'));
+            return stored ? JSON.parse(stored) : DEFAULT_MODAL_STATE;
+        } catch {
+            return DEFAULT_MODAL_STATE;
+        }
+    });
+    
     // Ephemeral transition state (doesn't persist)
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showClassic, setShowClassic] = useState(true);
@@ -148,7 +168,12 @@ export function usePersistentPoapState(address?: string) {
                                            lastPathname.current !== currentPathname &&
                                            currentAddress === address);
         
-        isTabSwitch.current = isCurrentlyTabSwitch;
+        // Detect if this is a return from POAP detail page
+        const isReturnFromPoapDetail = Boolean(lastPathname.current && 
+                                              lastPathname.current.includes('/poap/') &&
+                                              currentPathname.includes(`/v/${address}`));
+        
+        isTabSwitch.current = isCurrentlyTabSwitch || isReturnFromPoapDetail;
         
         // If address changed, clear all state
         if (currentAddress !== address) {
@@ -156,6 +181,7 @@ export function usePersistentPoapState(address?: string) {
             setFilters(DEFAULT_FILTERS);
             setSort(DEFAULT_SORT);
             setTimeCapsuleMode(false);
+            setModalState(DEFAULT_MODAL_STATE);
             setCurrentAddress(address);
             
             // Clear old storage entries for previous address
@@ -164,6 +190,7 @@ export function usePersistentPoapState(address?: string) {
                 sessionStorage.removeItem(oldGetStorageKey('filters'));
                 sessionStorage.removeItem(oldGetStorageKey('sort'));
                 sessionStorage.removeItem(oldGetStorageKey('time-capsule'));
+                sessionStorage.removeItem(oldGetStorageKey('modal'));
             }
             
             // Reset initialization flag to allow new initialization
@@ -175,15 +202,16 @@ export function usePersistentPoapState(address?: string) {
         // Only clear state if:
         // 1. No URL parameters AND
         // 2. We have stored state AND 
-        // 3. This is NOT a tab switch (user directly accessed without params)
+        // 3. This is NOT a tab switch AND NOT a return from POAP detail (user directly accessed without params)
         if (!currentUrlParams && isInitialized.current && !isTabSwitch.current && address) {
             // Check stored state directly from sessionStorage to avoid closure issues
             const storedFilters = sessionStorage.getItem(getStorageKey('filters'));
             const storedSort = sessionStorage.getItem(getStorageKey('sort'));
             const storedTimeCapsule = sessionStorage.getItem(getStorageKey('time-capsule'));
             const storedMoments = sessionStorage.getItem(getStorageKey('moments'));
+            const storedModal = sessionStorage.getItem(getStorageKey('modal'));
             
-            const hasStoredState = storedFilters || storedSort || storedTimeCapsule || storedMoments;
+            const hasStoredState = storedFilters || storedSort || storedTimeCapsule || storedMoments || storedModal;
             
             if (hasStoredState) {
                 console.log('Direct access without URL params but has stored state - clearing state');
@@ -191,12 +219,51 @@ export function usePersistentPoapState(address?: string) {
                 setSort(DEFAULT_SORT);
                 setTimeCapsuleMode(false);
                 setMomentsCache(DEFAULT_MOMENTS_CACHE);
+                setModalState(DEFAULT_MODAL_STATE);
                 
                 // Clear storage as well
                 sessionStorage.removeItem(getStorageKey('filters'));
                 sessionStorage.removeItem(getStorageKey('sort'));
                 sessionStorage.removeItem(getStorageKey('time-capsule'));
                 sessionStorage.removeItem(getStorageKey('moments'));
+                sessionStorage.removeItem(getStorageKey('modal'));
+            }
+        } else if (isReturnFromPoapDetail) {
+            console.log('Detected return from POAP detail page - preserving state and moments cache');
+            // Force restore from URL params if available to ensure state consistency
+            const urlSearchParams = new URLSearchParams(currentUrlParams);
+            const urlFilters: Record<string, string[]> = {};
+            let urlSort = { ...DEFAULT_SORT };
+            let urlTimeCapsule = false;
+
+            for (const [key, value] of urlSearchParams.entries()) {
+                if (key === 'sort') {
+                    const [sortKey, direction] = value.split(':');
+                    if (sortKey && (direction === 'asc' || direction === 'desc')) {
+                        urlSort.key = sortKey;
+                        urlSort.direction = direction;
+                    }
+                } else if (key === 'timeCapsule') {
+                    urlTimeCapsule = value === 'true';
+                } else if (key === 'auto_time_capsule') {
+                    urlTimeCapsule = value === 'true';
+                } else if (value) {
+                    urlFilters[key] = value.split(',').filter(Boolean);
+                }
+            }
+            
+            if (Object.keys(urlFilters).length > 0 || urlSort.key !== DEFAULT_SORT.key || urlTimeCapsule) {
+                console.log('Restoring state from URL params after POAP detail return');
+                setFilters(urlFilters);
+                setSort(urlSort);
+                setTimeCapsuleMode(urlTimeCapsule);
+                
+                // Fix the showTimeline state for proper visibility
+                if (urlTimeCapsule) {
+                    console.log('Restoring timeline visibility after POAP detail return');
+                    setShowTimeline(true);
+                    setShowClassic(false);
+                }
             }
         }
         
@@ -217,6 +284,13 @@ export function usePersistentPoapState(address?: string) {
             setFilters(urlFilters);
             setSort(urlSort);
             setTimeCapsuleMode(urlTimeCapsule);
+            
+            // Fix initial showTimeline state when URL contains timeCapsule=true
+            if (urlTimeCapsule) {
+                console.log('Initial load with timeCapsule=true - setting showTimeline=true');
+                setShowTimeline(true);
+                setShowClassic(false);
+            }
         }
         
         isInitialized.current = true;
@@ -242,6 +316,11 @@ export function usePersistentPoapState(address?: string) {
         if (typeof window === 'undefined' || !address) return;
         sessionStorage.setItem(getStorageKey('moments'), JSON.stringify(momentsCache));
     }, [momentsCache, address]);
+    
+    useEffect(() => {
+        if (typeof window === 'undefined' || !address) return;
+        sessionStorage.setItem(getStorageKey('modal'), JSON.stringify(modalState));
+    }, [modalState, address]);
     
     // Sync to URL (debounced to avoid excessive updates)
     useEffect(() => {
@@ -358,6 +437,19 @@ export function usePersistentPoapState(address?: string) {
         setSort(DEFAULT_SORT);
         setTimeCapsuleMode(false);
         setMomentsCache(DEFAULT_MOMENTS_CACHE);
+        setModalState(DEFAULT_MODAL_STATE);
+    };
+    
+    // Modal state management functions
+    const openModal = (poapGroup: any[]) => {
+        setModalState({
+            isOpen: true,
+            selectedPoapGroup: poapGroup
+        });
+    };
+    
+    const closeModal = () => {
+        setModalState(DEFAULT_MODAL_STATE);
     };
     
     // Moments cache operations
@@ -413,6 +505,11 @@ export function usePersistentPoapState(address?: string) {
         // Moments cache operations
         updateMomentsCache,
         appendMoments,
-        resetMomentsCache
+        resetMomentsCache,
+        
+        // Modal state
+        modalState,
+        openModal,
+        closeModal
     };
 }
