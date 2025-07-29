@@ -36,7 +36,13 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
-  const [containerWidth, setContainerWidth] = useState(800); // Default fallback
+  const [containerWidth, setContainerWidth] = useState(() => {
+    // Better initial value based on window width if available
+    if (typeof window !== 'undefined') {
+      return Math.min(window.innerWidth - 64, 1200); // Max 1200px, minus padding
+    }
+    return 800; // SSR fallback
+  });
   const loadingRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -123,15 +129,38 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
     const updateContainerWidth = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        setContainerWidth(rect.width);
+        const newWidth = rect.width;
+        // Only update if width is valid and different
+        if (newWidth > 0 && Math.abs(newWidth - containerWidth) > 1) {
+          setContainerWidth(newWidth);
+        }
       } else {
         // Fallback to window width minus some padding
-        setContainerWidth(window.innerWidth - 64); // 32px padding on each side
+        const fallbackWidth = window.innerWidth - 64; // 32px padding on each side
+        if (Math.abs(fallbackWidth - containerWidth) > 1) {
+          setContainerWidth(fallbackWidth);
+        }
       }
     };
 
-    // Initial measurement
-    updateContainerWidth();
+    // Use multiple strategies to ensure accurate measurement
+    const measureWithRetry = () => {
+      // Immediate measurement
+      updateContainerWidth();
+      
+      // Retry after next frame
+      requestAnimationFrame(() => {
+        updateContainerWidth();
+      });
+      
+      // Final retry after a short delay to handle any layout shifts
+      setTimeout(() => {
+        updateContainerWidth();
+      }, 100);
+    };
+
+    // Initial measurement with retry strategy
+    measureWithRetry();
 
     // Add resize listener
     window.addEventListener('resize', updateContainerWidth);
@@ -140,7 +169,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
     return () => {
       window.removeEventListener('resize', updateContainerWidth);
     };
-  }, []);
+  }, [containerWidth]);
 
   // Scroll animation effect for timeline sections
   useEffect(() => {
@@ -519,11 +548,16 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                 const cardGap = 16; // gap between date groups when flat
                 const verticalOffset = 16; // vertical offset for stacking within same date
                 const maxVerticalHeight = cardWidth; // Maximum height: 2 POAPs
-                const availableWidth = containerWidth; // Dynamic container width
+                // Use parent container's full width instead of measured containerWidth
+                const parentContainer = containerRef.current;
+                const actualAvailableWidth = parentContainer ? parentContainer.clientWidth : containerWidth;
+                const availableWidth = actualAvailableWidth;
 
                 // Calculate dynamic spacing for unified layout
                 const totalDateGroups = dateGroups.length;
                 const idealTotalWidth = totalDateGroups * cardWidth + (totalDateGroups - 1) * cardGap;
+                
+                // Layout calculation for centering
                 
                 // Calculate actual spacing between groups
                 let actualGap;
@@ -533,6 +567,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                   // Enough space: use ideal gap and center the layout
                   actualGap = cardGap;
                   containerStartX = (availableWidth - idealTotalWidth) / 2;
+
                 } else {
                   // Not enough space: distribute evenly with first and last at edges
                   if (totalDateGroups === 1) {
@@ -542,21 +577,28 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                     actualGap = (availableWidth - totalDateGroups * cardWidth) / (totalDateGroups - 1);
                     containerStartX = 0;
                   }
+
                 }
 
                 return (
                   <div key={`date-groups-unified-${segmentIndex}`} className={`my-8 ${animationClass}`} style={{ animationDelay: `${segmentIndex * 100}ms` }}>
                     <div 
-                      className="relative mx-auto group/row"
+                      className="relative group/row w-full flex justify-center"
                       style={{ 
-                        width: `${availableWidth}px`, 
                         height: `${maxVerticalHeight + 48}px` // Extra height for date labels
                       }}
                     >
-                      {dateGroups.map((dateGroup, dateIndex) => {
-                        const itemsInGroup = dateGroup.length;
-                        const visibleItems = Math.min(itemsInGroup, 10);
-                        const offsetX = containerStartX + dateIndex * (cardWidth + actualGap);
+                      <div 
+                        className="relative"
+                        style={{
+                          width: `${idealTotalWidth}px`,
+                          height: `${maxVerticalHeight + 48}px`
+                        }}
+                      >
+                        {dateGroups.map((dateGroup, dateIndex) => {
+                          const itemsInGroup = dateGroup.length;
+                          const visibleItems = Math.min(itemsInGroup, 10);
+                          const offsetX = dateIndex * (cardWidth + actualGap);
 
                         // Determine if this is a month group or date group
                         const firstItem = dateGroup[0];
@@ -653,11 +695,12 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
                                   : rowGroupingStrategy === 'month'
                                     ? formatMonth(dateGroup[0].poap.event.start_date)
                                     : formatDate(dateGroup[0].poap.event.start_date);
-                              })()}
+                                })()}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
