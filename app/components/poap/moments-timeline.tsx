@@ -1,91 +1,33 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Card, CardBody, Image, Chip, Spinner, Button } from "@heroui/react";
+import { Card, Chip, Spinner, Button } from "@heroui/react";
 import type { POAP } from "~/types/poap";
 import { POAP_SIZE, TimelinePoapImage } from "./lazy-poap-image";
+import { PoapWithMoments } from "./poap-with-moments";
+import {
+  type Moment,
+  type MomentsApiResponse,
+  LOAD_MORE_THRESHOLD,
+  CARD_WIDTH,
+  CARD_GAP,
+  MAX_VERTICAL_HEIGHT
+} from "./moments-timeline-types";
+import {
+  type TimelineItem,
+  formatDate,
+  determineGroupingStrategy,
+  groupItemsByStrategy,
+  shouldGroupByMonth,
+  calculateUnifiedLayout,
+  createTimelineItems
+} from "./moments-timeline-utils";
 
-interface MomentMedia {
-  gateways: {
-    url: string;
-    type: string;
-  }[];
-  status: string;
-}
-
-interface MomentLink {
-  url: string;
-  title: string;
-}
-
-interface MomentUserTag {
-  ens: string | null;
-  address: string;
-}
-
-interface MediaGateway {
-  metadata?: {
-    size?: number;
-    width?: number;
-    height?: number;
-    gateway_type?: string;
-  };
-  url: string;
-  type: string;
-}
-
-interface Media {
-  mime_type: string;
-  gateways?: MediaGateway[];
-}
-
-interface Moment {
-  id: string;
-  author: string;
-  created_on: string;
-  description?: string;
-  drops: {
-    drop: {
-      id: number;
-      image_url: string;
-      name: string;
-      description: string;
-    };
-  }[];
-  media?: Media[];
-  media_aggregate?: {
-    aggregate: {
-      count: number;
-    };
-  };
-  user_tags_aggregate?: {
-    aggregate: {
-      count: number;
-    };
-  };
-  links?: {
-    description?: string;
-    image_url?: string;
-    title: string;
-    url: string;
-  }[];
-}
-
-interface MomentsApiResponse {
-  moments: Moment[];
-  pagination: {
-    page: number;
-    limit: number;
-    totalCount: number;
-    hasMore: boolean;
-  };
-  error?: string;
-}
 
 interface MomentsTimelineProps {
   address: string;
   poaps: POAP[];
 }
 
-const LOAD_MORE_THRESHOLD = 200; // Load more when user is 200px from bottom
+// LOAD_MORE_THRESHOLD is imported from moments-timeline-types
 
 export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
   const [moments, setMoments] = useState<Moment[]>([]);
@@ -757,7 +699,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
 
                           const hasMedia = !!thumbnailGateway;
                           const hasDescription = !!moment.description;
-                          const hasLinks = moment.links?.length > 0;
+                          const hasLinks = (moment.links?.length ?? 0) > 0;
                           const linkPreview = hasLinks ? moment.links?.[0] : null;
 
                           return (
@@ -873,7 +815,7 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
 
                             const hasMedia = !!thumbnailGateway;
                             const hasDescription = !!moment.description;
-                            const hasLinks = moment.links?.length > 0;
+                            const hasLinks = (moment.links?.length ?? 0) > 0;
                             const linkPreview = hasLinks ? moment.links?.[0] : null;
                             const isOddLast = item.moments.length % 2 === 1 && idx === item.moments.length - 1 && item.moments.length > 2;
 
