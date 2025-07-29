@@ -15,7 +15,11 @@ interface MomentDimensions {
   isVideo: boolean;
 }
 
-const MAX_HEIGHT = 240; // Max height of a moment
+// Max height of a moment - responsive based on screen size
+const getMaxHeight = () => {
+  if (typeof window === 'undefined') return 240; // SSR fallback
+  return window.innerWidth < 640 ? 180 : 240; // Mobile: 180px, Desktop: 240px
+};
 const MAX_NON_MEDIA_WIDTH = 350; // Max width of a non-media moment
 const GAP_SIZE = 0; // Gap between moments
 
@@ -47,11 +51,12 @@ export function DynamicMomentsGrid({ moments, onLayoutCalculated }: DynamicMomen
           
           if (originalWidth && originalHeight) {
             const aspectRatio = originalWidth / originalHeight;
-            const scaledWidth = MAX_HEIGHT * aspectRatio;
+            const maxHeight = getMaxHeight();
+            const scaledWidth = maxHeight * aspectRatio;
             
             return {
               width: scaledWidth,
-              height: MAX_HEIGHT,
+              height: maxHeight,
               aspectRatio,
               hasMedia: true,
               isVideo: false
@@ -62,8 +67,8 @@ export function DynamicMomentsGrid({ moments, onLayoutCalculated }: DynamicMomen
         if (isVideo) {
           // Video content uses 16:9 aspect ratio
           return {
-            width: MAX_HEIGHT * (16/9),
-            height: MAX_HEIGHT,
+            width: getMaxHeight() * (16/9),
+            height: getMaxHeight(),
             aspectRatio: 16/9,
             hasMedia: false,
             isVideo: true
@@ -73,8 +78,8 @@ export function DynamicMomentsGrid({ moments, onLayoutCalculated }: DynamicMomen
         // Non-media content or media without dimensions uses fixed width
         return {
           width: MAX_NON_MEDIA_WIDTH,
-          height: MAX_HEIGHT,
-          aspectRatio: MAX_NON_MEDIA_WIDTH / MAX_HEIGHT,
+          height: getMaxHeight(),
+          aspectRatio: MAX_NON_MEDIA_WIDTH / getMaxHeight(),
           hasMedia: !!hasMedia,
           isVideo: false
         };
@@ -164,7 +169,13 @@ export function DynamicMomentsGrid({ moments, onLayoutCalculated }: DynamicMomen
 
     // Step 2: Find the widest row as the target width
     const maxRowWidth = Math.max(...rawRows.map(row => row.totalWidth));
-    const targetWidth = Math.min(maxRowWidth, effectiveContainerWidth);
+    
+    // Check if we're on mobile (screen width < 640px)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    
+    // On mobile, always use full container width to eliminate whitespace
+    // On desktop, use the natural content width (don't force expansion)
+    const targetWidth = isMobile ? effectiveContainerWidth : Math.min(maxRowWidth, effectiveContainerWidth);
 
     // Step 3: Adjust each row proportionally to reach the target width
     const adjustedRows = rawRows.map(row => {

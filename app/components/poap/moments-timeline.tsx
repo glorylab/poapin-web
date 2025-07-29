@@ -77,12 +77,21 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
       return typeof window !== 'undefined' ? Math.min(window.innerWidth - 64, 1200) : 1200;
     }
     
-    const poapSectionWidth = 120; // POAP image section width (w-20 = 80px + padding)
-    const optimalWidth = poapSectionWidth + momentsWidth + 48; // Add some spacing
+    // Check if we're on mobile (screen width < 640px, which is Tailwind's sm breakpoint)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
     
-    // Ensure it doesn't exceed screen width, but allow natural content width
-    const maxAllowedWidth = typeof window !== 'undefined' ? window.innerWidth - 64 : 1200;
-    return Math.min(optimalWidth, maxAllowedWidth);
+    if (isMobile) {
+      // Mobile: Only moments width + padding (no POAP section on the side)
+      const optimalWidth = momentsWidth + 32; // Add some padding
+      const maxAllowedWidth = window.innerWidth - 32; // Leave some margin
+      return Math.min(optimalWidth, maxAllowedWidth);
+    } else {
+      // Desktop: POAP section + moments width + padding
+      const poapSectionWidth = 120; // POAP image section width (w-20 = 80px + padding)
+      const optimalWidth = poapSectionWidth + momentsWidth + 48; // Add some spacing
+      const maxAllowedWidth = window.innerWidth - 64;
+      return Math.min(optimalWidth, maxAllowedWidth);
+    }
   };
   
   // Listen for window size changes, re-calculate container width
@@ -768,82 +777,11 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
                         </div>
                       </div>
 
-                      {/* Moments - Single column on mobile */}
-                      <div className="grid grid-cols-1 gap-0">
-                        {item.moments.map((moment: Moment) => {
-                          const thumbnailMedia = moment.media?.find(m =>
-                            m.gateways?.some(g => g.metadata?.gateway_type === 'thumbnail')
-                          );
-                          const thumbnailGateway = thumbnailMedia?.gateways?.find(g =>
-                            g.metadata?.gateway_type === 'thumbnail'
-                          ) || thumbnailMedia?.gateways?.[0];
-
-                          const hasMedia = !!thumbnailGateway;
-                          const hasDescription = !!moment.description;
-                          const hasLinks = (moment.links?.length ?? 0) > 0;
-                          const linkPreview = hasLinks ? moment.links?.[0] : null;
-
-                          return (
-                            <div key={moment.id} className="relative">
-                              {hasMedia ? (
-                                <div className="relative h-48 overflow-hidden">
-                                  <img
-                                    src={thumbnailGateway.url}
-                                    alt="Moment media"
-                                    className="w-full h-full object-cover"
-                                  />
-                                  {/* Overlay with moment info */}
-                                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                                    {hasDescription && (
-                                      <div className="text-white text-sm mb-1">
-                                        {moment.description}
-                                      </div>
-                                    )}
-                                    <div className="text-white/80 text-xs">
-                                      {formatDate(moment.created_on)}
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                /* Text/Link only moment */
-                                <div className="bg-gray-50 dark:bg-gray-800 p-4 min-h-[120px] flex flex-col justify-between">
-                                  <div>
-                                    {hasDescription && (
-                                      <div className="text-gray-900 dark:text-white text-sm mb-3 leading-relaxed">
-                                        {moment.description}
-                                      </div>
-                                    )}
-                                    {linkPreview && (
-                                      <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                                        {linkPreview.image_url && (
-                                          <img
-                                            src={linkPreview.image_url}
-                                            alt={linkPreview.title}
-                                            className="w-full h-24 object-cover"
-                                          />
-                                        )}
-                                        <div className="p-2">
-                                          <div className="text-xs font-medium text-gray-900 dark:text-white truncate">
-                                            {linkPreview.title}
-                                          </div>
-                                          {linkPreview.description && (
-                                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                                              {linkPreview.description}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="text-gray-500 dark:text-gray-400 text-xs mt-2">
-                                    {formatDate(moment.created_on)}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {/* Moments - Dynamic grid on mobile */}
+                      <MomentsGrid 
+                        moments={item.moments} 
+                        onLayoutCalculated={(width) => handleMomentsLayoutCalculated(item.poap.tokenId, width)}
+                      />
                     </div>
 
                     {/* Desktop Layout: Side by side */}
