@@ -1,24 +1,18 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Card, Chip, Spinner, Button } from "@heroui/react";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Card, Spinner, Button } from "@heroui/react";
 import type { POAP } from "~/types/poap";
 import { POAP_SIZE, TimelinePoapImage } from "./lazy-poap-image";
-import { PoapWithMoments } from "./poap-with-moments";
 import {
   type Moment,
   type MomentsApiResponse,
   LOAD_MORE_THRESHOLD,
-  CARD_WIDTH,
-  CARD_GAP,
-  MAX_VERTICAL_HEIGHT
 } from "./moments-timeline-types";
 import {
-  type TimelineItem,
   formatDate,
   determineGroupingStrategy,
-  groupItemsByStrategy,
-  shouldGroupByMonth,
-  calculateUnifiedLayout,
-  createTimelineItems
+  getQuarterString,
+  getMonthString,
+  getDateString
 } from "./moments-timeline-utils";
 import { MomentsGrid } from "./moments-grid";
 
@@ -247,56 +241,6 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
     };
   }).sort((a, b) => b.date.getTime() - a.date.getTime());
 
-  // Helper functions for intelligent grouping
-  const getDateString = (date: Date) => {
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
-  };
-
-  const getMonthString = (date: Date) => {
-    return date.toISOString().substring(0, 7); // YYYY-MM format
-  };
-
-  const getQuarterString = (date: Date) => {
-    const year = date.getFullYear();
-    const quarter = Math.floor(date.getMonth() / 3) + 1;
-    return `${year}-Q${quarter}`; // YYYY-Q1 format
-  };
-
-  const determineGroupingStrategy = (items: typeof allTimelineItems[0][]) => {
-    if (items.length === 0) return 'day';
-
-    // Get unique dates
-    const uniqueDates = [...new Set(items.map(item => getDateString(item.date)))];
-
-    // If 10 days or fewer, group by day
-    if (uniqueDates.length <= 10) return 'day';
-
-    // Check time span
-    const dates = items.map(item => item.date).sort((a, b) => a.getTime() - b.getTime());
-    const firstDate = dates[0];
-    const lastDate = dates[dates.length - 1];
-
-    const monthsDiff = (lastDate.getFullYear() - firstDate.getFullYear()) * 12 +
-      (lastDate.getMonth() - firstDate.getMonth());
-
-    // If spans less than 1 month, group by day
-    if (monthsDiff < 1) return 'day';
-
-    // Try month grouping first
-    const uniqueMonths = [...new Set(items.map(item => getMonthString(item.date)))];
-
-    // If 10 months or fewer, group by month
-    if (uniqueMonths.length <= 10) return 'month';
-
-    // Otherwise, group by quarter
-    return 'quarter';
-  };
-
-  // Legacy function for backward compatibility
-  const shouldGroupByMonth = (items: typeof allTimelineItems[0][]) => {
-    return determineGroupingStrategy(items) !== 'day';
-  };
-
   // Create interleaved timeline structure with date-based grouping
   const timelineStructure: (typeof allTimelineItems[0] | typeof allTimelineItems[0][][])[] = [];
   let currentBatch: typeof allTimelineItems[0][] = [];
@@ -431,14 +375,6 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
 
   const withMomentsCount = allTimelineItems.filter(item => item.hasMoments).length;
   const withoutMomentsCount = allTimelineItems.filter(item => !item.hasMoments).length;
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   const formatMonth = (dateString: string) => {
     const date = new Date(dateString);
@@ -625,9 +561,6 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
                         // Determine if this is a month group or date group
                         const firstItem = dateGroup[0];
                         const groupKey = getDateString(firstItem.date);
-                        const isMonthGroup = shouldGroupByMonth([firstItem]) && dateGroup.some(item =>
-                          getDateString(item.date) !== groupKey
-                        );
 
                         return (
                           <div
