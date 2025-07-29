@@ -253,6 +253,9 @@ export default function POAPIndex() {
                                 <MomentsTimeline
                                     address={meta.address}
                                     poaps={poaps}
+                                    momentsCache={poapState.momentsCache}
+                                    updateMomentsCache={poapState.updateMomentsCache}
+                                    appendMoments={poapState.appendMoments}
                                 />
                             </div>
                         )}

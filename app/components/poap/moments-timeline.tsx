@@ -25,17 +25,18 @@ import {
 interface MomentsTimelineProps {
   address: string;
   poaps: POAP[];
+  // Persistent cache from parent
+  momentsCache: import('~/hooks/use-persistent-poap-state').MomentsCache;
+  updateMomentsCache: (update: Partial<import('~/hooks/use-persistent-poap-state').MomentsCache>) => void;
+  appendMoments: (newMoments: Moment[]) => void;
 }
 
 // LOAD_MORE_THRESHOLD is imported from moments-timeline-types
 
-export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
-  const [moments, setMoments] = useState<Moment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
+export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCache, appendMoments }: MomentsTimelineProps) {
+  // Use persistent cache instead of internal state
+  const { moments, loading, error, hasMore, page } = momentsCache;
   const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
   const [containerWidth, setContainerWidth] = useState(() => {
     // Better initial value based on window width if available
     if (typeof window !== 'undefined') {
@@ -48,14 +49,16 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
 
   const fetchMoments = async (pageNum: number = 1, append: boolean = false) => {
     try {
-      if (pageNum === 1) setLoading(true);
-      else setLoadingMore(true);
+      if (pageNum === 1) {
+        updateMomentsCache({ loading: true, error: null });
+      } else {
+        setLoadingMore(true);
+      }
 
       // Get owner address from first POAP to avoid API doing address resolution
       const ownerAddress = poaps[0]?.owner;
       if (!ownerAddress) {
-        setError('No owner address found in POAP data');
-        setLoading(false);
+        updateMomentsCache({ error: 'No owner address found in POAP data', loading: false });
         return;
       }
 
@@ -79,25 +82,43 @@ export function MomentsTimeline({ address, poaps }: MomentsTimelineProps) {
       }
 
       if (append) {
-        setMoments(prev => [...prev, ...data.moments]);
+        appendMoments(data.moments);
+        updateMomentsCache({ 
+          hasMore: data.pagination.hasMore, 
+          page: pageNum,
+          lastFetchTime: Date.now()
+        });
       } else {
-        setMoments(data.moments);
+        updateMomentsCache({ 
+          moments: data.moments,
+          hasMore: data.pagination.hasMore, 
+          page: pageNum,
+          loading: false,
+          error: null,
+          lastFetchTime: Date.now()
+        });
       }
-
-      setHasMore(data.pagination.hasMore);
-      setPage(pageNum);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch moments');
+      updateMomentsCache({ 
+        error: err instanceof Error ? err.message : 'Failed to fetch moments',
+        loading: false
+      });
       console.error('Error fetching moments:', err);
     } finally {
-      setLoading(false);
       setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchMoments();
-  }, [address]);
+    // Only fetch if we don't have cached data or if address changed
+    const hasCachedData = moments.length > 0;
+    const cacheAge = Date.now() - momentsCache.lastFetchTime;
+    const isCacheStale = cacheAge > 5 * 60 * 1000; // 5 minutes
+    
+    if (!hasCachedData || isCacheStale) {
+      fetchMoments();
+    }
+  }, [address, moments.length, momentsCache.lastFetchTime]);
 
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore) {

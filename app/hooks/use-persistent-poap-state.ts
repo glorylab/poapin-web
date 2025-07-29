@@ -3,6 +3,7 @@ import { useSearchParams, useLocation } from '@remix-run/react';
 import type { POAP } from '~/types/poap';
 import { filterPoaps, sortPoaps } from '~/utils/poap-filter-sort';
 import { PlausibleEvents } from '~/utils/usePlausible';
+import type { Moment, MomentsApiResponse } from '~/components/poap/moments-timeline-types';
 
 // Types
 export interface FilterState {
@@ -14,9 +15,26 @@ export interface SortState {
     direction: 'asc' | 'desc';
 }
 
+export interface MomentsCache {
+    moments: Moment[];
+    hasMore: boolean;
+    page: number;
+    loading: boolean;
+    error: string | null;
+    lastFetchTime: number;
+}
+
 // Default values
 export const DEFAULT_SORT: SortState = { key: 'date', direction: 'desc' };
 export const DEFAULT_FILTERS: FilterState = {};
+export const DEFAULT_MOMENTS_CACHE: MomentsCache = {
+    moments: [],
+    hasMore: false,
+    page: 1,
+    loading: false,
+    error: null,
+    lastFetchTime: 0
+};
 
 /**
  * Persistent POAP State Hook
@@ -60,9 +78,19 @@ export function usePersistentPoapState(address?: string) {
         if (typeof window === 'undefined') return false;
         try {
             const stored = sessionStorage.getItem(getStorageKey('time-capsule'));
-            return stored === 'true';
+            return stored ? JSON.parse(stored) : false;
         } catch {
             return false;
+        }
+    });
+    
+    const [momentsCache, setMomentsCache] = useState<MomentsCache>(() => {
+        if (typeof window === 'undefined') return DEFAULT_MOMENTS_CACHE;
+        try {
+            const stored = sessionStorage.getItem(getStorageKey('moments'));
+            return stored ? JSON.parse(stored) : DEFAULT_MOMENTS_CACHE;
+        } catch {
+            return DEFAULT_MOMENTS_CACHE;
         }
     });
     
@@ -150,19 +178,22 @@ export function usePersistentPoapState(address?: string) {
             const storedFilters = sessionStorage.getItem(getStorageKey('filters'));
             const storedSort = sessionStorage.getItem(getStorageKey('sort'));
             const storedTimeCapsule = sessionStorage.getItem(getStorageKey('time-capsule'));
+            const storedMoments = sessionStorage.getItem(getStorageKey('moments'));
             
-            const hasStoredState = storedFilters || storedSort || storedTimeCapsule;
+            const hasStoredState = storedFilters || storedSort || storedTimeCapsule || storedMoments;
             
             if (hasStoredState) {
                 console.log('Direct access without URL params but has stored state - clearing state');
                 setFilters(DEFAULT_FILTERS);
                 setSort(DEFAULT_SORT);
                 setTimeCapsuleMode(false);
+                setMomentsCache(DEFAULT_MOMENTS_CACHE);
                 
                 // Clear storage as well
                 sessionStorage.removeItem(getStorageKey('filters'));
                 sessionStorage.removeItem(getStorageKey('sort'));
                 sessionStorage.removeItem(getStorageKey('time-capsule'));
+                sessionStorage.removeItem(getStorageKey('moments'));
             }
         }
         
@@ -203,6 +234,11 @@ export function usePersistentPoapState(address?: string) {
         if (typeof window === 'undefined' || !address) return;
         sessionStorage.setItem(getStorageKey('time-capsule'), timeCapsuleMode.toString());
     }, [timeCapsuleMode, address]);
+    
+    useEffect(() => {
+        if (typeof window === 'undefined' || !address) return;
+        sessionStorage.setItem(getStorageKey('moments'), JSON.stringify(momentsCache));
+    }, [momentsCache, address]);
     
     // Sync to URL (debounced to avoid excessive updates)
     useEffect(() => {
@@ -318,7 +354,24 @@ export function usePersistentPoapState(address?: string) {
         setFilters(DEFAULT_FILTERS);
         setSort(DEFAULT_SORT);
         setTimeCapsuleMode(false);
+        setMomentsCache(DEFAULT_MOMENTS_CACHE);
     };
+    
+    // Moments cache operations
+    const updateMomentsCache = useCallback((update: Partial<MomentsCache>) => {
+        setMomentsCache(prev => ({ ...prev, ...update }));
+    }, []);
+    
+    const appendMoments = useCallback((newMoments: Moment[]) => {
+        setMomentsCache(prev => ({
+            ...prev,
+            moments: [...prev.moments, ...newMoments]
+        }));
+    }, []);
+    
+    const resetMomentsCache = useCallback(() => {
+        setMomentsCache(DEFAULT_MOMENTS_CACHE);
+    }, []);
     
     // Computed values
     const hasActiveFilters = Object.values(filters).some(values => values.length > 0);
@@ -332,6 +385,7 @@ export function usePersistentPoapState(address?: string) {
         isTransitioning,
         showClassic,
         showTimeline,
+        momentsCache,
         
         // Computed state
         hasActiveFilters,
@@ -351,6 +405,11 @@ export function usePersistentPoapState(address?: string) {
         setIsTransitioning,
         setShowClassic,
         setShowTimeline,
-        resetAll
+        resetAll,
+        
+        // Moments cache operations
+        updateMomentsCache,
+        appendMoments,
+        resetMomentsCache
     };
 }
