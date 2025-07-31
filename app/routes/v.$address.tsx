@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { POAP, Moment } from "~/types/poap";
 import { RateLimitError, getPoapsOfAddress } from "~/lib/poap";
-import { getMomentsCountFromGraphQL } from "~/utils/moments";
-import { getMomentsCountByAuthor, Collection } from "~/lib/poap-graph";
+import { Collection } from "~/lib/poap-graph";
 import { LoaderFunction, MetaFunction, json } from "@remix-run/cloudflare";
 import { Outlet, useLoaderData, useParams, NavLink, useLocation } from "@remix-run/react";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
@@ -99,7 +98,12 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
     }
 
     try {
+        // Start timer for performance monitoring
+        const startTime = Date.now();
+        console.log(`🚀 Starting loader for ${address}`);
+
         const poaps: POAP[] = await getPoapsOfAddress(context, address);
+        console.log(`✅ POAPs fetched in ${Date.now() - startTime}ms`);
 
         if (!poaps || !poaps.length) {
             return json({ error: "No POAPs found" }, { status: 404 });
@@ -118,26 +122,11 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         const metaDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${poapTitles}`;
 
-        // Get accurate moments count using POAP Graph API
-        let totalMomentsCount = 0;
-        let dropsWithMoments: number[] = [];
-        try {
-            totalMomentsCount = await getMomentsCountFromGraphQL(ethAddress, context);
-        } catch (error) {
-            console.error('Failed to fetch moments count:', error);
-            totalMomentsCount = 0;
-        }
+        // 🚀 OPTIMIZATION: Only generate OG image on server-side (needed for SEO)
+        // Moments data will be loaded client-side for better TTFB
+        const ogStart = Date.now();
+        console.log(`🖼️ Generating OG image...`);
         
-        // Get basic moments count for SEO fallback (keep for dropsWithMoments)
-        try {
-            const momentsCount = await getMomentsCountByAuthor({ context, author: ethAddress });
-            dropsWithMoments = momentsCount.uniqueDropIds;
-        } catch (error) {
-            console.error('Failed to fetch drops with moments:', error);
-            dropsWithMoments = [];
-        }
-
-        // Generate OG image on server-side (needed immediately for display and SEO)
         let ogImageUrl = "";
         try {
             const ogResponse = await fetch(`https://og.poap.in/api/poap/v/${address}`, {
@@ -150,13 +139,21 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
                     poapapikey: getEnv({ context }).poapApiKey,
                 }),
             });
-
+            
             if (ogResponse.ok) {
                 ogImageUrl = ogResponse.url;
+            } else {
+                console.error(`OG API responded with ${ogResponse.status}`);
             }
         } catch (error) {
             console.error('Error generating OG image:', error);
         }
+        
+        console.log(`✅ OG image generated in ${Date.now() - ogStart}ms`);
+        
+        // Moments data will be loaded client-side
+        const totalMomentsCount = 0;
+        const dropsWithMoments: number[] = [];
 
         // Create base description for SEO (AI summary will be added client-side)
         let finalDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
@@ -176,6 +173,9 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         };
 
         // Return critical data immediately (non-critical data loaded client-side)
+        const totalTime = Date.now() - startTime;
+        console.log(`🎯 Total loader time: ${totalTime}ms for ${address}`);
+        
         return json({
             poaps,
             totalMomentsCount,

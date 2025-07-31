@@ -10,11 +10,13 @@ export class RateLimitError extends Error {
 }
 
 export async function getPoapsOfAddress(context: AppLoadContext, address: string): Promise<POAP[]> {
+    console.log(`🌐 Fetching POAPs from API: ${address}`);
     const apiKey = getEnv({ context }).poapinReadApiKey;
 
     if (!apiKey) {
         throw new Error("API key not found");
     }
+    
     const res = await fetch(`https://api.poap.tech/actions/scan/${address}`, {
         headers: {
             accept: "application/json",
@@ -32,7 +34,11 @@ export async function getPoapsOfAddress(context: AppLoadContext, address: string
         }
         throw new Error("Failed to fetch poaps");
     }
-    return await res.json();
+    
+    const poaps: POAP[] = await res.json();
+    console.log(`✅ POAPs fetched successfully for: ${address}`);
+    
+    return poaps;
 }
 
 export async function getPoapToken(context: AppLoadContext, tokenId: string): Promise<POAPDetail> {
