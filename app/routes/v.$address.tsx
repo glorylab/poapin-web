@@ -127,27 +127,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         const ogStart = Date.now();
         console.log(`🖼️ Generating OG image...`);
         
-        let ogImageUrl = "";
-        try {
-            const ogResponse = await fetch(`https://og.poap.in/api/poap/v/${address}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    poaps,
-                    poapapikey: getEnv({ context }).poapApiKey,
-                }),
-            });
-            
-            if (ogResponse.ok) {
-                ogImageUrl = ogResponse.url;
-            } else {
-                console.error(`OG API responded with ${ogResponse.status}`);
-            }
-        } catch (error) {
-            console.error('Error generating OG image:', error);
-        }
+        let ogImageUrl = `https://og.poap.in/api/poap/v/${address}`;
         
         console.log(`✅ OG image generated in ${Date.now() - ogStart}ms`);
         
