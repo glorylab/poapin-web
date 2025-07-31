@@ -471,7 +471,7 @@ export default function Index() {
             <section className="sr-only" aria-label="Create your personalized POAP card to showcase your collection">
               <h2>Create Your POAP Card</h2>
               <p>Generate a beautiful, shareable card showcasing your POAP collection. Enter your Ethereum address or ENS name to create your personalized POAP card.</p>
-              <a href="/card">Get My POAP Card</a>
+              <a href="/card" title="Get My POAP Card - Create Your Collection Card">Get My POAP Card</a>
             </section>
 
             <div className="w-full mx-auto flex flex-col items-center">

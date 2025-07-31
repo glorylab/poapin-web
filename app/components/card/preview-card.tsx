@@ -37,8 +37,8 @@ export function PreviewCard({ onGetStarted }: PreviewCardProps) {
                     translateZ="50"
                     className="text-lg p-4 sm:text-xl font-bold text-neutral-600 dark:text-white"
                 >
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl transition-all">Your latest POAP collection</h1>
-                    <h2 className="text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl transition-all mt-1 lg:mt-2">Anytime, Anywhere.</h2>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl transition-all">Your latest POAP collection</h2>
+                    <h3 className="text-md sm:text-lg md:text-xl lg:text-2xl xl:text-3xl transition-all mt-1 lg:mt-2">Anytime, Anywhere.</h3>
                 </CardItem>
                 <CardItem
                     as="p"

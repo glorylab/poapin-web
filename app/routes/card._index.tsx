@@ -42,6 +42,9 @@ export const meta: MetaFunction = ({ location }) => {
     // Additional SEO tags
     { name: "robots", content: "index, follow" },
     { name: "author", content: "POAPin" },
+    
+    // X-Robots-Tag
+    { "http-equiv": "X-Robots-Tag", content: "index, follow" },
   ];
 };
 
@@ -108,9 +111,27 @@ export default function CardIndexPage() {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
             
-            <header className="sr-only">
-                <h1>Create Your POAP Card</h1>
-                <p>Generate a beautiful, shareable card showcasing your POAP collection</p>
+            <header className="text-center py-8">
+                <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 mb-4">Create Your POAP Card</h1>
+                <p className="text-lg text-neutral-600 max-w-2xl mx-auto">Generate a beautiful, shareable card showcasing your POAP collection</p>
+                
+                <section className="mt-8">
+                    <h2 className="text-xl font-semibold text-neutral-700 mb-4">How It Works</h2>
+                    <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                        <div className="text-center">
+                            <h3 className="text-lg font-medium text-neutral-800 mb-2">1. Enter Address</h3>
+                            <p className="text-sm text-neutral-600">Input your Ethereum address or ENS name</p>
+                        </div>
+                        <div className="text-center">
+                            <h3 className="text-lg font-medium text-neutral-800 mb-2">2. Generate Card</h3>
+                            <p className="text-sm text-neutral-600">We create a beautiful visual card of your POAPs</p>
+                        </div>
+                        <div className="text-center">
+                            <h3 className="text-lg font-medium text-neutral-800 mb-2">3. Share & Download</h3>
+                            <p className="text-sm text-neutral-600">Share your collection or download the image</p>
+                        </div>
+                    </div>
+                </section>
             </header>
             
             <AnimatePresence>
@@ -136,7 +157,7 @@ export default function CardIndexPage() {
                             className="w-full mx-auto"
                         >
                             <div className="bg-neutral-50 p-8">
-                                <h2 className="text-2xl font-bold text-center mb-6">Showcase your POAP collection</h2>
+                                <h3 className="text-2xl font-bold text-center mb-6">Showcase your POAP collection</h3>
                                 <AnimatePresence mode="wait">
 
                                     <AddressForm onSubmit={handleAddressSubmit} />

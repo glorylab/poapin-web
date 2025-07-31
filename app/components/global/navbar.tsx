@@ -52,7 +52,7 @@ export default function NavBarComponent() {
                     className="mr-2 h-6 md:hidden text-default"
                     aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                 />
-                <Link to="/" className="flex items-center gap-2">
+                <Link to="/" className="flex items-center gap-2" title="POAPin - POAP Collection Viewer">
                     <div className="relative">
                         <img 
                             src="/images/title_poapin_s.png" 
@@ -76,27 +76,27 @@ export default function NavBarComponent() {
             >
                 <NavbarItem
                     className="flex items-center h-full px-4" isActive={isHomeActive(location.pathname)}>
-                    <Link to="/" className="flex items-center gap-2 h-full text-inherit" >
+                    <Link to="/" className="flex items-center gap-2 h-full text-inherit" title="Home - POAPin">
                         Home
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isExplorerActive(location.pathname)}>
-                    <Link to="/v" className="flex items-center gap-2 h-full text-inherit" >
+                    <Link to="/v" className="flex items-center gap-2 h-full text-inherit" title="Explorer - Browse POAP Collections">
                         Explorer
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isCardActive(location.pathname)}>
-                    <Link to="/card" className="flex items-center gap-2 h-full text-inherit" >
+                    <Link to="/card" className="flex items-center gap-2 h-full text-inherit" title="Card - Create POAP Card">
                         Card
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isSponsorsActive(location.pathname)}>
-                    <Link to="/sponsors" className="flex items-center gap-2 h-full text-inherit">
+                    <Link to="/sponsors" className="flex items-center gap-2 h-full text-inherit" title="Sponsors - Our Supporters">
                         Sponsors
                     </Link>
                 </NavbarItem>
                 <NavbarItem className="flex items-center h-full px-4" isActive={isContactActive(location.pathname)}>
-                    <Link to="/contact" className="flex items-center gap-2 h-full text-inherit" >
+                    <Link to="/contact" className="flex items-center gap-2 h-full text-inherit" title="Contact - Get in Touch">
                         Contact
                     </Link>
                 </NavbarItem>
@@ -105,27 +105,27 @@ export default function NavBarComponent() {
             {/* Mobile Menu */}
             <NavbarMenu className="text-default gap-0 rounded-md">
                 <NavbarMenuItem isActive={isHomeActive(location.pathname)}>
-                    <Link to="/" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
+                    <Link to="/" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Home - POAPin">
                         Home
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isExplorerActive(location.pathname)}>
-                    <Link to="/v" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
+                    <Link to="/v" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Explorer - Browse POAP Collections">
                         Explorer
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isCardActive(location.pathname)}>
-                    <Link to="/card" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
+                    <Link to="/card" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Card - Create POAP Card">
                         Card
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>
-                    <Link to="/sponsors" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick}>
+                    <Link to="/sponsors" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Sponsors - Our Supporters">
                         Sponsors
                     </Link>
                 </NavbarMenuItem>
                 <NavbarMenuItem isActive={isContactActive(location.pathname)}>
-                    <Link to="/contact" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" onClick={handleMenuItemClick}>
+                    <Link to="/contact" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" onClick={handleMenuItemClick} title="Contact - Get in Touch">
                         Contact
                     </Link>
                 </NavbarMenuItem>
