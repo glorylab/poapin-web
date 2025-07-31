@@ -100,10 +100,8 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
     try {
         // Start timer for performance monitoring
         const startTime = Date.now();
-        console.log(`🚀 Starting loader for ${address}`);
 
         const poaps: POAP[] = await getPoapsOfAddress(context, address);
-        console.log(`✅ POAPs fetched in ${Date.now() - startTime}ms`);
 
         if (!poaps || !poaps.length) {
             return json({ error: "No POAPs found" }, { status: 404 });
@@ -123,14 +121,9 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${poapTitles}`;
 
         // 🚀 OPTIMIZATION: Only generate OG image on server-side (needed for SEO)
-        // Moments data will be loaded client-side for better TTFB
-        const ogStart = Date.now();
-        console.log(`🖼️ Generating OG image...`);
-        
+        // Moments data will be loaded client-side for better TTFB        
         let ogImageUrl = `https://og.poap.in/api/poap/v/${address}`;
-        
-        console.log(`✅ OG image generated in ${Date.now() - ogStart}ms`);
-        
+                
         // Moments data will be loaded client-side
         const totalMomentsCount = 0;
         const dropsWithMoments: number[] = [];

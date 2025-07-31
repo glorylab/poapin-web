@@ -36,7 +36,6 @@ export async function getPoapsOfAddress(context: AppLoadContext, address: string
     }
     
     const poaps: POAP[] = await res.json();
-    console.log(`✅ POAPs fetched successfully for: ${address}`);
     
     return poaps;
 }

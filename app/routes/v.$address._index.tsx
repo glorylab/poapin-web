@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
@@ -106,12 +106,20 @@ export default function POAPIndex() {
     const { 
         poaps, 
         meta, 
-        totalMomentsCount, 
+        totalMomentsCount: serverMomentsCount, 
         dropsWithMoments, 
         filteredPoapCount, 
         setFilteredPoapCount,
         poapState 
     } = useOutletContext<OutletContext>();
+    
+    // Client-side moments count state (since server-side is now 0 for performance)
+    const [clientMomentsCount, setClientMomentsCount] = useState<number>(0);
+    const [isFetchingMoments, setIsFetchingMoments] = useState(false);
+    const [hasFetchedMoments, setHasFetchedMoments] = useState(false);
+    
+    // Use client-side count if available, fallback to server-side
+    const totalMomentsCount = clientMomentsCount > 0 ? clientMomentsCount : serverMomentsCount;
     
     // Use unified state from parent (prevents reset on tab switch)
     const {
@@ -139,6 +147,48 @@ export default function POAPIndex() {
         delay: 1500, // Start preloading after 1.5s
         enabled: !isTimeCapsuleMode // Don't preload during animations
     });
+    
+    // Fetch moments count client-side after page load using internal API
+    useEffect(() => {
+        const fetchMomentsCount = async () => {
+            if (isFetchingMoments || hasFetchedMoments) return;
+            
+            setIsFetchingMoments(true);
+            console.log(`🔍 Fetching moments count client-side for: ${meta.address}`);
+            
+            try {
+                // Get ETH address from POAPs if available
+                const ethAddress = poaps.length > 0 ? poaps[0].owner : meta.address;
+                
+                // Use internal API route for security
+                const response = await fetch(`/api/moments-count/${ethAddress}`);
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+                
+                const data: any = await response.json();
+                
+                if (data.success) {
+                    setClientMomentsCount(data.totalMomentsCount);
+                } else {
+                    console.error('API returned error:', data.error);
+                    setClientMomentsCount(0);
+                }
+            } catch (error) {
+                console.error('Failed to fetch moments count client-side:', error);
+                setClientMomentsCount(0);
+            } finally {
+                setIsFetchingMoments(false);
+                setHasFetchedMoments(true); // Mark as fetched regardless of success/failure
+            }
+        };
+        
+        // Only fetch if we have POAPs and haven't fetched yet
+        if (poaps.length > 0 && !isFetchingMoments && !hasFetchedMoments) {
+            fetchMomentsCount();
+        }
+    }, [poaps, meta.address, isFetchingMoments, hasFetchedMoments]);
     
     // Auto-activate time capsule hook
     useAutoTimeCapsule({
