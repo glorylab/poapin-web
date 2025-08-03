@@ -158,7 +158,7 @@ export default function App() {
             <ScrollRestoration />
             <Scripts />
             <LiveReload />
-            <footer ref={footerRef}>
+            <footer ref={footerRef} className="z-[99999]">
               <FooterComponent />
             </footer>
           </JotaiProvider>

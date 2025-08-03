@@ -29,7 +29,7 @@ export default function NavBarComponent() {
             isMenuOpen={isMenuOpen}
             onMenuOpenChange={setIsMenuOpen}
             classNames={{
-                base: `z-50 lg:backdrop-blur-lg lg:backdrop-filter flex-col border-secondary-200 transition-all bg-gradient-to-b  ${isNavigating
+                base: `z-[99999] lg:backdrop-blur-lg lg:backdrop-filter flex-col border-secondary-200 transition-all bg-gradient-to-b  ${isNavigating
                     ? 'navigating shadow-2xl border-b-2 bg-background-200/50 from-background via-background/20 to-background/0'
                     : 'shadow-md border-b-1 bg-background/50 from-background via-background/20 to-background/0'
                     }`,
