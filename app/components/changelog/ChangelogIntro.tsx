@@ -18,14 +18,12 @@ function GitHubIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-function FeedIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+function FarcasterIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor" {...props}>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M2.5 3a.5.5 0 0 1 .5-.5h.5c5.523 0 10 4.477 10 10v.5a.5.5 0 0 1-.5.5h-.5a.5.5 0 0 1-.5-.5v-.5A8.5 8.5 0 0 0 3.5 4H3a.5.5 0 0 1-.5-.5V3Zm0 4.5A.5.5 0 0 1 3 7h.5A5.5 5.5 0 0 1 9 12.5v.5a.5.5 0 0 1-.5.5H8a.5.5 0 0 1-.5-.5v-.5a4 4 0 0 0-4-4H3a.5.5 0 0 1-.5-.5v-.5Zm0 5a1 1 0 1 1 2 0 1 1 0 0 1-2 0Z"
-      />
+    <svg viewBox="0 0 1000 1000" aria-hidden="true" fill="currentColor" {...props}>
+      <path d="M257.778 155.556H742.222V844.445H671.111V528.889H670.414C662.554 441.677 589.258 373.333 500 373.333C410.742 373.333 337.446 441.677 329.586 528.889H328.889V844.445H257.778V155.556Z" />
+      <path d="M128.889 253.333L157.778 351.111H182.222V746.667C169.949 746.667 160 756.616 160 768.889V795.556H155.556C143.283 795.556 133.333 805.505 133.333 817.778V844.445H382.222V817.778C382.222 805.505 372.273 795.556 360 795.556H355.556V768.889C355.556 756.616 345.606 746.667 333.333 746.667H306.667V253.333H128.889Z" />
+      <path d="M675.556 746.667C663.283 746.667 653.333 756.616 653.333 768.889V795.556H648.889C636.616 795.556 626.667 805.505 626.667 817.778V844.445H875.556V817.778C875.556 805.505 865.606 795.556 853.333 795.556H848.889V768.889C848.889 756.616 838.94 746.667 826.667 746.667V351.111H851.111L880 253.333H702.222V746.667H675.556Z" />
     </svg>
   )
 }
@@ -50,17 +48,14 @@ export function ChangelogIntro() {
         Discover what's new in each release and how we're making your POAP experience better.
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-x-1 gap-y-3 sm:gap-x-2 lg:justify-start">
-        <IconLink to="/docs" icon={BookIcon} className="flex-none">
-          Documentation
-        </IconLink>
         <IconLink to="https://github.com/glorylab/poapin-web" icon={GitHubIcon} className="flex-none">
-          GitHub
+          glorylab
         </IconLink>
         <IconLink to="https://x.com/glorylaboratory" icon={XIcon} className="flex-none">
-          Follow us
+          @glorylaboratory
         </IconLink>
-        <IconLink to="/feed.xml" icon={FeedIcon} className="flex-none">
-          RSS
+        <IconLink to="https://farcaster.xyz/glorylab.eth" icon={FarcasterIcon} className="flex-none">
+          @glorylab.eth
         </IconLink>
       </div>
     </>
@@ -71,7 +66,7 @@ export function ChangelogIntroFooter() {
   return (
     <p className="flex items-baseline gap-x-2 text-[0.8125rem]/6 text-primary-500">
       Brought to you by{' '}
-      <IconLink to="https://x.com/glorylaboratory" icon={XIcon} compact>
+      <IconLink to="https://glorylab.xyz" compact>
         Glory Lab
       </IconLink>
     </p>

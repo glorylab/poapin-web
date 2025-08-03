@@ -23,6 +23,10 @@ const navLinks = [
         href: "/sponsors",
     },
     {
+        name: "Changelog",
+        href: "/changelog",
+    },
+    {
         name: "Contact",
         href: "/contact",
     },

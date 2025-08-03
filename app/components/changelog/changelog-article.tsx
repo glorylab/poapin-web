@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from '@remix-run/react'
 import clsx from 'clsx'
 import { marked } from 'marked'
+import { Chip } from '@heroui/react'
 import { Changelog } from '~/types/changelog'
 import { FormattedDate } from './FormattedDate'
 import { SparkleIcon } from './SparkleIcon'
@@ -37,10 +38,10 @@ function ArticleHeader({ id, date }: { id: string; date: string | Date }) {
         <Link to={`#${id}`} className="inline-flex">
           <FormattedDate
             date={date}
-            className="hidden xl:pointer-events-auto xl:block xl:text-2xs/4 xl:font-medium xl:text-white/50"
+            className="hidden xl:pointer-events-auto xl:block xl:text-2xs/4 xl:font-medium xl:text-primary-500"
           />
         </Link>
-        <div className="h-[0.0625rem] w-3.5 bg-gray-400 lg:-mr-3.5 xl:mr-0 xl:bg-gray-300" />
+        <div className="h-[0.0625rem] w-3.5 bg-primary-500 lg:-mr-3.5 xl:mr-0 xl:bg-primary-500" />
       </div>
       <ContentWrapper>
         <div className="flex">
@@ -87,58 +88,58 @@ export default function ChangelogArticle({ changelog, index }: ChangelogArticleP
   // Configure marked for better rendering
   const parseMarkdown = (content: string) => {
     if (!content) return ''
-    
+
     try {
       // Configure marked options for better rendering
       marked.setOptions({
         breaks: true, // Convert \n to <br>
         gfm: true, // GitHub Flavored Markdown
       })
-      
+
       // Process the markdown content
       let html = String(marked(content))
-      
+
       // Post-process to improve image handling and styling
       html = html.replace(
         /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g,
         '<img$1src="$2"$3 class="rounded-lg shadow-lg max-w-full h-auto my-4" loading="lazy" alt="">'
       )
-      
+
       // Improve heading styling
       html = html.replace(
         /<h([1-6])([^>]*?)>/g,
         '<h$1$2 class="font-semibold text-white mb-4 mt-6">'
       )
-      
+
       // Improve paragraph styling
       html = html.replace(
         /<p([^>]*?)>/g,
         '<p$1 class="mb-4 text-gray-300 leading-relaxed">'
       )
-      
+
       // Improve list styling
       html = html.replace(
         /<ul([^>]*?)>/g,
         '<ul$1 class="list-disc list-inside mb-4 space-y-2 text-gray-300">'
       )
-      
+
       html = html.replace(
         /<ol([^>]*?)>/g,
         '<ol$1 class="list-decimal list-inside mb-4 space-y-2 text-gray-300">'
       )
-      
+
       // Improve code styling
       html = html.replace(
         /<code([^>]*?)>/g,
         '<code$1 class="bg-gray-800 text-gray-200 px-2 py-1 rounded text-sm font-mono">'
       )
-      
+
       // Improve blockquote styling
       html = html.replace(
         /<blockquote([^>]*?)>/g,
         '<blockquote$1 class="border-l-4 border-blue-500 pl-4 italic text-gray-400 my-4">'
       )
-      
+
       return html
     } catch (error) {
       console.error('Error parsing markdown:', error)
@@ -159,21 +160,43 @@ export default function ChangelogArticle({ changelog, index }: ChangelogArticleP
         <ArticleHeader id={articleId} date={changelog.date_created} />
         <ContentWrapper className="typography" data-mdx-content>
           {/* Title */}
-          <h2 className="text-2xl font-display font-semibold text-white mb-6">
+          <h2 className="text-2xl font-display font-semibold text-white mb-2">
             {changelog.title}
           </h2>
 
           {/* Version info if available */}
           {changelog.version && (
-            <div className="mb-6 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-sky-500/10 text-sky-300 border border-sky-500/20">
+            <div className="font-mono mb-6 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-sky-500/10 text-sky-300 border border-sky-500/60">
               Version {changelog.version}
+            </div>
+          )}
+
+          {/* Tags/Categories as Improvements */}
+          {changelog.tags && changelog.tags.length > 0 && (
+            <div className="mt-0">
+              <div className="flex flex-wrap gap-2">
+                <SparkleIcon className="mr-2 w-5 h-5" />
+                {changelog.tags.map((tag, tagIndex) => (
+                  <Chip
+                    key={tagIndex}
+                    classNames={{
+                      base: "bg-gradient-to-br from-secondary-300 to-secondary-500 border-small border-secondary-400 shadow-primary-500/20 overflow-clip",
+                      content: "drop-shadow-sm shadow-black text-white font-medium",
+                    }}
+                    variant="shadow"
+                    size="sm"
+                  >
+                    {tag}
+                  </Chip>
+                ))}
+              </div>
             </div>
           )}
 
           {/* Content */}
           {changelog.content && (
             <div className="mb-8">
-              <div 
+              <div
                 className="typography prose prose-invert prose-lg max-w-none"
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
               />
@@ -198,22 +221,6 @@ export default function ChangelogArticle({ changelog, index }: ChangelogArticleP
             </div>
           )}
 
-          {/* Tags/Categories as Improvements */}
-          {changelog.tags && changelog.tags.length > 0 && (
-            <div className="mt-8">
-              <h3 className="flex items-center text-lg font-medium text-white mb-4">
-                <SparkleIcon className="mr-2 w-5 h-5" />
-                Improvements
-              </h3>
-              <ul className="space-y-2">
-                {changelog.tags.map((tag, tagIndex) => (
-                  <li key={tagIndex} className="text-gray-300">
-                    • {tag}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </ContentWrapper>
       </div>
     </article>

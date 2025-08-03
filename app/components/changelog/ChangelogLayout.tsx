@@ -14,7 +14,7 @@ function Timeline() {
           <pattern id={id} width="6" height="8" patternUnits="userSpaceOnUse">
             <path
               d="M0 0H6M0 8H6"
-              className="stroke-primary-500/10 xl:stroke-white/10"
+              className="stroke-primary-500/40 xl:stroke-white/70"
               fill="none"
             />
           </pattern>
@@ -115,7 +115,7 @@ function FixedSidebar({
       <Glow />
       <div className="relative flex w-full lg:pointer-events-auto lg:mr-[calc(max(2rem,50%-38rem)+40rem)] lg:min-w-lg lg:overflow-x-hidden lg:overflow-y-auto lg:pl-[max(4rem,calc(50%-38rem))] bg-background-600 lg:bg-transparent">
         <div className="mx-auto max-w-lg lg:mx-0 lg:flex lg:w-96 lg:max-w-none lg:flex-col lg:before:flex-1 lg:before:pt-6">
-          <div className="pt-20 pb-16 sm:pt-32 sm:pb-20 lg:py-20">
+          <div className="pt-20 pb-16 sm:pt-32 sm:pb-20 lg:py-20 px-4">
             <div className="relative">
               {main}
             </div>
