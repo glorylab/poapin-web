@@ -6,6 +6,7 @@ export interface Changelog {
     date_created: string;
     user_updated: string;
     date_updated: string;
+    release_date: string;
     title: string;
     tags: string[];
     version: string;

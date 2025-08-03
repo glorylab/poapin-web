@@ -99,10 +99,60 @@ export default function ChangelogArticle({ changelog, index }: ChangelogArticleP
       // Process the markdown content
       let html = String(marked(content))
 
-      // Post-process to improve image handling and styling
+      // First, handle multiple images in the same paragraph (same line in markdown)
       html = html.replace(
-        /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g,
-        '<img$1src="$2"$3 class="rounded-lg shadow-lg max-w-full h-auto my-4" loading="lazy" alt="">'
+        /<p>([^<]*<img[^>]*>[^<]*){2,}<\/p>/g,
+        (match) => {
+          // Extract all images from the paragraph
+          const images = match.match(/<img[^>]*>/g) || []
+          
+          if (images.length > 1) {
+            // Multiple images in same paragraph - create horizontal scroll container
+            const processedImages = images.map(img => 
+              img.replace(
+                /<img([^>]*?)src="([^"]*?)"([^>]*?)>/,
+                '<img$1src="$2"$3 class="max-h-[512px] rounded-lg shadow-lg flex-shrink-0 w-auto h-auto" loading="lazy" alt="">'
+              )
+            ).join('')
+            
+            return `<div class="flex gap-4 overflow-x-auto py-4 my-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">${processedImages}</div>`
+          }
+          
+          return match
+        }
+      )
+      
+      // Then handle consecutive single-image paragraphs
+      html = html.replace(
+        /(<p>\s*<img[^>]*>\s*<\/p>\s*)+/g,
+        (match) => {
+          // Extract all images from consecutive paragraphs
+          const images = match.match(/<img[^>]*>/g) || []
+          
+          if (images.length === 1) {
+            // Single image - keep original styling
+            return match.replace(
+              /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g,
+              '<img$1src="$2"$3 class="max-h-[512px] rounded-lg shadow-lg max-w-full h-auto my-4" loading="lazy" alt="">'
+            )
+          } else {
+            // Multiple consecutive single-image paragraphs - create horizontal scroll container
+            const processedImages = images.map(img => 
+              img.replace(
+                /<img([^>]*?)src="([^"]*?)"([^>]*?)>/,
+                '<img$1src="$2"$3 class="max-h-[512px] rounded-lg shadow-lg flex-shrink-0 w-auto h-auto" loading="lazy" alt="">'
+              )
+            ).join('')
+            
+            return `<div class="flex gap-4 overflow-x-auto py-4 my-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">${processedImages}</div>`
+          }
+        }
+      )
+      
+      // Handle any remaining single images that weren't in paragraphs
+      html = html.replace(
+        /<img([^>]*?)src="([^"]*?)"([^>]*?)>(?![^<]*<\/div>)/g,
+        '<img$1src="$2"$3 class="max-h-[512px] rounded-lg shadow-lg max-w-full h-auto my-4" loading="lazy" alt="">'
       )
 
       // Improve heading styling
@@ -157,7 +207,7 @@ export default function ChangelogArticle({ changelog, index }: ChangelogArticleP
       style={{ paddingBottom: `${heightAdjustment}px` }}
     >
       <div ref={heightRef}>
-        <ArticleHeader id={articleId} date={changelog.date_created} />
+        <ArticleHeader id={articleId} date={changelog.release_date} />
         <ContentWrapper className="typography" data-mdx-content>
           {/* Title */}
           <h2 className="text-2xl font-display font-semibold text-white mb-2">

@@ -28,7 +28,7 @@ export async function getChangelogs(context: AppLoadContext) {
         
         console.log('- Client created successfully');
         
-        // Get all published changelogs, sorted by date_created descending
+        // Get all published changelogs, sorted by release_date descending
         console.log('- Fetching changelogs with readItems...');
         
         const changelogs = await client.request(
@@ -38,7 +38,7 @@ export async function getChangelogs(context: AppLoadContext) {
                         _eq: 'published'
                     }
                 },
-                sort: ['-date_created'],
+                sort: ['-release_date'],
                 fields: ['*']
             })
         ) as Changelog[];

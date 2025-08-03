@@ -89,7 +89,7 @@ export default function ChangelogPage() {
           "@type": "Article",
           "headline": changelog.title,
           "description": `Version ${changelog.version} - ${changelog.tags.join(', ')}`,
-          "datePublished": changelog.date_created,
+          "datePublished": changelog.release_date,
           "dateModified": changelog.date_updated,
           "author": {
             "@type": "Organization",

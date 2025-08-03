@@ -8,7 +8,7 @@ interface ChangelogCardProps {
 }
 
 export default function ChangelogCard({ changelog }: ChangelogCardProps) {
-    const formattedDate = formatISO8601DateWithTimezone(changelog.date_created);
+    const formattedDate = formatISO8601DateWithTimezone(changelog.release_date);
     
     return (
         <Card className="w-full mb-6">
