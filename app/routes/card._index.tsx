@@ -1,16 +1,43 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useAtom } from "jotai";
-import { useNavigate } from "@remix-run/react";
-import { PreviewCard } from "~/components/card/preview-card";
+import { useNavigate, useLoaderData } from "@remix-run/react";
+import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { AnimatedPoapCards } from "~/components/card/animated-poap-cards";
 import { AddressForm } from "~/components/card/address-form";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
 import { PlausibleEvents } from '~/utils/usePlausible';
+import { getCardData, generateCardImageUrl, getDefaultDescription } from "~/lib/card";
 import type { MetaFunction } from "@remix-run/node";
+import type { CardResponse, PoapCard } from "~/types/card";
 
-export const meta: MetaFunction = ({ location }) => {
-  const title = "Create Your POAP Card - Showcase Your Collection | POAPin";
-  const description = "Create a beautiful, shareable card showcasing your POAP collection. Enter your Ethereum address or ENS name to generate a personalized POAP card that highlights your digital memories.";
+export const loader: LoaderFunction = async ({ context }) => {
+  try {
+    const cardData = await getCardData(context);
+    return json({ data: cardData });
+  } catch (error) {
+    console.error('Error fetching card data:', error);
+    // Return fallback data structure instead of error to prevent crashes
+    return json({ 
+      data: {
+        card: {
+          id: 1,
+          intro_title: "Create Your POAP Card",
+          intro_description: "Generate a beautiful, shareable card showcasing your POAP collection",
+          highlights: []
+        },
+        highlights: []
+      },
+      error: "Failed to fetch card data - using fallback" 
+    });
+  }
+};
+
+export const meta: MetaFunction = ({ data }) => {
+  const cardData = data as CardResponse;
+  const title = cardData?.data?.card.intro_title || "Create Your POAP Card - Showcase Your Collection | POAPin";
+  const description = cardData?.data?.card.intro_description || "Create a beautiful, shareable card showcasing your POAP collection. Enter your Ethereum address or ENS name to generate a personalized POAP card that highlights your digital memories.";
+
   const keywords = "POAP Card, POAP Collection, NFT Display, Ethereum, Web3, Digital Collectibles, POAP Gallery,POAP, Proof of Attendance Protocol";
   const canonicalUrl = "https://poap.in/card";
   
@@ -48,24 +75,74 @@ export const meta: MetaFunction = ({ location }) => {
   ];
 };
 
+
+
 export default function CardIndexPage() {
+    const { data: cardData, error } = useLoaderData<CardResponse>();
     const [isCardVisible, setIsCardVisible] = useState(true);
     const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(false);
     const [, setWalletAddress] = useAtom(walletAddressAtom);
     const [, setShowResults] = useAtom(showResultsAtom);
     const navigate = useNavigate();
     
+    // Fallback data in case Directus fails
+    const fallbackCards: PoapCard[] = [
+        {
+            title: "Your Latest POAP Collection",
+            description: "Generate a beautiful card to showcase your POAP collection. Anytime, Anywhere.",
+            address: "poap.eth",
+            src: "https://og.poap.in/api/poap/v/poap.eth/letter"
+        },
+        {
+            title: "Showcase Your Digital Memories",
+            description: "Create stunning visual cards that highlight your participation in Web3 events and communities.",
+            address: "glorylab.eth",
+            src: "https://og.poap.in/api/poap/v/glorylab.eth"
+        },
+        {
+            title: "Curated Gallery Experience",
+            description: "Present your most meaningful POAPs in a carefully curated gallery that reflects your unique journey.",
+            address: "vitalik.eth",
+            src: "https://og.poap.in/api/poap/v/vitalik.eth/gallery"
+        }
+    ];
+    
+    // Transform Directus data to PoapCard format, with fallback
+    const transformedCards: PoapCard[] = cardData?.highlights?.map(highlight => ({
+        title: getCardTitle(highlight.theme, highlight.address),
+        description: highlight.description || getDefaultDescription(highlight.address, highlight.theme),
+        address: highlight.address,
+        src: generateCardImageUrl(highlight.address, highlight.theme)
+    })) || fallbackCards;
+    
+    // Helper function to generate titles based on theme
+    function getCardTitle(theme: string, address: string): string {
+        const titles = {
+            letter: `Memories in Vintage Letters`,
+            gallery: `Clear at a glance`,
+            gitpoap: `Proof of Contribution`,
+            default: `Do you like cherry blossoms?`
+        };
+        return titles[theme as keyof typeof titles] || titles.default;
+    }
+    
     // Track page visit on mount
     useEffect(() => {
         PlausibleEvents.trackCardPageVisit();
     }, []);
     
+    // Handle error state
+    if (error) {
+        console.error('Card data error:', error);
+        // Use fallback data when there's an error
+    }
+    
     // JSON-LD structured data for the POAP Card page
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Create Your POAP Card",
-        "description": "Create a beautiful, shareable card showcasing your POAP collection",
+        "name": cardData?.card.intro_title || "Create Your POAP Card",
+        "description": cardData?.card.intro_description || "Create a beautiful, shareable card showcasing your POAP collection",
         "url": "https://poap.in/card",
         "mainEntity": {
             "@type": "SoftwareApplication",
@@ -111,27 +188,9 @@ export default function CardIndexPage() {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
             
-            <header className="text-center py-8">
-                <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 mb-4">Create Your POAP Card</h1>
-                <p className="text-lg text-neutral-600 max-w-2xl mx-auto">Generate a beautiful, shareable card showcasing your POAP collection</p>
-                
-                <section className="mt-8">
-                    <h2 className="text-xl font-semibold text-neutral-700 mb-4">How It Works</h2>
-                    <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                        <div className="text-center">
-                            <h3 className="text-lg font-medium text-neutral-800 mb-2">1. Enter Address</h3>
-                            <p className="text-sm text-neutral-600">Input your Ethereum address or ENS name</p>
-                        </div>
-                        <div className="text-center">
-                            <h3 className="text-lg font-medium text-neutral-800 mb-2">2. Generate Card</h3>
-                            <p className="text-sm text-neutral-600">We create a beautiful visual card of your POAPs</p>
-                        </div>
-                        <div className="text-center">
-                            <h3 className="text-lg font-medium text-neutral-800 mb-2">3. Share & Download</h3>
-                            <p className="text-sm text-neutral-600">Share your collection or download the image</p>
-                        </div>
-                    </div>
-                </section>
+            <header className="text-center p-4">
+                <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">{cardData?.card.intro_title || "Create Your POAP Card"}</h1>
+                <p className="text-lg text-primary max-w-2xl mx-auto">{cardData?.card.intro_description || "Generate a beautiful, shareable card showcasing your POAP collection"}</p>
             </header>
             
             <AnimatePresence>
@@ -141,9 +200,9 @@ export default function CardIndexPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -100 }}
                         transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
-                        className="w-full max-w-2xl mx-auto px-4 pt-4 pb-8"
+                        className="w-full mx-auto pt-4 pb-8"
                     >
-                        <PreviewCard onGetStarted={handleGetStarted} />
+                        <AnimatedPoapCards cards={transformedCards} onGetStarted={handleGetStarted} />
                     </motion.div>
                 )}
             </AnimatePresence>
