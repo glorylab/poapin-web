@@ -103,7 +103,7 @@ export default function NavBarComponent() {
             </NavbarContent>
 
             {/* Mobile Menu */}
-            <NavbarMenu className="text-default gap-0 rounded-md">
+            <NavbarMenu className="text-default gap-0 rounded-md z-[99999]">
                 <NavbarMenuItem isActive={isHomeActive(location.pathname)}>
                     <Link to="/" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Home - POAPin">
                         Home
