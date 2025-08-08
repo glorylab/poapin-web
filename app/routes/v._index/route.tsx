@@ -198,7 +198,7 @@ export default function ExplorerPage() {
                 {/* Fixed at initial position; docks to footer when overlapping */}
                 <div
                     ref={inputWrapperRef}
-                    className={`fixed left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-2 xs:px-8 ${docked ? '' : 'top-24 md:top-24'}`}
+                    className={`flex justify-center fixed inset-x-0 mx-auto z-30 w-full max-w-lg px-2 xs:px-8 ${docked ? '' : 'top-24 md:top-24'}`}
                     style={docked ? { bottom: dockBottomPx, top: 'auto' as unknown as undefined } : { bottom: 'auto' as unknown as undefined }}
                 >
                     <AddressInputComponent isClearable />
