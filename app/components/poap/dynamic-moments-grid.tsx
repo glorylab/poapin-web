@@ -26,6 +26,8 @@ const GAP_SIZE = 0; // Gap between moments
 export function DynamicMomentsGrid({ moments, onLayoutCalculated }: DynamicMomentsGridProps) {
   const [momentDimensions, setMomentDimensions] = useState<MomentDimensions[]>([]);
   const [containerWidth, setContainerWidth] = useState(0);
+  const lastMeasuredWidthRef = useRef(0);
+  const lastReportedMaxWidthRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Calculate dimensions for each moment
@@ -91,33 +93,34 @@ export function DynamicMomentsGrid({ moments, onLayoutCalculated }: DynamicMomen
     calculateDimensions();
   }, [moments]);
 
-  // Listen for container width changes
+  // Listen for container width changes (stable observer, avoid effect loops)
   useEffect(() => {
     const updateContainerWidth = () => {
-      if (containerRef.current) {
-        const newWidth = containerRef.current.offsetWidth;
-        if (newWidth !== containerWidth) {
-          setContainerWidth(newWidth);
-        }
+      if (!containerRef.current) return;
+      const newWidth = containerRef.current.offsetWidth;
+      if (newWidth && Math.abs(newWidth - lastMeasuredWidthRef.current) > 1) {
+        lastMeasuredWidthRef.current = newWidth;
+        setContainerWidth(newWidth);
       }
     };
 
-    // Use ResizeObserver to accurately listen for container size changes
-    const resizeObserver = new ResizeObserver(updateContainerWidth);
-    
+    const resizeObserver = new ResizeObserver(() => {
+      updateContainerWidth();
+    });
+
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
       updateContainerWidth(); // Initialize
     }
-    
-    // Also listen for window size changes as a fallback
-    window.addEventListener('resize', updateContainerWidth);
-    
+
+    const onWindowResize = () => updateContainerWidth();
+    window.addEventListener('resize', onWindowResize);
+
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updateContainerWidth);
+      window.removeEventListener('resize', onWindowResize);
     };
-  }, [containerWidth]);
+  }, []);
 
   // Calculate dynamic layout
   const calculateLayout = () => {
@@ -221,11 +224,14 @@ export function DynamicMomentsGrid({ moments, onLayoutCalculated }: DynamicMomen
 
   const layout = calculateLayout();
   
-  // Report actual content width to parent component
+  // Report actual content width to parent component (only when changed)
   useEffect(() => {
     if (layout.length > 0 && onLayoutCalculated) {
       const maxWidth = Math.max(...layout.map(row => row.totalWidth));
-      onLayoutCalculated(maxWidth);
+      if (Math.abs(maxWidth - lastReportedMaxWidthRef.current) > 1) {
+        lastReportedMaxWidthRef.current = maxWidth;
+        onLayoutCalculated(maxWidth);
+      }
     }
   }, [layout, onLayoutCalculated]);
 

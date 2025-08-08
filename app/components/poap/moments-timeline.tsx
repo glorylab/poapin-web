@@ -63,6 +63,11 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
   // Handle moments layout calculation for each POAP item
   const handleMomentsLayoutCalculated = (poapId: string, momentsWidth: number) => {
     setMomentsWidths(prev => {
+      const prevWidth = prev.get(poapId);
+      // Only update when width meaningfully changed to avoid infinite update loops
+      if (prevWidth !== undefined && Math.abs(prevWidth - momentsWidth) < 1) {
+        return prev;
+      }
       const newMap = new Map(prev);
       newMap.set(poapId, momentsWidth);
       return newMap;

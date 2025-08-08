@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useSearchParams, useLocation } from '@remix-run/react';
+import { useSearchParams, useLocation, useNavigation } from '@remix-run/react';
 import type { POAP } from '~/types/poap';
 import { filterPoaps, sortPoaps } from '~/utils/poap-filter-sort';
 import { PlausibleEvents } from '~/utils/usePlausible';
@@ -57,6 +57,7 @@ export const DEFAULT_MODAL_STATE: ModalState = {
  */
 export function usePersistentPoapState(address?: string) {
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigation = useNavigation();
     const location = useLocation();
     
     // Generate storage keys based on address
@@ -325,27 +326,34 @@ export function usePersistentPoapState(address?: string) {
     // Sync to URL (debounced to avoid excessive updates)
     useEffect(() => {
         if (!isInitialized.current) return;
-        
+
+        // Do not sync URL while a navigation is in-flight to avoid clobbering route changes
+        if (navigation.state !== 'idle') return;
+
+        // Only sync on the collection route itself
+        const isOnCollectionRoute = location.pathname.startsWith('/v/');
+        if (!isOnCollectionRoute) return;
+
         const timeoutId = setTimeout(() => {
             const params = new URLSearchParams();
-            
+
             // Add filters
             Object.entries(filters).forEach(([key, values]) => {
                 if (values.length > 0) {
                     params.set(key, values.join(','));
                 }
             });
-            
+
             // Add sort (only if different from default)
             if (sort.key !== DEFAULT_SORT.key || sort.direction !== DEFAULT_SORT.direction) {
                 params.set('sort', `${sort.key}:${sort.direction}`);
             }
-            
+
             // Add time capsule mode (only if true)
             if (timeCapsuleMode) {
                 params.set('timeCapsule', 'true');
             }
-            
+
             const newUrlParams = params.toString();
             if (newUrlParams !== lastUrlParams.current) {
                 lastUrlParams.current = newUrlParams;
@@ -354,9 +362,9 @@ export function usePersistentPoapState(address?: string) {
                 window.history.replaceState(null, '', newUrl);
             }
         }, 100); // 100ms debounce
-        
+
         return () => clearTimeout(timeoutId);
-    }, [filters, sort, timeCapsuleMode, location.pathname]);
+    }, [filters, sort, timeCapsuleMode, location.pathname, navigation.state]);
     
     // Helper functions
     const handleFilterChange = (filterTitle: string, values: string[]) => {
