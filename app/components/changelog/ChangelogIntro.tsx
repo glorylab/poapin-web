@@ -1,6 +1,7 @@
 import { Link } from '@remix-run/react'
 import { IconLink } from './IconLink'
 import { Logo } from './Logo'
+import { EmailSubscription } from './EmailSubscription'
 
 function BookIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -47,28 +48,39 @@ export function ChangelogIntro() {
         Stay updated with the latest features, improvements, and fixes in POAPin.
         Discover what's new in each release and how we're making your POAP experience better.
       </p>
-      <div className="mt-8 flex flex-wrap justify-center gap-x-1 gap-y-3 sm:gap-x-2 lg:justify-start">
-        <IconLink to="https://github.com/glorylab/poapin-web" icon={GitHubIcon} className="flex-none">
-          glorylab
-        </IconLink>
-        <IconLink to="https://x.com/glorylaboratory" icon={XIcon} className="flex-none">
-          @glorylaboratory
-        </IconLink>
-        <IconLink to="https://farcaster.xyz/glorylab.eth" icon={FarcasterIcon} className="flex-none">
-          @glorylab.eth
-        </IconLink>
-      </div>
+
+      <EmailSubscription />
+
     </>
   )
 }
 
 export function ChangelogIntroFooter() {
   return (
-    <p className="flex items-baseline gap-x-2 text-[0.8125rem]/6 text-primary-500">
-      Brought to you by{' '}
-      <IconLink to="https://glorylab.xyz" compact>
-        Glory Lab
-      </IconLink>
-    </p>
+    <div className="flex flex-col items-start">
+      <div className="mt-8 flex flex-wrap justify-center gap-x-1 gap-y-1 sm:gap-x-2 lg:justify-start">
+        <IconLink to="https://github.com/glorylab/poapin-web"
+          alt="Glory Lab on GitHub"
+          icon={GitHubIcon}
+          className="flex-none">
+        </IconLink>
+        <IconLink to="https://x.com/glorylaboratory"
+          alt="Glory Lab on X"
+          icon={XIcon}
+          className="flex-none">
+        </IconLink>
+        <IconLink to="https://farcaster.xyz/glorylab.eth"
+          alt="Glory Lab on Farcaster"
+          icon={FarcasterIcon}
+          className="flex-none">
+        </IconLink>
+      </div>
+      <p className="flex items-baseline gap-x-2 text-[0.8125rem]/6 text-primary-500">
+        <IconLink to="https://glorylab.xyz" compact>
+          Glory Lab
+        </IconLink>
+          {' '} 🏖
+      </p>
+    </div>
   )
 }
