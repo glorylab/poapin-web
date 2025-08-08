@@ -119,9 +119,11 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
   const animationRef = useRef<number>();
   const [poaps, setPOAPs] = useState<POAPData[]>([]);
   
-  const BUBBLE_COUNT = Math.min(25, poaps.length); // Show more bubbles
-  // Tweak this for density: smaller spacing => denser layout (with overlap avoidance below)
-  const MIN_SPACING = 90; // Minimum horizontal spacing between bubbles
+  // Basic mobile detection (client-side only)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
+  // Limit how many are shown/rendered to reduce work on mobile
+  const BUBBLE_COUNT = Math.min(isMobile ? 10 : 25, poaps.length);
   // Configurable horizontal speed bounds (px per frame)
   const SPEED_MIN = 0.28;
   const SPEED_MAX = 1.6;
@@ -135,8 +137,8 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
   const EXIT_SPEED_MULTIPLIER_MIN = 0.3;  // down to 0.5x base speed before leaving
   const H_ACCEL = 0.06; // horizontal acceleration smoothing (0..1), higher = snappier
   // Population caps
-  const MAX_BUBBLES = 60; // overall concurrent bubbles allowed (allow >=50 unique drops)
-  const INITIAL_BATCH_COUNT = 12; // create fewer initially to leave room for client-fetched appends
+  const MAX_BUBBLES = isMobile ? 24 : 60; // fewer on mobile
+  const INITIAL_BATCH_COUNT = isMobile ? 6 : 12; // create fewer initially on mobile
   // Special intro for first batch
   const INITIAL_FROM_RIGHT_FRACTION_MIN = 0.10; // 10% inside from right
   const INITIAL_FROM_RIGHT_FRACTION_MAX = 0.58; // up to 58% inside from right
@@ -155,7 +157,7 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
     if (!context) return;
     let cancelled = false;
     (async () => {
-      const TARGET_UNIQUE_DROPS = 50;
+      const TARGET_UNIQUE_DROPS = (typeof window !== 'undefined' && window.innerWidth < 640) ? 25 : 50;
       let offset = 0;
       const limit = 100;
       // Build a deduped list by drop_id
@@ -223,11 +225,11 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
 
     // If no bubbles yet, create an initial batch up to cap
     if (bubblesRef.current.length === 0) {
-      const toCreate = Math.min(INITIAL_BATCH_COUNT, poaps.length);
+      const toCreate = Math.min(INITIAL_BATCH_COUNT, poaps.length, BUBBLE_COUNT);
       const newBubbles: Bubble[] = [];
       for (let i = 0; i < toCreate; i++) {
         const poap = poaps[i % poaps.length];
-        const baseSize = 35 + Math.random() * 40; // 35-75px base size
+        const baseSize = (isMobile ? 50 : 35) + Math.random() * (isMobile ? 40 : 40); // mobile: 50-90px, desktop: 35-75px
         // Place randomly between 10% and 18% inside from the right edge for instant visibility
         const frac = INITIAL_FROM_RIGHT_FRACTION_MIN + Math.random() * (INITIAL_FROM_RIGHT_FRACTION_MAX - INITIAL_FROM_RIGHT_FRACTION_MIN);
         const x = Math.max(0, containerRect.width * (1 - frac) - baseSize);
@@ -326,12 +328,13 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
       seenIncoming.add(key);
       return true;
     });
-    const capacity = Math.max(0, MAX_BUBBLES - bubblesRef.current.length);
+    const capTotal = Math.min(MAX_BUBBLES, BUBBLE_COUNT);
+    const capacity = Math.max(0, capTotal - bubblesRef.current.length);
     const toAppend = newPoaps.slice(0, capacity);
     if (!toAppend.length) return;
 
     toAppend.forEach((poap, idx) => {
-      const baseSize = 35 + Math.random() * 40;
+      const baseSize = (isMobile ? 50 : 35) + Math.random() * (isMobile ? 40 : 40);
       // Spawn just off-screen to the right so they enter quickly
       const x = containerRect.width + baseSize + Math.random() * 120;
       let y = Math.random() * (containerRect.height - baseSize - 100) + 50;
