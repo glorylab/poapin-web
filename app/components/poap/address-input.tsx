@@ -25,7 +25,7 @@ const styles = {
     inputWrapper: [
         "h-12 md:h-16 max-w-md lg:max-w-lg",
         "shadow-none",
-        "rounded-t-lg rounded-b-sm md:rounded-full",
+        "rounded-lg md:rounded-full",
         "hover:bg-background-100",
         "focus-within:!bg-background-100",
         "active:bg-background-50",

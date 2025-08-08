@@ -152,7 +152,7 @@ export default function ExplorerPage() {
             <h2 className="sr-only">Live bubble showcase of newly minted POAP drops</h2>
             <p className="sr-only">Explore the most recent POAP mints from across the network. This page highlights fresh POAP drops and updates frequently to reflect new activity in the POAP ecosystem.</p>
             <BubblePOAPs context={context} initialPoaps={latestPoaps} />
-            <section className="max-w-lg mx-auto relative px-2 xs:px-8 flex-grow md:flex flex-col justify-center md:justify-start md:pt-16 z-10">
+            <section className="max-w-lg mx-auto relative px-2 xs:px-8 flex-grow md:flex flex-col justify-center md:justify-start pt-12 md:pt-16 z-10">
                 <div className="md:pb-12">
                     <AddressInputComponent isClearable />
                 </div>
