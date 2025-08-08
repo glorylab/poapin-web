@@ -1,5 +1,5 @@
 import { MetaFunction, LoaderFunctionArgs, LinksFunction } from "@remix-run/cloudflare";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLoaderData } from "@remix-run/react";
 import AddressInputComponent from "~/components/poap/address-input";
 import BubblePOAPs from "~/components/poap/bubble-poaps";
@@ -85,6 +85,48 @@ export async function loader({ context }: LoaderFunctionArgs) {
 export default function ExplorerPage() {
     const { context, latestPoaps } = useLoaderData<typeof loader>();
     const inputWrapperRef = useRef<HTMLDivElement>(null);
+    const [docked, setDocked] = useState(false);
+    const [dockBottomPx, setDockBottomPx] = useState<number>(0);
+
+    const initialTopPx = 96;
+    const dockGapPx = 32; // desired space between input bottom and footer top
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const footerEl = document.querySelector('[data-poapin-footer]') as HTMLElement | null;
+        if (!footerEl) return;
+
+        const recompute = () => {
+            const rect = footerEl.getBoundingClientRect();
+            const footerTop = rect.top;
+            const inputH = inputWrapperRef.current?.offsetHeight ?? 0;
+            const inputBottom = initialTopPx + inputH;
+            // If footer top reaches the input bottom, dock it to footer
+            if (footerTop <= inputBottom + dockGapPx) {
+                setDocked(true);
+                setDockBottomPx(Math.max(0, window.innerHeight - footerTop + dockGapPx));
+            } else {
+                setDocked(false);
+            }
+        };
+
+        // Observe footer movement
+        const io = new IntersectionObserver(() => recompute(), { root: null, threshold: [0, 0.01, 1] });
+        io.observe(footerEl);
+
+        // Also listen to scroll/resize for precise bottom offset updates while docked
+        const onScroll = () => recompute();
+        const onResize = () => recompute();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onResize);
+        // Initial compute
+        recompute();
+        return () => {
+            io.disconnect();
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onResize);
+        };
+    }, []);
 
     // Build JSON-LD ItemList once per render
     const jsonLd = useMemo(() => {
@@ -153,9 +195,16 @@ export default function ExplorerPage() {
             <p className="sr-only">Explore the most recent POAP mints from across the network. This page highlights fresh POAP drops and updates frequently to reflect new activity in the POAP ecosystem.</p>
             <BubblePOAPs context={context} initialPoaps={latestPoaps} />
             <section className="max-w-lg mx-auto relative px-2 xs:px-8 flex-grow md:flex flex-col justify-center md:justify-start pt-12 md:pt-16 z-10">
-                <div className="md:pb-12">
+                {/* Fixed at initial position; docks to footer when overlapping */}
+                <div
+                    ref={inputWrapperRef}
+                    className={`fixed left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-2 xs:px-8 ${docked ? '' : 'top-24 md:top-24'}`}
+                    style={docked ? { bottom: dockBottomPx, top: 'auto' as unknown as undefined } : { bottom: 'auto' as unknown as undefined }}
+                >
                     <AddressInputComponent isClearable />
                 </div>
+                {/* Spacer to offset the fixed element height and preserve flow */}
+                <div className="md:pb-12 h-20 md:h-24"></div>
             </section>
             {/* Semantic fallback list for SEO/accessibility (visually hidden, not display:none) */}
             {latestPoaps?.length ? (

@@ -229,7 +229,7 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
       const newBubbles: Bubble[] = [];
       for (let i = 0; i < toCreate; i++) {
         const poap = poaps[i % poaps.length];
-        const baseSize = (isMobile ? 50 : 35) + Math.random() * (isMobile ? 40 : 40); // mobile: 50-90px, desktop: 35-75px
+        const baseSize = (isMobile ? 80 : 50) + Math.random() * (isMobile ? 40 : 40); // mobile: 80-120px, desktop: 50-90px
         // Place randomly between 10% and 18% inside from the right edge for instant visibility
         const frac = INITIAL_FROM_RIGHT_FRACTION_MIN + Math.random() * (INITIAL_FROM_RIGHT_FRACTION_MAX - INITIAL_FROM_RIGHT_FRACTION_MIN);
         const x = Math.max(0, containerRect.width * (1 - frac) - baseSize);
@@ -334,7 +334,7 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
     if (!toAppend.length) return;
 
     toAppend.forEach((poap, idx) => {
-      const baseSize = (isMobile ? 50 : 35) + Math.random() * (isMobile ? 40 : 40);
+      const baseSize = (isMobile ? 80 : 50) + Math.random() * (isMobile ? 40 : 40);
       // Spawn just off-screen to the right so they enter quickly
       const x = containerRect.width + baseSize + Math.random() * 120;
       let y = Math.random() * (containerRect.height - baseSize - 100) + 50;

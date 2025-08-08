@@ -47,7 +47,7 @@ const socialItems = [
 
 export default function FooterComponent() {
     return (
-        <div className="flex w-full flex-col border-t-1 border-neutral-300">
+        <div className="flex w-full flex-col border-t-1 border-neutral-300" data-poapin-footer>
             <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center px-6 py-12 lg:px-8">
 
                 <Link to="https://poap.xyz" target="_blank" title="POAP - Proof of Attendance Protocol">
