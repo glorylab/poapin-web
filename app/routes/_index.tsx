@@ -14,6 +14,7 @@ import { HighLight } from "~/types/og";
 import Marquee from "~/components/shared/marquee";
 import { Button, Image } from "@heroui/react";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { EmailSubscription } from "~/components/changelog/EmailSubscription";
 
 // Stats interface
 interface StatsResponse {
@@ -490,6 +491,27 @@ export default function Index() {
           </div>
         </div>
       }
+
+      {/* Subscribe Section */}
+      <section
+        className="relative w-full mt-8 px-4 py-16 bg-gradient-to-b from-background-600/70 to-transparent"
+        aria-label="Subscribe to POAPin updates"
+      >
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">
+            Be the first to know
+          </h2>
+          <p className="mt-3 text-base md:text-lg text-foreground-300">
+            Product updates, new features, and POAP inspirations — straight to your inbox.
+          </p>
+
+          <div className="mt-8 flex justify-center">
+            <div className="w-full max-w-md">
+              <EmailSubscription showHeading={false} />
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="flex-grow"></div>
     </div>

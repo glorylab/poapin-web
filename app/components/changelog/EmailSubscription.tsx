@@ -9,7 +9,17 @@ interface FetcherData {
   message?: string;
 }
 
-export function EmailSubscription() {
+interface EmailSubscriptionProps {
+  showHeading?: boolean;
+  headingText?: string;
+  descriptionText?: string;
+}
+
+export function EmailSubscription({
+  showHeading = true,
+  headingText = "Stay Updated",
+  descriptionText = "Get notified when we release new features and improvements.",
+}: EmailSubscriptionProps) {
   const fetcher = useFetcher<FetcherData>();
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -54,12 +64,14 @@ export function EmailSubscription() {
 
   return (
     <div className="mt-6">
-      <div className="mb-3">
-        <h3 className="text-sm font-medium text-white">Stay Updated</h3>
-        <p className="text-xs text-gray-400 mt-1">
-          Get notified when we release new features and improvements.
-        </p>
-      </div>
+      {showHeading && (
+        <div className="mb-3">
+          <h3 className="text-sm font-medium text-white">{headingText}</h3>
+          <p className="text-xs text-gray-400 mt-1">
+            {descriptionText}
+          </p>
+        </div>
+      )}
 
       <fetcher.Form onSubmit={handleSubmit} className="space-y-4">
         <div className="
