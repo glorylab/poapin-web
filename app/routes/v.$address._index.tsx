@@ -36,7 +36,11 @@ export const meta: MetaFunction = ({ params, matches }) => {
     // POAP collection specific meta
     const collectionTitle = `${address} - ${poapCount} POAPs Collection | POAPin`;
     const collectionDescription = `Browse ${address}'s complete POAP collection of ${poapCount} tokens. Filter by country, city, chain, and year. Discover their Web3 journey through proof of attendance.`;
-    const canonicalUrl = `https://poap.in/v/${address}`;
+    // Prefer ENS for canonical if provided; fallback to ETH owner address
+    const ethAddress = parentData?.poaps && parentData.poaps.length > 0 ? parentData.poaps[0].owner : address;
+    const hasEns = typeof address === 'string' && address.includes('.')
+    const canonicalAddress = hasEns ? address : (ethAddress || address);
+    const canonicalUrl = `https://poap.in/v/${canonicalAddress}`;
 
     const collectionMeta = [
         { title: collectionTitle },
