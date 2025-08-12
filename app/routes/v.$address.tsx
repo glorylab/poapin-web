@@ -9,6 +9,7 @@ import { getEnv } from "~/src/env";
 // State management
 import { usePersistentPoapState } from "~/hooks/use-persistent-poap-state";
 import { PlausibleEvents } from '~/utils/usePlausible';
+import { isENSName } from "~/utils/ens-resolver";
 // Components
 import { JsonLdSchema } from "~/components/poap/json-ld-schema";
 import { BreadcrumbSchema } from "~/components/seo/breadcrumb-schema";
@@ -25,12 +26,12 @@ export const meta: MetaFunction = ({ data }) => {
 
     const { title, description, keywords, address, ogimageurl } = loaderData.meta;
 
-    // Get the ETH address from the loader data for the canonical URL
-    const ethAddress = loaderData.poaps && loaderData.poaps.length > 0
+    // Determine canonical: prefer ENS param, else owner's ETH, else param
+    const ownerEth = loaderData.poaps && loaderData.poaps.length > 0
         ? loaderData.poaps[0].owner
         : address;
-
-    const canonicalUrl = `https://poap.in/v/${ethAddress}`;
+    const canonicalAddress = address && isENSName(address) ? address : (ownerEth || address);
+    const canonicalUrl = `https://poap.in/v/${canonicalAddress}`;
 
     const baseMeta = [
         { name: "title", content: title },
@@ -79,7 +80,7 @@ export const meta: MetaFunction = ({ data }) => {
         buttons: [
             {
                 action: 'link',
-                target: `https://poap.in/v/${address}`,
+                target: canonicalUrl,
                 label: 'We love POAP',
             },
         ],

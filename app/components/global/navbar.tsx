@@ -73,6 +73,7 @@ export default function NavBarComponent() {
             <NavbarContent
                 className="mt-4 ml-4 pt-2 mb-1 pb-[0.5px] bg-background-50/20 hidden h-12 w-full max-w-fit gap-4 font-bold rounded-t-full px-12 border-[0.5px] border-secondary-200 border-b-0 md:flex"
                 justify="start"
+                data-nosnippet
             >
                 <NavbarItem
                     className="flex items-center h-full px-4" isActive={isHomeActive(location.pathname)}>
@@ -102,34 +103,36 @@ export default function NavBarComponent() {
                 </NavbarItem>
             </NavbarContent>
 
-            {/* Mobile Menu */}
-            <NavbarMenu className="text-default gap-0 rounded-md z-[99999]">
-                <NavbarMenuItem isActive={isHomeActive(location.pathname)}>
-                    <Link to="/" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Home - POAPin">
-                        Home
-                    </Link>
-                </NavbarMenuItem>
-                <NavbarMenuItem isActive={isExplorerActive(location.pathname)}>
-                    <Link to="/v" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Explorer - Browse POAP Collections">
-                        Explorer
-                    </Link>
-                </NavbarMenuItem>
-                <NavbarMenuItem isActive={isCardActive(location.pathname)}>
-                    <Link to="/card" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Card - Create POAP Card">
-                        Card
-                    </Link>
-                </NavbarMenuItem>
-                <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>
-                    <Link to="/sponsors" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Sponsors - Our Supporters">
-                        Sponsors
-                    </Link>
-                </NavbarMenuItem>
-                <NavbarMenuItem isActive={isContactActive(location.pathname)}>
-                    <Link to="/contact" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" onClick={handleMenuItemClick} title="Contact - Get in Touch">
-                        Contact
-                    </Link>
-                </NavbarMenuItem>
-            </NavbarMenu>
+            {/* Mobile Menu: render only when open to avoid SSR exposing navigation to bots */}
+            {isMenuOpen ? (
+                <NavbarMenu className="text-default gap-0 rounded-md z-[99999]" data-nosnippet>
+                    <NavbarMenuItem isActive={isHomeActive(location.pathname)}>
+                        <Link to="/" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-md rounded-b-none border border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Home - POAPin">
+                            Home
+                        </Link>
+                    </NavbarMenuItem>
+                    <NavbarMenuItem isActive={isExplorerActive(location.pathname)}>
+                        <Link to="/v" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Explorer - Browse POAP Collections">
+                            Explorer
+                        </Link>
+                    </NavbarMenuItem>
+                    <NavbarMenuItem isActive={isCardActive(location.pathname)}>
+                        <Link to="/card" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Card - Create POAP Card">
+                            Card
+                        </Link>
+                    </NavbarMenuItem>
+                    <NavbarMenuItem isActive={isSponsorsActive(location.pathname)}>
+                        <Link to="/sponsors" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-none border-1 border-secondary-300 border-b-0" onClick={handleMenuItemClick} title="Sponsors - Our Supporters">
+                            Sponsors
+                        </Link>
+                    </NavbarMenuItem>
+                    <NavbarMenuItem isActive={isContactActive(location.pathname)}>
+                        <Link to="/contact" className="block w-full hover:bg-background-300 h-full px-2 py-4 rounded-t-none rounded-b-md border-1 border-secondary-300" onClick={handleMenuItemClick} title="Contact - Get in Touch">
+                            Contact
+                        </Link>
+                    </NavbarMenuItem>
+                </NavbarMenu>
+            ) : null}
         </Navbar>
     );
 }
