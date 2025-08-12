@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, redirect, MetaFunction } from "@remix-run/cloudflare";
 import { getMomentsCountFromGraphQL } from "~/utils/moments";
-import { resolveAddress } from "~/utils/ens-resolver";
+import { resolveAddress, isENSName } from "~/utils/ens-resolver";
 
 // Share the same meta data as the parent route for SEO purposes
 export const meta: MetaFunction = ({ params, matches }) => {
@@ -12,6 +12,8 @@ export const meta: MetaFunction = ({ params, matches }) => {
   if (!parentData || !parentData.meta) {
     const basicTitle = `${address} - Time Capsule | POAPin`;
     const basicDescription = `Explore ${address}'s POAP moments in Time Capsule mode. Discover Web3 journey through POAPs and moments.`;
+    const canonicalAddress = address && isENSName(address) ? address : address;
+    const canonicalUrl = `https://poap.in/v/${canonicalAddress}/time_capsule`;
     
     return [
       { title: basicTitle },
@@ -23,8 +25,8 @@ export const meta: MetaFunction = ({ params, matches }) => {
       // Open Graph
       { property: "og:title", content: basicTitle },
       { property: "og:description", content: basicDescription },
-      { property: "og:image", content: `https://og.poap.in/api/poap/v/${address}` },
-      { property: "og:url", content: `https://poap.in/v/${address}/time_capsule` },
+      { property: "og:image", content: `https://og.poap.in/api/poap/v/${canonicalAddress}` },
+      { property: "og:url", content: canonicalUrl },
       { property: "og:type", content: "profile" },
       { property: "og:site_name", content: "POAPin" },
       
@@ -32,22 +34,24 @@ export const meta: MetaFunction = ({ params, matches }) => {
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: basicTitle },
       { name: "twitter:description", content: basicDescription },
-      { name: "twitter:image", content: `https://og.poap.in/api/poap/v/${address}` },
+      { name: "twitter:image", content: `https://og.poap.in/api/poap/v/${canonicalAddress}` },
       
       // Canonical
-      { tagName: "link", rel: "canonical", href: `https://poap.in/v/${address}/time_capsule` }
+      { tagName: "link", rel: "canonical", href: canonicalUrl }
     ];
   }
 
   // Use parent meta data but customize for Time Capsule
   const { title, description, keywords, ogimageurl } = parentData.meta;
   const poapCount = parentData?.poaps?.length || 0;
+  const parentOwnerEth: string | undefined = parentData?.poaps && parentData.poaps.length > 0 ? parentData.poaps[0].owner : undefined;
+  const canonicalAddress = address && isENSName(address) ? address : (parentOwnerEth || address);
   
   // Customize title and description for Time Capsule mode
   const timeCapsuleTitle = `${address} - Time Capsule | POAPin`;
   const timeCapsuleDescription = `Explore ${address}'s POAP moments in Time Capsule mode. Browse ${poapCount} POAPs and discover their Web3 journey through proof of attendance tokens.`;
-  const timeCapsuleUrl = `https://poap.in/v/${address}/time_capsule`;
-  const ogImage = ogimageurl || `https://og.poap.in/api/poap/v/${address}`;
+  const timeCapsuleUrl = `https://poap.in/v/${canonicalAddress}/time_capsule`;
+  const ogImage = ogimageurl || `https://og.poap.in/api/poap/v/${canonicalAddress}`;
 
   return [
     { title: timeCapsuleTitle },
@@ -66,7 +70,7 @@ export const meta: MetaFunction = ({ params, matches }) => {
     { property: "og:image", content: ogImage },
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
-    { property: "og:image:alt", content: `${address}'s POAP collection in Time Capsule mode` },
+    { property: "og:image:alt", content: `${canonicalAddress}'s POAP collection in Time Capsule mode` },
     { property: "og:url", content: timeCapsuleUrl },
     { property: "og:type", content: "profile" },
     { property: "og:site_name", content: "POAPin" },
@@ -78,13 +82,13 @@ export const meta: MetaFunction = ({ params, matches }) => {
     { name: "twitter:title", content: timeCapsuleTitle },
     { name: "twitter:description", content: timeCapsuleDescription },
     { name: "twitter:image", content: ogImage },
-    { name: "twitter:image:alt", content: `${address}'s POAP collection in Time Capsule mode` },
+    { name: "twitter:image:alt", content: `${canonicalAddress}'s POAP collection in Time Capsule mode` },
 
     // Canonical URL
     { tagName: "link", rel: "canonical", href: timeCapsuleUrl },
     
     // Alternate URL (main collection page)
-    { tagName: "link", rel: "alternate", href: `https://poap.in/v/${address}`, title: "Main Collection View" }
+    { tagName: "link", rel: "alternate", href: `https://poap.in/v/${canonicalAddress}`, title: "Main Collection View" }
   ];
 };
 

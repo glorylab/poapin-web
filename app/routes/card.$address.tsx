@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { getEnv } from "~/src/env";
 import { PlausibleEvents } from '~/utils/usePlausible';
+import { resolveAddress, isENSName } from "~/utils/ens-resolver";
 
 export const meta: MetaFunction = ({ data }) => {
     const loaderData = data as LoaderData | undefined;
@@ -17,7 +18,8 @@ export const meta: MetaFunction = ({ data }) => {
         return [];
     }
 
-    const { title, description, address, ogimageurl } = loaderData.meta;
+    const { title, description, address, ogimageurl, canonicalAddress } = loaderData.meta as LoaderData["meta"] & { canonicalAddress?: string };
+    const canonical = `https://poap.in/card/${canonicalAddress || address}`;
 
     const baseMeta = [
         { title },
@@ -27,13 +29,14 @@ export const meta: MetaFunction = ({ data }) => {
         { property: "og:description", content: description },
         { property: "og:site_name", content: "POAPin" },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: `https://poap.in/card/${address}` },
+        { property: "og:url", content: canonical },
+        { tagName: "link", rel: "canonical", href: canonical },
     ];
 
     const twitterMeta = [
         { name: "X:card", content: "summary_large_image" },
         { name: "X:domain", content: "poap.in" },
-        { name: "X:url", content: `https://poap.in/card/${address}` },
+        { name: "X:url", content: canonical },
         { name: "X:title", content: title },
         { name: "X:description", content: description },
         { name: "X:image", content: ogimageurl }
@@ -61,6 +64,7 @@ interface LoaderData {
         description: string;
         address: string;
         ogimageurl: string;
+        canonicalAddress?: string;
     };
 }
 
@@ -77,6 +81,17 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     // Get the OG image URL
     const ogimageurl = `https://og.poap.in/api/poap/v/${address}/letter`;
 
+    // Determine canonical address: prefer ENS if provided, else resolve ETH, fallback to input address
+    let canonicalAddress = address;
+    if (!isENSName(address)) {
+        try {
+            const resolved = await resolveAddress(address, context);
+            canonicalAddress = resolved || address;
+        } catch (e) {
+            canonicalAddress = address;
+        }
+    }
+
     return json({
         address,
         meta: {
@@ -84,6 +99,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
             description: metaDescription,
             address,
             ogimageurl,
+            canonicalAddress,
         }
     });
 }

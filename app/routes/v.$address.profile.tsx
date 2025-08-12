@@ -3,6 +3,7 @@ import type { MetaFunction } from "@remix-run/cloudflare";
 import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import type { POAP, Moment } from "~/types/poap";
 import type { Collection } from "~/lib/poap-graph";
+import { isENSName } from "~/utils/ens-resolver";
 // Hooks
 import { useTabPreloader } from "~/hooks/use-tab-preloader";
 // Components
@@ -21,11 +22,13 @@ export const meta: MetaFunction = ({ params, matches }) => {
     // Get parent data for fallbacks
     const parentMeta = parentData?.meta;
     const parentOgImage = parentMeta?.ogimageurl || `https://poap.in/api/og/${address}`;
+    const parentOwnerEth: string | undefined = parentData?.poaps && parentData.poaps.length > 0 ? parentData.poaps[0].owner : undefined;
+    const canonicalAddress = address && isENSName(address) ? address : (parentOwnerEth || address);
     
     // Profile-specific meta
     const profileTitle = `${address} - Profile & Web3 Journey | POAPin`;
     const profileDescription = `Explore ${address}'s detailed Web3 profile including AI-generated insights, latest moments, POAP collections, and exclusive digital experiences.`;
-    const canonicalUrl = `https://poap.in/v/${address}/profile`;
+    const canonicalUrl = `https://poap.in/v/${canonicalAddress}/profile`;
     
     const profileMeta = [
         { title: profileTitle },
