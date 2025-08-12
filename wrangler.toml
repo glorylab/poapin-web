@@ -17,9 +17,8 @@ binding = "POAP_SUMMARIES_KV"
 id = "b329725da14a4895aca577c94b2649a4"  # Replace with your actual KV namespace ID from Cloudflare dashboard
 preview_id = "b329725da14a4895aca577c94b2649a4"  # Same as above for local development
 
-# Configure the Pages site
-[site]
-bucket = "./public"
+# Cloudflare Pages configuration (prevents Wrangler warning)
+pages_build_output_dir = "./public"
 
 # Configure build settings
 [build]
