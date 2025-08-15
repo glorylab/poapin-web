@@ -17,11 +17,38 @@ import { ErrorState } from "~/components/poap/error-state";
 import { AdvancedTabPreloader } from "~/components/poap/advanced-tab-preloader";
 import { Chip } from "@heroui/react";
 
-export const meta: MetaFunction = ({ data }) => {
+export const meta: MetaFunction = ({ data, params }: { data: any; params: any }) => {
     const loaderData = data as LoaderData | undefined;
+    const paramAddress = params.address;
 
+    // Handle error states with SEO-friendly fallbacks
     if (!loaderData || !loaderData.meta) {
-        return [];
+        // Create fallback meta for error states (rate limits, etc.)
+        const fallbackTitle = paramAddress ? `${paramAddress} | POAPin` : "POAP Collection | POAPin";
+        const fallbackDescription = paramAddress 
+            ? `View ${paramAddress}'s POAP collection on POAPin. POAPs are digital mementos that serve as bookmarks for life experiences.`
+            : "Discover and explore POAP collections on POAPin. POAPs are digital mementos that serve as bookmarks for life experiences.";
+        const fallbackImage = `https://og.poap.in/api/poap/v/${paramAddress || 'default'}`;
+        const canonicalUrl = paramAddress ? `https://poap.in/v/${paramAddress}` : "https://poap.in";
+
+        return [
+            { name: "title", content: fallbackTitle },
+            { name: "description", content: fallbackDescription },
+            { name: "keywords", content: "POAPin, poap.in, POAP, Proof of Attendance Protocol, NFT, Digital Collectibles" },
+            { name: "robots", content: "index, follow" },
+            { name: "theme-color", content: "#6366f1" },
+            { property: "og:title", content: fallbackTitle },
+            { property: "og:description", content: fallbackDescription },
+            { property: "og:image", content: fallbackImage },
+            { property: "og:url", content: canonicalUrl },
+            { property: "og:type", content: "website" },
+            { property: "og:site_name", content: "POAPin" },
+            { name: "twitter:card", content: "summary_large_image" },
+            { name: "twitter:title", content: fallbackTitle },
+            { name: "twitter:description", content: fallbackDescription },
+            { name: "twitter:image", content: fallbackImage },
+            { rel: "canonical", href: canonicalUrl },
+        ];
     }
 
     const { title, description, keywords, address, ogimageurl } = loaderData.meta;
@@ -159,19 +186,37 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
     } catch (error) {
         console.error('Error in v.$address loader:', error);
 
+        // Create fallback meta for error states to maintain SEO
+        const fallbackMeta = {
+            title: `${address} | POAPin`,
+            description: `View ${address}'s POAP collection on POAPin. POAPs are digital mementos that serve as bookmarks for life experiences.`,
+            keywords: `POAPin, poap.in, POAP, Proof of Attendance Protocol, ${address}`,
+            poaps: [],
+            address: address,
+            ogimageurl: `https://og.poap.in/api/poap/v/${address}`
+        };
+
         // Check if it's a rate limit error
         if (error instanceof RateLimitError) {
             return json({
                 error: error.message,
                 isRateLimit: true,
-                address: address
+                address: address,
+                meta: fallbackMeta,
+                poaps: [],
+                totalMomentsCount: 0,
+                dropsWithMoments: []
             }, { status: 429 });
         }
 
         // Handle other errors
         return json({
             error: "Failed to load POAPs. Please try again later.",
-            address: address
+            address: address,
+            meta: fallbackMeta,
+            poaps: [],
+            totalMomentsCount: 0,
+            dropsWithMoments: []
         }, { status: 500 });
     }
 };
@@ -207,8 +252,8 @@ export default function POAPLayout() {
             // Track tab switching
             const fromTab = location.pathname.includes('/profile') ? 'profile' : 'index';
             const toTab = targetPath.includes('/profile') ? 'profile' : 'index';
-            if (meta?.address) {
-                PlausibleEvents.trackTabSwitch(fromTab, toTab, meta.address);
+            if (meta?.address || address) {
+                PlausibleEvents.trackTabSwitch(fromTab, toTab, meta?.address || address || '');
             }
         }
     };
@@ -224,7 +269,7 @@ export default function POAPLayout() {
     const [filteredPoapCount, setFilteredPoapCount] = useState<number>(poaps?.length || 0);
     
     // Unified state management - initialized once at parent level
-    const poapState = usePersistentPoapState(meta.address);
+    const poapState = usePersistentPoapState(meta?.address || address || '');
 
     // Load profile data once and cache it
     useEffect(() => {
