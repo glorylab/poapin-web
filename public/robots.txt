@@ -1,5 +1,36 @@
-# Allow crawling of all content
+# Allow crawling of all content with rate limiting
 User-agent: *
 Disallow:
+# Crawl delay: 2 seconds between requests to reduce server load
+Crawl-delay: 2
 
+# Specific rules for major search engines
+User-agent: Googlebot
+Crawl-delay: 1
+# Request rate: max 1 page per 2 seconds
+Request-rate: 1/2s
+
+User-agent: Bingbot
+Crawl-delay: 2
+Request-rate: 1/3s
+
+User-agent: Slurp
+Crawl-delay: 3
+Request-rate: 1/4s
+
+# Social media crawlers (for POAP sharing)
+User-agent: facebookexternalhit
+Crawl-delay: 1
+
+User-agent: Twitterbot
+Crawl-delay: 1
+
+User-agent: LinkedInBot
+Crawl-delay: 2
+
+# Sitemap location
 Sitemap: https://poap.in/sitemaps/main_sitemap.xml
+
+# Visit time preferences (reduce load during peak hours)
+# Preferred crawling hours: 02:00-06:00 UTC (off-peak)
+Visit-time: 0200-0600
