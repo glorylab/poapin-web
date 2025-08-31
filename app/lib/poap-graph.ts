@@ -149,6 +149,18 @@ export interface FetchGetTokenByIdProps {
     tokenId: string;
 }
 
+interface GetCollectorInfoResponse {
+    collectors: {
+        address: string;
+        poaps_owned: number;
+    }[];
+}
+
+export interface FetchGetCollectorInfoProps {
+    context: AppLoadContext;
+    address: string;
+}
+
 interface GetCollectorsByDropIdResponse {
     collectors: {
         address: string;
@@ -704,5 +716,60 @@ export async function getCollectorsByDropId({
     } catch (error) {
         console.error('Failed to retrieve collectors from GraphQL:', error);
         throw error;
+    }
+}
+
+export async function getCollectorInfo({
+    context,
+    address,
+}: FetchGetCollectorInfoProps): Promise<number> {
+    const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
+    
+    // Parse the address to lowercase
+    const ownerAddress = address.toLowerCase();
+
+    const query = `
+      query GetCollectorInfo {
+        collectors(
+          where: { address: { _eq: "${ownerAddress}" } }
+          limit: 1
+        ) {
+          address
+          poaps_owned
+        }
+      }
+    `;
+
+    try {
+        const response = await fetch(poapGraphQLBaseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+            console.error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json() as GraphQLResponse<GetCollectorInfoResponse>;
+
+        if (result.errors) {
+            console.error('GraphQL errors:', result.errors);
+            throw new Error('GraphQL query failed');
+        }
+
+        const { data } = result;
+        
+        if (!data.collectors || data.collectors.length === 0) {
+            return 0; // No POAPs found for this address
+        }
+
+        return data.collectors[0].poaps_owned;
+    } catch (error) {
+        console.error('Failed to retrieve collector info from GraphQL:', error);
+        return 0; // Return 0 on error to avoid breaking the UI
     }
 }

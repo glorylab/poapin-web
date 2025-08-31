@@ -129,7 +129,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         // Start timer for performance monitoring
         const startTime = Date.now();
 
-        const poaps: POAP[] = await getPoapsOfAddress(context, address);
+        const { poaps, total: totalPoapCount } = await getPoapsOfAddress(context, address);
 
         if (!poaps || !poaps.length) {
             return json({ error: "No POAPs found" }, { status: 404 });
@@ -145,7 +145,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         }
 
         const poapTitles = poaps.slice(0, 1).map(poap => poap.event.name).join(", ");
-        const metaDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
+        const metaDescription = `View ${address}'s collection of ${totalPoapCount} POAPs including ${poapTitles}${totalPoapCount > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
         const metaKeywords = `POAPin, poap.in, POAP, Proof of Attendance Protocol, Bookmarks for your life, poap.xyz, poapxyz, Non Fungible Tokens, NFT, ${address}, ${poapTitles}`;
 
         // 🚀 OPTIMIZATION: Only generate OG image on server-side (needed for SEO)
@@ -157,7 +157,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         const dropsWithMoments: number[] = [];
 
         // Create base description for SEO (AI summary will be added client-side)
-        let finalDescription = `View ${address}'s collection of ${poaps.length} POAPs including ${poapTitles}${poaps.length > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
+        let finalDescription = `View ${address}'s collection of ${totalPoapCount} POAPs including ${poapTitles}${totalPoapCount > 1 ? " and more" : ""}. POAPs are digital mementos that serve as bookmarks for life experiences.`;
 
         // Add moments count if available
         if (totalMomentsCount && totalMomentsCount > 0) {
@@ -179,6 +179,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
         
         return json({
             poaps,
+            totalPoapCount,
             totalMomentsCount,
             dropsWithMoments,
             meta
@@ -223,6 +224,7 @@ export const loader: LoaderFunction = async ({ context, params, request }) => {
 
 interface LoaderData {
     poaps: POAP[];
+    totalPoapCount: number;
     totalMomentsCount: number;
     dropsWithMoments: number[];
     error?: string;
@@ -239,7 +241,7 @@ interface LoaderData {
 }
 
 export default function POAPLayout() {
-    const { poaps, meta, totalMomentsCount, dropsWithMoments, error, isRateLimit } = useLoaderData<LoaderData>();
+    const { poaps, totalPoapCount, meta, totalMomentsCount, dropsWithMoments, error, isRateLimit } = useLoaderData<LoaderData>();
     const { address } = useParams<{ address: string }>();
     const location = useLocation();
 
@@ -359,9 +361,9 @@ export default function POAPLayout() {
                                     }}
                                     variant="shadow"
                                 >
-                                    {filteredPoapCount !== poaps.length && filteredPoapCount < poaps.length 
-                                        ? `${filteredPoapCount}/${poaps.length}` 
-                                        : poaps.length
+                                    {filteredPoapCount !== totalPoapCount && filteredPoapCount < totalPoapCount 
+                                        ? `${filteredPoapCount}/${totalPoapCount}` 
+                                        : totalPoapCount
                                     }
                                 </Chip>
                             </NavLink>
@@ -393,6 +395,7 @@ export default function POAPLayout() {
             {/* Child Route Content */}
             <Outlet context={{
                 poaps,
+                totalPoapCount,
                 meta,
                 totalMomentsCount,
                 dropsWithMoments,

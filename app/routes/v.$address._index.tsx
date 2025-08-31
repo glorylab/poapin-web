@@ -92,6 +92,7 @@ export const meta: MetaFunction = ({ params, matches }) => {
 
 interface OutletContext {
     poaps: POAP[];
+    totalPoapCount: number;
     meta: {
         title: string;
         description: string;
@@ -109,6 +110,7 @@ interface OutletContext {
 export default function POAPIndex() {
     const { 
         poaps, 
+        totalPoapCount,
         meta, 
         totalMomentsCount: serverMomentsCount, 
         dropsWithMoments, 
@@ -121,6 +123,52 @@ export default function POAPIndex() {
     const [clientMomentsCount, setClientMomentsCount] = useState<number>(0);
     const [isFetchingMoments, setIsFetchingMoments] = useState(false);
     const [hasFetchedMoments, setHasFetchedMoments] = useState(false);
+    
+    // Pagination state for infinite scroll
+    const [allPoaps, setAllPoaps] = useState<POAP[]>(poaps);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasMorePoaps, setHasMorePoaps] = useState(totalPoapCount > poaps.length);
+    
+    // Load more POAPs function
+    const loadMorePoaps = async () => {
+        if (isLoadingMore || !hasMorePoaps) return;
+        
+        setIsLoadingMore(true);
+        try {
+            const response = await fetch(`/api/poap/paginate/${meta.address}?limit=100&offset=${allPoaps.length}`);
+            const data = await response.json();
+            
+            if (data.success && data.poaps.length > 0) {
+                setAllPoaps(prev => [...prev, ...data.poaps]);
+                setHasMorePoaps(data.hasMore);
+            } else {
+                setHasMorePoaps(false);
+            }
+        } catch (error) {
+            console.error('Failed to load more POAPs:', error);
+            setHasMorePoaps(false);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
+    
+    // Reset pagination when address changes
+    useEffect(() => {
+        setAllPoaps(poaps);
+        setHasMorePoaps(totalPoapCount > poaps.length);
+    }, [poaps, totalPoapCount]);
+    
+    // Infinite scroll effect
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+                loadMorePoaps();
+            }
+        };
+        
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [allPoaps.length, hasMorePoaps, isLoadingMore]);
     
     // Use client-side count if available, fallback to server-side
     const totalMomentsCount = clientMomentsCount > 0 ? clientMomentsCount : serverMomentsCount;
@@ -209,9 +257,9 @@ export default function POAPIndex() {
     const chainFilter = createChainFilter(poaps);
     const momentsFilter = createMomentsFilter();
 
-    // Filter and sort POAPs using utility functions
+    // Filter and sort POAPs using utility functions (use all loaded POAPs)
     const filteredPoaps = sortPoaps(
-        filterPoaps(poaps, globalFilters, dropsWithMoments),
+        filterPoaps(allPoaps, globalFilters, dropsWithMoments),
         globalSort,
         dropsWithMoments
     );
@@ -238,7 +286,7 @@ export default function POAPIndex() {
                     activeFilterCount={activeFilterCount}
                     onFilterChange={handleFilterChange}
                     onBatchFilterChange={handleBatchFilterChange}
-                    allPoaps={poaps}
+                    allPoaps={allPoaps}
                     filteredPoaps={filteredPoaps}
                     address={meta.address}
                 />
@@ -306,7 +354,7 @@ export default function POAPIndex() {
                                 }`}>
                                 <MomentsTimeline
                                     address={meta.address}
-                                    poaps={poaps}
+                                    poaps={allPoaps}
                                     momentsCache={poapState.momentsCache}
                                     updateMomentsCache={poapState.updateMomentsCache}
                                     appendMoments={poapState.appendMoments}
@@ -314,6 +362,22 @@ export default function POAPIndex() {
                                     openModal={poapState.openModal}
                                     closeModal={poapState.closeModal}
                                 />
+                            </div>
+                        )}
+
+                        {/* Infinite Scroll Loading Indicators - only show in classic mode */}
+                        {!isTimeCapsuleMode && (
+                            <div className="mt-8 mb-16 flex justify-center">
+                                {isLoadingMore ? (
+                                    <div className="flex items-center space-x-3 text-gray-500">
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                                        <span className="text-sm">Loading more POAPs...</span>
+                                    </div>
+                                ) : !hasMorePoaps && allPoaps.length > 0 ? (
+                                    <div className="text-gray-400 text-sm">
+                                        End of collection ({allPoaps.length} POAPs total)
+                                    </div>
+                                ) : null}
                             </div>
                         )}
                     </main>

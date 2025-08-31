@@ -1,7 +1,7 @@
 import { AppLoadContext } from "@remix-run/cloudflare";
 import { getEnv } from "~/src/env";
 import { POAP, POAPActivity, POAPDetail } from "~/types/poap";
-import { getTokensByOwner, getTokenById, getCollectorsByDropId } from "~/lib/poap-graph";
+import { getTokensByOwner, getTokenById, getCollectorsByDropId, getCollectorInfo } from "~/lib/poap-graph";
 import { resolveAddress } from "~/utils/ens-resolver";
 
 export class RateLimitError extends Error {
@@ -11,8 +11,11 @@ export class RateLimitError extends Error {
     }
 }
 
-export async function getPoapsOfAddress(context: AppLoadContext, address: string): Promise<POAP[]> {
-    console.log(`🌐 Fetching POAPs from GraphQL: ${address}`);
+export async function getPoapsOfAddress(context: AppLoadContext, address: string, limit = 100, offset = 0): Promise<{
+    poaps: POAP[];
+    total: number;
+}> {
+    console.log(`🌐 Fetching POAPs from GraphQL: ${address}, limit=${limit}, offset=${offset}`);
     
     try {
         // Resolve address (ENS to ETH address if needed)
@@ -22,13 +25,21 @@ export async function getPoapsOfAddress(context: AppLoadContext, address: string
             throw new Error(`Failed to resolve address: ${address}`);
         }
         
-        // Use GraphQL API to get POAPs
-        const poaps = await getTokensByOwner({
-            context,
-            owner: ethAddress
-        });
+        // Get total count and paginated POAPs in parallel
+        const [totalCount, poaps] = await Promise.all([
+            getCollectorInfo({ context, address: ethAddress }),
+            getTokensByOwner({
+                context,
+                owner: ethAddress,
+                limit,
+                offset
+            })
+        ]);
         
-        return poaps;
+        return {
+            poaps,
+            total: totalCount
+        };
     } catch (error) {
         console.error('Error fetching POAPs from GraphQL:', error);
         throw error;
