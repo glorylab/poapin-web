@@ -1,6 +1,8 @@
 import { AppLoadContext } from "@remix-run/cloudflare";
 import { getEnv } from "~/src/env";
 import { POAP, POAPActivity, POAPDetail } from "~/types/poap";
+import { getTokensByOwner, getTokenById, getCollectorsByDropId } from "~/lib/poap-graph";
+import { resolveAddress } from "~/utils/ens-resolver";
 
 export class RateLimitError extends Error {
     constructor(message: string) {
@@ -10,72 +12,69 @@ export class RateLimitError extends Error {
 }
 
 export async function getPoapsOfAddress(context: AppLoadContext, address: string): Promise<POAP[]> {
-    console.log(`🌐 Fetching POAPs from API: ${address}`);
-    const apiKey = getEnv({ context }).poapinReadApiKey;
-
-    if (!apiKey) {
-        throw new Error("API key not found");
-    }
+    console.log(`🌐 Fetching POAPs from GraphQL: ${address}`);
     
-    const res = await fetch(`https://api.poap.tech/actions/scan/${address}`, {
-        headers: {
-            accept: "application/json",
-            "x-api-key": getEnv({ context }).poapApiKey,
-            "charset": "utf-8",
+    try {
+        // Resolve address (ENS to ETH address if needed)
+        const ethAddress = await resolveAddress(address, context);
+        
+        if (!ethAddress) {
+            throw new Error(`Failed to resolve address: ${address}`);
         }
-    });
-
-    if (!res.ok) {
-        if (res.status === 429) {
-            // Get retry-after header if available
-            const retryAfter = res.headers.get('retry-after');
-            const waitTime = retryAfter ? parseInt(retryAfter, 10) : 60; // Default to 60 seconds if not specified
-            throw new RateLimitError(`Rate limit exceeded. Please try again in ${waitTime} seconds.`);
-        }
-        throw new Error("Failed to fetch poaps");
+        
+        // Use GraphQL API to get POAPs
+        const poaps = await getTokensByOwner({
+            context,
+            owner: ethAddress
+        });
+        
+        return poaps;
+    } catch (error) {
+        console.error('Error fetching POAPs from GraphQL:', error);
+        throw error;
     }
-    
-    const poaps: POAP[] = await res.json();
-    
-    return poaps;
 }
 
 export async function getPoapToken(context: AppLoadContext, tokenId: string): Promise<POAPDetail> {
-    const apiKey = getEnv({ context }).poapinReadApiKey;
-
-    if (!apiKey) {
-        throw new Error("API key not found");
+    console.log(`🌐 Fetching POAP token from GraphQL: ${tokenId}`);
+    
+    try {
+        return await getTokenById({
+            context,
+            tokenId
+        });
+    } catch (error) {
+        console.error('Error fetching POAP token from GraphQL:', error);
+        throw error;
     }
-    const res = await fetch(`https://api.poap.tech/token/${tokenId}`, {
-        headers: {
-            accept: "application/json",
-            "x-api-key": getEnv({ context }).poapApiKey,
-            "charset": "utf-8",
-        }
-    });
-
-    if (!res.ok) {
-        throw new Error("Failed to fetch poap");
-    }
-    return await res.json();
 }
 
-export async function getPoapActivity(context: AppLoadContext, eventId: number, offset: number, limit: number): Promise<POAPActivity> {
-    const apiKey = getEnv({ context }).poapinReadApiKey;
-
-    if (!apiKey) {
-        throw new Error("API key not found");
+export async function getPoapActivity(context: AppLoadContext, eventId: number, offset: number, limit: number): Promise<{
+    limit: number;
+    offset: number;
+    total: number;
+    transferCount: number;
+    tokens: POAPActivity[];
+}> {
+    console.log(`🌐 Fetching POAP activity from GraphQL: eventId=${eventId}, offset=${offset}, limit=${limit}`);
+    
+    try {
+        const result = await getCollectorsByDropId({
+            context,
+            dropId: eventId,
+            limit,
+            offset
+        });
+        
+        return {
+            limit,
+            offset,
+            total: result.total,
+            transferCount: 0, // Not available in GraphQL response
+            tokens: result.collectors,
+        };
+    } catch (error) {
+        console.error('Error fetching POAP activity from GraphQL:', error);
+        throw error;
     }
-    const res = await fetch(`https://api.poap.tech/event/${eventId}/poaps?offset=${offset}&limit=${limit}`, {
-        headers: {
-            accept: "application/json",
-            "x-api-key": getEnv({ context }).poapApiKey,
-            "charset": "utf-8",
-        }
-    });
-
-    if (!res.ok) {
-        throw new Error("Failed to fetch poap activity");
-    }
-    return await res.json();
 }

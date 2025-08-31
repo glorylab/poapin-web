@@ -1,6 +1,6 @@
 import { AppLoadContext } from '@remix-run/cloudflare';
 import { getEnv } from '~/src/env';
-import { Moment } from '~/types/poap';
+import { Moment, POAP, POAPEvent, POAPDetail, POAPActivity } from '~/types/poap';
 
 interface GetLastMomentsByAuthorResponse {
     moments: Moment[];
@@ -19,6 +19,14 @@ interface GetMomentsCountByAuthorResponse {
 
 interface GraphQLResponse<T> {
     data: T;
+    errors?: Array<{
+        message: string;
+        locations?: Array<{
+            line: number;
+            column: number;
+        }>;
+        path?: Array<string | number>;
+    }>;
 }
 
 interface FetchGetLastMomentsByAuthorProps {
@@ -65,6 +73,92 @@ export interface GetCollectionsByDropIdsResponse {
 export interface FetchGetCollectionsByDropIdsProps {
     context: AppLoadContext;
     dropIds: number[];
+    limit?: number;
+    offset?: number;
+}
+
+interface GetTokensByOwnerResponse {
+    poaps: {
+        id: number;
+        chain: string;
+        drop_id: number;
+        minted_on: number;
+        transfer_count: number;
+        drop: {
+            animation_url: string | null;
+            country: string;
+            created_date: string;
+            description: string;
+            drop_url: string;
+            city: string;
+            start_date: string;
+            end_date: string;
+            expiry_date: string;
+            fancy_id: string;
+            id: number;
+            image_url: string;
+            location_type: string;
+            integrator_id: string | null;
+            name: string;
+            virtual: boolean;
+            year: number;
+            timezone: string | null;
+        };
+    }[];
+}
+
+export interface FetchGetTokensByOwnerProps {
+    context: AppLoadContext;
+    owner: string;
+    limit?: number;
+    offset?: number;
+}
+
+interface GetTokenByIdResponse {
+    poaps: {
+        id: number;
+        chain: string;
+        drop_id: number;
+        minted_on: number;
+        transfer_count: number;
+        drop: {
+            animation_url: string | null;
+            country: string;
+            created_date: string;
+            description: string;
+            drop_url: string;
+            city: string;
+            start_date: string;
+            end_date: string;
+            expiry_date: string;
+            fancy_id: string;
+            id: number;
+            image_url: string;
+            location_type: string;
+            integrator_id: string | null;
+            name: string;
+            virtual: boolean;
+            year: number;
+            timezone: string | null;
+        };
+    }[];
+}
+
+export interface FetchGetTokenByIdProps {
+    context: AppLoadContext;
+    tokenId: string;
+}
+
+interface GetCollectorsByDropIdResponse {
+    collectors: {
+        address: string;
+        poaps_owned: number;
+    }[];
+}
+
+export interface FetchGetCollectorsByDropIdProps {
+    context: AppLoadContext;
+    dropId: number;
     limit?: number;
     offset?: number;
 }
@@ -122,14 +216,14 @@ export async function getLastMomentsByAuthor({
             return [];
         }
 
-        const result = await response.json();
+        const result = await response.json() as GraphQLResponse<GetLastMomentsByAuthorResponse>;
 
         if (result.errors) {
             console.error('GraphQL errors:', result.errors);
             return [];
         }
 
-        const { data } = result as GraphQLResponse<GetLastMomentsByAuthorResponse>;
+        const { data } = result;
         return data?.moments || [];
     } catch (error) {
         console.error('Failed to retrieve data:', error);
@@ -316,6 +410,299 @@ export async function getCollectionsByDropIds({
         return data.collections;
     } catch (error) {
         console.error('Failed to retrieve collections:', error);
+        throw error;
+    }
+}
+
+export async function getTokensByOwner({
+    context,
+    owner,
+    limit = 1000,
+    offset = 0,
+}: FetchGetTokensByOwnerProps): Promise<POAP[]> {
+    const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
+
+    // Parse the address to lowercase
+    const ownerAddress = owner.toLowerCase();
+
+    const query = `
+      query GetTokensByOwner {
+        poaps(
+          where: { collector_address: { _eq: "${ownerAddress}" } }
+          limit: ${limit}
+          offset: ${offset}
+          order_by: { minted_on: desc }
+        ) {
+          id
+          chain
+          drop_id
+          minted_on
+          transfer_count
+          drop {
+            animation_url
+            country
+            created_date
+            description
+            drop_url
+            end_date
+            expiry_date
+            fancy_id
+            id
+            image_url
+            location_type
+            integrator_id
+            name
+            virtual
+            year
+            timezone
+          }
+        }
+      }
+    `;
+
+    try {
+        const response = await fetch(poapGraphQLBaseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+            console.error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json() as GraphQLResponse<GetTokensByOwnerResponse>;
+
+        if (result.errors) {
+            console.error('GraphQL errors:', result.errors);
+            throw new Error('GraphQL query failed');
+        }
+
+        const { data } = result;
+        
+        // Transform GraphQL response to match expected POAP interface
+        const poaps: POAP[] = data.poaps.map(poap => ({
+            event: {
+                id: poap.drop.id,
+                fancy_id: poap.drop.fancy_id || '',
+                name: poap.drop.name || '',
+                event_url: poap.drop.drop_url || '',
+                image_url: poap.drop.image_url || '',
+                country: poap.drop.country || '',
+                city: poap.drop.city || '',
+                description: poap.drop.description || '',
+                year: poap.drop.year || 0,
+                start_date: poap.drop.start_date || new Date(poap.minted_on * 1000).toISOString(),
+                end_date: poap.drop.end_date || new Date(poap.minted_on * 1000).toISOString(),
+                expiry_date: poap.drop.expiry_date || '',
+                supply: 0, // Not available in GraphQL response
+            },
+            tokenId: poap.id.toString(),
+            owner: ownerAddress, // Use the resolved owner address
+            chain: poap.chain,
+            created: new Date(poap.minted_on * 1000).toISOString(), // Convert timestamp to ISO string
+        }));
+
+        return poaps;
+    } catch (error) {
+        console.error('Failed to retrieve tokens from GraphQL:', error);
+        throw error;
+    }
+}
+
+export async function getTokenById({
+    context,
+    tokenId,
+}: FetchGetTokenByIdProps): Promise<POAPDetail> {
+    const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
+
+    const query = `
+      query GetTokenById {
+        poaps(
+          where: { id: { _eq: ${tokenId} } }
+          limit: 1
+        ) {
+          id
+          chain
+          drop_id
+          minted_on
+          transfer_count
+          drop {
+            animation_url
+            country
+            created_date
+            description
+            drop_url
+            city
+            start_date
+            end_date
+            expiry_date
+            fancy_id
+            id
+            image_url
+            location_type
+            integrator_id
+            name
+            virtual
+            year
+            timezone
+          }
+        }
+      }
+    `;
+
+    try {
+        const response = await fetch(poapGraphQLBaseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+            console.error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json() as GraphQLResponse<GetTokenByIdResponse>;
+
+        if (result.errors) {
+            console.error('GraphQL errors:', result.errors);
+            throw new Error('GraphQL query failed');
+        }
+
+        const { data } = result;
+        
+        if (!data.poaps || data.poaps.length === 0) {
+            throw new Error('Token not found');
+        }
+
+        const poap = data.poaps[0];
+        
+        // Transform GraphQL response to match expected POAPDetail interface
+        const poapDetail: POAPDetail = {
+            event: {
+                id: poap.drop.id,
+                fancy_id: poap.drop.fancy_id || '',
+                name: poap.drop.name || '',
+                event_url: poap.drop.drop_url || '',
+                image_url: poap.drop.image_url || '',
+                country: poap.drop.country || '',
+                city: poap.drop.city || '',
+                description: poap.drop.description || '',
+                year: poap.drop.year || 0,
+                start_date: poap.drop.start_date || new Date(poap.minted_on * 1000).toISOString(),
+                end_date: poap.drop.end_date || new Date(poap.minted_on * 1000).toISOString(),
+                expiry_date: poap.drop.expiry_date || '',
+                supply: 0, // Not available in GraphQL response
+            },
+            tokenId: poap.id.toString(),
+            owner: '', // We'll need to get this from a different query if needed
+            layer: poap.chain,
+            created: new Date(poap.minted_on * 1000).toISOString(),
+            supply: {
+                total: 0, // Not available in GraphQL response
+                order: 0,  // Not available in GraphQL response
+            },
+        };
+
+        return poapDetail;
+    } catch (error) {
+        console.error('Failed to retrieve token from GraphQL:', error);
+        throw error;
+    }
+}
+
+export async function getCollectorsByDropId({
+    context,
+    dropId,
+    limit = 9,
+    offset = 0,
+}: FetchGetCollectorsByDropIdProps): Promise<{
+    collectors: POAPActivity[];
+    total: number;
+}> {
+    const poapGraphQLBaseUrl = getEnv({ context }).poapGraphQLBaseUrl;
+
+    // First get the total count
+    const countQuery = `
+      query GetCollectorsCount {
+        collectors_aggregate(
+          where: { poaps: { drop_id: { _eq: "${dropId}" } } }
+        ) {
+          aggregate {
+            count
+          }
+        }
+      }
+    `;
+
+    // Then get the paginated results
+    const dataQuery = `
+      query GetCollectorsByDropId {
+        collectors(
+          where: { poaps: { drop_id: { _eq: "${dropId}" } } }
+          limit: ${limit}
+          offset: ${offset}
+          order_by: { poaps_owned: desc }
+        ) {
+          address
+          poaps_owned
+        }
+      }
+    `;
+
+    try {
+        // Execute both queries in parallel
+        const [countResponse, dataResponse] = await Promise.all([
+            fetch(poapGraphQLBaseUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: countQuery }),
+            }),
+            fetch(poapGraphQLBaseUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: dataQuery }),
+            })
+        ]);
+
+        if (!countResponse.ok || !dataResponse.ok) {
+            throw new Error(`HTTP error! count: ${countResponse.status}, data: ${dataResponse.status}`);
+        }
+
+        const [countResult, dataResult] = await Promise.all([
+            countResponse.json(),
+            dataResponse.json()
+        ]);
+
+        if (countResult.errors || dataResult.errors) {
+            console.error('GraphQL errors:', countResult.errors || dataResult.errors);
+            throw new Error('GraphQL query failed');
+        }
+
+        const totalCount = countResult.data.collectors_aggregate.aggregate.count;
+        const collectors: POAPActivity[] = dataResult.data.collectors.map((collector: any) => ({
+            created: '', // Not available in this query
+            id: `${dropId}-${collector.address}`,
+            owner: {
+                id: collector.address,
+                tokensOwned: collector.poaps_owned,
+                ens: '', // ENS resolution would need a separate query
+            },
+            transferCount: '0', // Not available in this query
+        }));
+
+        return {
+            collectors,
+            total: totalCount,
+        };
+    } catch (error) {
+        console.error('Failed to retrieve collectors from GraphQL:', error);
         throw error;
     }
 }

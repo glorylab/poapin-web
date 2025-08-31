@@ -57,17 +57,44 @@ export const formatDate = (dateString: string): string => {
 };
 
 export const getDateString = (date: Date): string => {
-  return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  try {
+    if (!date || isNaN(date.getTime())) {
+      return new Date().toISOString().split('T')[0]; // Fallback to current date
+    }
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  } catch {
+    return new Date().toISOString().split('T')[0]; // Fallback to current date
+  }
 };
 
 export const getMonthString = (date: Date): string => {
-  return date.toISOString().substring(0, 7); // YYYY-MM format
+  try {
+    if (!date || isNaN(date.getTime())) {
+      return new Date().toISOString().substring(0, 7); // Fallback to current month
+    }
+    return date.toISOString().substring(0, 7); // YYYY-MM format
+  } catch {
+    return new Date().toISOString().substring(0, 7); // Fallback to current month
+  }
 };
 
 export const getQuarterString = (date: Date): string => {
-  const year = date.getFullYear();
-  const quarter = Math.floor(date.getMonth() / 3) + 1;
-  return `${year}-Q${quarter}`; // YYYY-Q1 format
+  try {
+    if (!date || isNaN(date.getTime())) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const quarter = Math.floor(now.getMonth() / 3) + 1;
+      return `${year}-Q${quarter}`; // Fallback to current quarter
+    }
+    const year = date.getFullYear();
+    const quarter = Math.floor(date.getMonth() / 3) + 1;
+    return `${year}-Q${quarter}`; // YYYY-Q1 format
+  } catch {
+    const now = new Date();
+    const year = now.getFullYear();
+    const quarter = Math.floor(now.getMonth() / 3) + 1;
+    return `${year}-Q${quarter}`; // Fallback to current quarter
+  }
 };
 
 // Grouping strategy determination
@@ -202,11 +229,25 @@ export const createTimelineItems = (
   return poaps.map(poap => {
     // Try both poap.event.id and poap.tokenId for matching
     const poapMoments = momentsByDrop[poap.event.id] || momentsByDrop[Number(poap.tokenId)] || [];
+    
+    // Handle invalid dates by falling back to created date
+    let eventDate: Date;
+    try {
+      eventDate = new Date(poap.event.start_date);
+      // Check if date is valid
+      if (isNaN(eventDate.getTime())) {
+        throw new Error('Invalid start_date');
+      }
+    } catch {
+      // Fallback to created date if start_date is invalid
+      eventDate = new Date(poap.created);
+    }
+    
     return {
       poap,
       moments: poapMoments,
       hasMoments: poapMoments.length > 0,
-      date: new Date(poap.event.start_date)
+      date: eventDate
     };
   }).sort((a, b) => b.date.getTime() - a.date.getTime());
 };

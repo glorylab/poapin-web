@@ -113,29 +113,15 @@ export const loader: LoaderFunction = async ({ context, params }) => {
             poap,
         };
 
-        const order = poap.supply.order;
-        const supply = poap.supply.total;
-        const reserveOrder = supply - order;
+        // Use simple pagination - load first page of collectors sorted by POAP count
+        const offset = 0;
+        const limit = 9;
 
-        let offset = 0;
-
-        // Try to make the current POAP the 5th out of 9 POAPs. 
-        // If the total supply is less than ten, then the offset is 0.
-        if (supply > 9) {
-            offset = Math.max(0, reserveOrder - 4);
-        }
-
-        // Based on supply, order, and the current displayed quantity, 
-        // calculate how many POAPs are in front and behind.
-        let frontQuantity = 0;
-        let backQuantity = 0;
-
-        if (supply > 9) {
-            frontQuantity = Math.max(0, supply - order - 4);
-            backQuantity = Math.max(0, order - 5);
-        }
-
-        const poapActivityData = { data: await getPoapActivity(context, poap.event.id, offset, 9) };
+        const poapActivityData = { data: await getPoapActivity(context, poap.event.id, offset, limit) };
+        
+        // Remove complex front/back quantity logic - just use simple counts
+        const frontQuantity = 0;
+        const backQuantity = 0;
 
         return json({
             poap,

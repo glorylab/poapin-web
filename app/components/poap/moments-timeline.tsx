@@ -318,11 +318,25 @@ export function MomentsTimeline({ address, poaps, momentsCache, updateMomentsCac
   const allTimelineItems = poaps.map(poap => {
     // Try both poap.event.id and poap.tokenId for matching
     const poapMoments = momentsByDrop[poap.event.id] || momentsByDrop[Number(poap.tokenId)] || [];
+    
+    // Handle invalid dates by falling back to created date
+    let eventDate: Date;
+    try {
+      eventDate = new Date(poap.event.start_date);
+      // Check if date is valid
+      if (isNaN(eventDate.getTime())) {
+        throw new Error('Invalid start_date');
+      }
+    } catch {
+      // Fallback to created date if start_date is invalid
+      eventDate = new Date(poap.created);
+    }
+    
     return {
       poap,
       moments: poapMoments,
       hasMoments: poapMoments.length > 0,
-      date: new Date(poap.event.start_date)
+      date: eventDate
     };
   }).sort((a, b) => b.date.getTime() - a.date.getTime());
 
