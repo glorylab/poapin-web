@@ -62,6 +62,7 @@ function simpleNoise(x: number, y: number): number {
 interface BubblePOAPsProps {
   context?: AppLoadContext;
   initialPoaps?: POAPData[];
+  onBubbleClick?: (poap: POAPData) => void;
 }
 
 async function fetchRecentPOAPsPage(context?: AppLoadContext, offset = 0, limit = 100): Promise<POAPData[]> {
@@ -113,7 +114,7 @@ async function fetchRecentPOAPsPage(context?: AppLoadContext, offset = 0, limit 
   }
 }
 
-export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps) {
+export default function BubblePOAPs({ context, initialPoaps, onBubbleClick }: BubblePOAPsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const bubblesRef = useRef<Bubble[]>([]);
   const animationRef = useRef<number>();
@@ -121,6 +122,10 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
   
   // Basic mobile detection (client-side only)
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  
+  // Detect prefers-reduced-motion for accessibility
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Limit how many are shown/rendered to reduce work on mobile
   const BUBBLE_COUNT = Math.min(isMobile ? 10 : 25, poaps.length);
@@ -251,7 +256,7 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
         bubbleElement.className = `
           absolute pointer-events-auto select-none rounded-full 
           bg-white/8 backdrop-blur-sm border border-white/60 border-2
-          shadow-xl transition-all duration-200 ease-out
+          shadow-xl transition-all duration-200 ease-out cursor-pointer
         `;
         bubbleElement.style.width = `${baseSize}px`;
         bubbleElement.style.height = `${baseSize}px`;
@@ -261,6 +266,9 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
         // Start transparent, will fade in quickly
         bubbleElement.style.opacity = '0';
         bubbleElement.style.filter = 'brightness(1.1)';
+        bubbleElement.setAttribute('role', 'link');
+        bubbleElement.setAttribute('tabindex', '0');
+        bubbleElement.setAttribute('aria-label', `View ${poap.drop.name}`);
         const img = document.createElement('img');
         const sizedUrl = poap.drop.image_url.includes('?')
           ? `${poap.drop.image_url}&size=medium`
@@ -268,7 +276,7 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
         img.src = sizedUrl;
         img.alt = poap.drop.name;
         img.className = 'w-full h-full object-cover rounded-full';
-        img.loading = 'lazy';
+        img.loading = i < 6 ? 'eager' : 'lazy'; // First 6 bubbles load eagerly for better LCP
         bubbleElement.appendChild(img);
         container.appendChild(bubbleElement);
         const bubble: Bubble = {
@@ -301,6 +309,24 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
           hoverT: 0,
           hoverTarget: 0,
         };
+        // Click handler for navigation
+        const onClick = (e: MouseEvent | KeyboardEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (onBubbleClick) {
+            onBubbleClick(poap);
+          } else {
+            window.location.href = `/poap/${poap.id}`;
+          }
+        };
+        const onKeyDown = (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            onClick(e);
+          }
+        };
+        bubbleElement.addEventListener('click', onClick as EventListener);
+        bubbleElement.addEventListener('keydown', onKeyDown as EventListener);
+        
         // Hover easing listeners (on wrapper and inner img)
         const onEnter = () => { bubble.hoverTarget = 1; };
         const onLeave = () => { bubble.hoverTarget = 0; };
@@ -355,7 +381,7 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
       bubbleElement.className = `
         absolute pointer-events-auto select-none rounded-full 
         bg-white/8 backdrop-blur-sm border border-white/60 border-2
-        shadow-xl transition-all duration-200 ease-out
+        shadow-xl transition-all duration-200 ease-out cursor-pointer
       `;
       bubbleElement.style.width = `${baseSize}px`;
       bubbleElement.style.height = `${baseSize}px`;
@@ -364,6 +390,9 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
       bubbleElement.style.filter = 'brightness(1.1)';
       bubbleElement.style.zIndex = '1';
       bubbleElement.style.pointerEvents = 'auto';
+      bubbleElement.setAttribute('role', 'link');
+      bubbleElement.setAttribute('tabindex', '0');
+      bubbleElement.setAttribute('aria-label', `View ${poap.drop.name}`);
       const img = document.createElement('img');
       const sizedUrl2 = poap.drop.image_url.includes('?')
         ? `${poap.drop.image_url}&size=medium`
@@ -399,6 +428,24 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
         hoverT: 0,
         hoverTarget: 0,
       };
+      // Click handler for navigation
+      const onClick2 = (e: MouseEvent | KeyboardEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onBubbleClick) {
+          onBubbleClick(poap);
+        } else {
+          window.location.href = `/poap/${poap.id}`;
+        }
+      };
+      const onKeyDown2 = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick2(e);
+        }
+      };
+      bubbleElement.addEventListener('click', onClick2 as EventListener);
+      bubbleElement.addEventListener('keydown', onKeyDown2 as EventListener);
+      
       // Hover easing listeners (on wrapper and inner img)
       const onEnter2 = () => { bubble.hoverTarget = 1; };
       const onLeave2 = () => { bubble.hoverTarget = 0; };
@@ -416,6 +463,17 @@ export default function BubblePOAPs({ context, initialPoaps }: BubblePOAPsProps)
   // Animation loop
   useEffect(() => {
     if (!containerRef.current || !bubblesRef.current.length) return;
+    
+    // If reduced motion is preferred, show static layout without animation
+    if (prefersReducedMotion) {
+      bubblesRef.current.forEach(bubble => {
+        if (bubble.element) {
+          bubble.element.style.opacity = '1';
+          bubble.element.style.transform = `translate(${bubble.x}px, ${bubble.y}px) scale(1)`;
+        }
+      });
+      return;
+    }
 
     let time = 0;
     
