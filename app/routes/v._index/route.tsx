@@ -1,22 +1,51 @@
 import { MetaFunction, LoaderFunctionArgs, LinksFunction } from "@remix-run/cloudflare";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import AddressInputComponent from "~/components/poap/address-input";
 import BubblePOAPs from "~/components/poap/bubble-poaps";
 import { getEnv } from "~/src/env";
+import { PlausibleEvents } from "~/utils/usePlausible";
 
 export const meta: MetaFunction = () => {
+    const title = "POAP Explorer | POAP.in";
+    const description = "Discover the latest POAP mints across the network. A live bubble showcase of newly issued POAP drops updated in near real time.";
+    const canonicalUrl = "https://poap.in/v";
+    const imageUrl = "https://og.poap.in/api/poap/v/poap.eth";
+    
     return [
-        { title: "POAP Explorer | POAP.in" },
-        { description: "Discover the latest POAP mints across the network. A live bubble showcase of newly issued POAP drops updated in near real time." },
+        { title },
+        { name: "description", content: description },
+        { name: "keywords", content: "POAP, POAP explorer, NFT, blockchain, Ethereum, proof of attendance, latest POAPs, new POAPs, POAP mints, Web3, crypto collectibles" },
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
+        
+        // Open Graph tags
+        { property: "og:type", content: "website" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:image", content: imageUrl },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:site_name", content: "POAP.in" },
+        
+        // Twitter Card tags
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@glorylaboratory" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: imageUrl },
+        { name: "twitter:creator", content: "@glorylaboratory" },
+        
+        // Additional meta tags
+        { name: "theme-color", content: "#000000" },
+        { name: "robots", content: "index, follow" },
     ];
 };
 
 export const links: LinksFunction = () => {
     return [
-        { rel: "canonical", href: "/v" },
+        { rel: "canonical", href: "https://poap.in/v" },
     ];
 };
 
@@ -84,12 +113,24 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
 export default function ExplorerPage() {
     const { context, latestPoaps } = useLoaderData<typeof loader>();
+    const navigate = useNavigate();
     const inputWrapperRef = useRef<HTMLDivElement>(null);
     const [docked, setDocked] = useState(false);
     const [dockBottomPx, setDockBottomPx] = useState<number>(0);
 
     const initialTopPx = 96;
     const dockGapPx = 32; // desired space between input bottom and footer top
+
+    // Track page view on mount
+    useEffect(() => {
+        PlausibleEvents.trackExplorerPageView();
+    }, []);
+
+    // Handle bubble click with tracking
+    const handleBubbleClick = (poap: any) => {
+        PlausibleEvents.trackBubbleClick(String(poap.id), poap.drop?.name || 'Unknown');
+        navigate(`/poap/${poap.id}`);
+    };
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -140,25 +181,33 @@ export default function ExplorerPage() {
         return {
             "@context": "https://schema.org",
             "@type": "ItemList",
+            "@id": "#latest-poaps-list",
             name: "Latest POAP mints",
             description: "The newly minted POAP in the world!",
             itemListElement: items,
         };
     }, [latestPoaps]);
 
-    // WebPage JSON-LD
-    const webPageLd = useMemo(() => ({
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        name: "POAP Explorer | POAP.in",
-        url: "https://poap.in/v",
-        description: "Discover the latest POAP mints across the network. A live bubble showcase of newly issued POAP drops updated in near real time.",
-        isPartOf: {
-            "@type": "WebSite",
-            name: "POAP.in",
-            url: "https://poap.in"
-        }
-    }), []);
+    // WebPage JSON-LD with CollectionPage type and dateModified
+    const webPageLd = useMemo(() => {
+        const now = new Date().toISOString();
+        return {
+            "@context": "https://schema.org",
+            "@type": ["WebPage", "CollectionPage"],
+            name: "POAP Explorer | POAP.in",
+            url: "https://poap.in/v",
+            description: "Discover the latest POAP mints across the network. A live bubble showcase of newly issued POAP drops updated in near real time.",
+            dateModified: now,
+            mainEntity: {
+                "@id": "#latest-poaps-list"
+            },
+            isPartOf: {
+                "@type": "WebSite",
+                name: "POAP.in",
+                url: "https://poap.in"
+            }
+        };
+    }, [latestPoaps]);
 
     // BreadcrumbList JSON-LD
     const breadcrumbLd = useMemo(() => ({
@@ -193,7 +242,7 @@ export default function ExplorerPage() {
             <h1 className="sr-only">POAP Explorer</h1>
             <h2 className="sr-only">Live bubble showcase of newly minted POAP drops</h2>
             <p className="sr-only">Explore the most recent POAP mints from across the network. This page highlights fresh POAP drops and updates frequently to reflect new activity in the POAP ecosystem.</p>
-            <BubblePOAPs context={context} initialPoaps={latestPoaps} />
+            <BubblePOAPs context={context} initialPoaps={latestPoaps} onBubbleClick={handleBubbleClick} />
             <section className="max-w-lg mx-auto relative px-2 xs:px-8 flex-grow md:flex flex-col justify-center md:justify-start pt-12 md:pt-16 z-10">
                 {/* Fixed at initial position; docks to footer when overlapping */}
                 <div

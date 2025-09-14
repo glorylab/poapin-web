@@ -227,6 +227,36 @@ export const PlausibleEvents = {
       ...(previousStyle && { previousStyle }),
       timestamp: new Date().toISOString()
     });
+  },
+
+  // Explorer page tracking
+  trackExplorerPageView: () => {
+    trackEvent('Explorer Page Viewed', {
+      timestamp: new Date().toISOString(),
+      source: 'navigation'
+    });
+  },
+
+  trackBubbleClick: (poapId: string, poapName: string) => {
+    trackEvent('Explorer Bubble Clicked', {
+      poapId,
+      poapName: poapName.substring(0, 100), // Limit length
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackBubbleHover: (poapId: string) => {
+    trackEvent('Explorer Bubble Hovered', {
+      poapId,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  trackExplorerSearch: (hasInput: boolean) => {
+    trackEvent('Explorer Address Search Started', {
+      hasInput,
+      timestamp: new Date().toISOString()
+    });
   }
 };
 
