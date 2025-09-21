@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAtom } from "jotai";
 import { useNavigate, useLoaderData } from "@remix-run/react";
 import { json, LoaderFunction } from "@remix-run/cloudflare";
+import { Icon } from "@iconify/react";
 import { AnimatedPoapCards } from "~/components/card/animated-poap-cards";
 import { AddressForm } from "~/components/card/address-form";
 import { showResultsAtom, walletAddressAtom } from "~/atoms/address";
@@ -267,17 +268,23 @@ export default function CardIndexPage() {
                         {/* Feature highlights */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                             <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-purple-100 text-center">
-                                <div className="text-3xl mb-2">🎨</div>
+                                <div className="flex justify-center mb-2">
+                                    <Icon icon="mingcute:paint-brush-ai-fill" width="48" height="48" className="text-purple-600" />
+                                </div>
                                 <h3 className="font-semibold text-gray-800 mb-1">Custom Collections</h3>
                                 <p className="text-sm text-gray-600">Curate your POAPs and Collections</p>
                             </div>
                             <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-purple-100 text-center">
-                                <div className="text-3xl mb-2">📊</div>
+                                <div className="flex justify-center mb-2">
+                                    <Icon icon="streamline-ultimate:analytics-board-graph-line-bold" width="48" height="48" className="text-blue-600" />
+                                </div>
                                 <h3 className="font-semibold text-gray-800 mb-1">Statistics & Analytics</h3>
                                 <p className="text-sm text-gray-600">Visualize data insights at a glance</p>
                             </div>
                             <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-purple-100 text-center">
-                                <div className="text-3xl mb-2">🚀</div>
+                                <div className="flex justify-center mb-2">
+                                    <Icon icon="icon-park-solid:api" width="48" height="48" className="text-indigo-600" />
+                                </div>
                                 <h3 className="font-semibold text-gray-800 mb-1">Pure Data API</h3>
                                 <p className="text-sm text-gray-600">Developer-friendly interface</p>
                             </div>
