@@ -688,8 +688,8 @@ export async function getCollectorsByDropId({
         }
 
         const [countResult, dataResult] = await Promise.all([
-            countResponse.json(),
-            dataResponse.json()
+            countResponse.json() as any,
+            dataResponse.json() as any
         ]);
 
         if (countResult.errors || dataResult.errors) {

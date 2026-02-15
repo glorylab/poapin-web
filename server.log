@@ -1,0 +1,243 @@
+
+> start
+> CLOUDFLARE_ACCOUNT_ID=9e075df30c6748807fae2d7622b87d8a wrangler pages dev --compatibility-date=2023-06-21 --ai AI ./public
+
+
+ ⛅️ wrangler 3.114.17 (update available 4.65.0)
+-----------------------------------------------
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe version of Wrangler you are using is now out-of-date.[0m
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.toml configuration:[0m
+
+    - [1m😶 Ignored[0m: "type":
+      Most common features now work out of the box with wrangler, including modules, jsx, typescript, etc. If you need anything more, use a custom build.
+    - Unexpected fields found in kv_namespaces[0] field: "pages_build_output_dir"
+
+
+✨ Compiled Worker successfully
+✨ Parsed 3 valid header rules.
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.toml configuration:[0m
+
+    - [1m😶 Ignored[0m: "type":
+      Most common features now work out of the box with wrangler, including modules, jsx, typescript, etc. If you need anything more, use a custom build.
+    - Unexpected fields found in kv_namespaces[0] field: "pages_build_output_dir"
+
+
+[custom build] Running: npm run build
+[custom build]
+[custom build] > build
+[custom build] > remix build
+[custom build]
+[custom build]
+[custom build] [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[custom build]
+[custom build] [info] building... (NODE_ENV=production)
+[custom build]
+[custom build] [info] built (7.4s)
+[custom build]
+✨ Compiled Worker successfully
+✨ Compiled Worker successfully
+✨ Compiled Worker successfully
+Your Worker and resources are simulated locally via Miniflare. For more information, see: https://developers.cloudflare.com/workers/testing/local-development.
+
+Your worker has access to the following bindings:
+- KV Namespaces:
+  - POAP_SUMMARIES_KV: b329725da14a4895aca577c94b2649a4 [simulated locally]
+- AI:
+  - Name: AI [connected to remote resource]
+The file src changed, restarting build...
+[custom build] Running: npm run build
+[custom build]
+[custom build] > build
+[custom build] > remix build
+[custom build]
+[custom build]
+[wrangler:inf] Ready on http://localhost:8788
+[custom build] [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[custom build]
+[custom build] [info] building... (NODE_ENV=production)
+[custom build]
+[custom build] [info] built (7.4s)
+[custom build]
+✨ Compiled Worker successfully
+✨ Compiled Worker successfully
+✨ Compiled Worker successfully
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mUsing Workers AI always accesses your Cloudflare account in order to run AI models, and so will incur usage charges even in local development.[0m
+
+
+⎔ Starting local server...
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mError: API key not found[0m
+
+      at Qoe (file:///app/functions/[[path]].js:621:8669)
+      at fSe (file:///app/functions/[[path]].js:648:152824)
+      at AL (file:///app/functions/[[path]].js:17:8390)
+      at n.loader (file:///app/functions/[[path]].js:17:9815)
+      at p (file:///app/functions/[[path]].js:3:5014)
+      at null.<anonymous> (file:///app/functions/[[path]].js:3:5138)
+      at l (file:///app/functions/[[path]].js:3:5183)
+      at vle (file:///app/functions/[[path]].js:3:5557)
+      at Object.resolve (file:///app/functions/[[path]].js:3:4543)
+      at null.<anonymous> (file:///app/functions/[[path]].js:3:4208)
+
+
+[wrangler:inf] GET / 500 Internal Server Error (117ms)
+[wrangler:inf] GET /build/_assets/tailwind-QX3N2QX7.css 200 OK (78ms)
+[wrangler:inf] GET /build/_assets/shared-KCEG2ZF3.css 200 OK (280ms)
+[wrangler:inf] GET /build/entry.client-QR4FKOMS.js 200 OK (254ms)
+[wrangler:inf] GET /build/_shared/chunk-ITBPAS3M.js 200 OK (252ms)
+[wrangler:inf] GET /build/_shared/chunk-BBTKOQ57.js 200 OK (256ms)
+[wrangler:inf] GET /build/_shared/chunk-UED2Q7CE.js 200 OK (255ms)
+[wrangler:inf] GET /build/_shared/chunk-MZYQMZEC.js 200 OK (22ms)
+[wrangler:inf] GET /build/_shared/chunk-Z2UG7FC5.js 200 OK (25ms)
+[wrangler:inf] GET /build/_shared/chunk-6RYGWLWI.js 200 OK (35ms)
+[wrangler:inf] GET /build/_shared/chunk-IUGRJSAT.js 200 OK (34ms)
+[wrangler:inf] GET /build/_shared/chunk-KX3L2GA5.js 200 OK (27ms)
+[wrangler:inf] GET /build/_shared/chunk-CHGWGRWP.js 200 OK (45ms)
+[wrangler:inf] GET /build/_shared/chunk-56NHZHXN.js 200 OK (57ms)
+[wrangler:inf] GET /build/_shared/chunk-7DSUKWKN.js 200 OK (59ms)
+[wrangler:inf] GET /build/_shared/chunk-LQS3KF3S.js 200 OK (80ms)
+[wrangler:inf] GET /build/_shared/chunk-AWONFXME.js 200 OK (89ms)
+[wrangler:inf] GET /build/_shared/chunk-AWBYLPSO.js 200 OK (89ms)
+[wrangler:inf] GET /build/_shared/chunk-NJVWKC5M.js 200 OK (89ms)
+[wrangler:inf] GET /build/root-GXK43NGC.js 200 OK (86ms)
+[wrangler:inf] GET /build/_shared/chunk-2WHZ3U7L.js 200 OK (44ms)
+[wrangler:inf] GET /build/_shared/chunk-7L5SJ6QO.js 200 OK (45ms)
+[wrangler:inf] GET /build/_shared/chunk-2ODGUZ6V.js 200 OK (47ms)
+[wrangler:inf] GET /build/_shared/chunk-MPYGKHX3.js 200 OK (50ms)
+[wrangler:inf] GET /build/_shared/chunk-6BWNFDSZ.js 200 OK (58ms)
+[wrangler:inf] GET /build/_shared/chunk-E55ZKEMS.js 200 OK (59ms)
+[wrangler:inf] GET /build/_shared/chunk-N6XXKDCC.js 200 OK (41ms)
+[wrangler:inf] GET /build/_shared/chunk-6X6PQJVB.js 200 OK (39ms)
+[wrangler:inf] GET /build/_shared/chunk-MP34OWMC.js 200 OK (33ms)
+[wrangler:inf] GET /images/logo_poap.svg 200 OK (25ms)
+[wrangler:inf] GET /build/_shared/chunk-NN5ULZ2Q.js 200 OK (38ms)
+[wrangler:inf] GET /build/_shared/chunk-TV27GJL5.js 200 OK (43ms)
+[wrangler:inf] GET /build/routes/_index-CH4DRRUG.js 200 OK (48ms)
+[wrangler:inf] GET /images/title_poapin_s.png 200 OK (76ms)
+[wrangler:inf] GET /__manifest 200 OK (10ms)
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mError: API key not found[0m
+
+      at Qoe (file:///app/functions/[[path]].js:621:8669)
+      at fSe (file:///app/functions/[[path]].js:648:152824)
+      at AL (file:///app/functions/[[path]].js:17:8390)
+      at n.loader (file:///app/functions/[[path]].js:17:9815)
+      at p (file:///app/functions/[[path]].js:3:5014)
+      at null.<anonymous> (file:///app/functions/[[path]].js:3:5138)
+      at l (file:///app/functions/[[path]].js:3:5183)
+      at vle (file:///app/functions/[[path]].js:3:5557)
+      at Object.resolve (file:///app/functions/[[path]].js:3:4543)
+      at null.<anonymous> (file:///app/functions/[[path]].js:3:4208)
+
+
+[wrangler:inf] GET / 500 Internal Server Error (43ms)
+[wrangler:inf] GET /build/_assets/tailwind-QX3N2QX7.css 200 OK (168ms)
+[wrangler:inf] GET /build/_assets/shared-KCEG2ZF3.css 200 OK (337ms)
+[wrangler:inf] GET /build/entry.client-QR4FKOMS.js 200 OK (337ms)
+[wrangler:inf] GET /build/_shared/chunk-ITBPAS3M.js 200 OK (339ms)
+[wrangler:inf] GET /build/_shared/chunk-BBTKOQ57.js 200 OK (345ms)
+[wrangler:inf] GET /build/_shared/chunk-UED2Q7CE.js 200 OK (345ms)
+[wrangler:inf] GET /build/_shared/chunk-MZYQMZEC.js 200 OK (36ms)
+[wrangler:inf] GET /build/_shared/chunk-Z2UG7FC5.js 200 OK (36ms)
+[wrangler:inf] GET /build/_shared/chunk-KX3L2GA5.js 200 OK (36ms)
+[wrangler:inf] GET /build/_shared/chunk-IUGRJSAT.js 200 OK (39ms)
+[wrangler:inf] GET /build/_shared/chunk-6RYGWLWI.js 200 OK (39ms)
+[wrangler:inf] GET /build/_shared/chunk-CHGWGRWP.js 200 OK (48ms)
+[wrangler:inf] GET /build/_shared/chunk-56NHZHXN.js 200 OK (74ms)
+[wrangler:inf] GET /build/_shared/chunk-7DSUKWKN.js 200 OK (91ms)
+[wrangler:inf] GET /build/_shared/chunk-NJVWKC5M.js 200 OK (47ms)
+[wrangler:inf] GET /build/_shared/chunk-AWBYLPSO.js 200 OK (96ms)
+[wrangler:inf] GET /build/_shared/chunk-LQS3KF3S.js 200 OK (94ms)
+[wrangler:inf] GET /build/_shared/chunk-AWONFXME.js 200 OK (94ms)
+[wrangler:inf] GET /build/_shared/chunk-7L5SJ6QO.js 200 OK (73ms)
+[wrangler:inf] GET /build/root-GXK43NGC.js 200 OK (109ms)
+[wrangler:inf] GET /build/_shared/chunk-2WHZ3U7L.js 200 OK (66ms)
+[wrangler:inf] GET /build/_shared/chunk-E55ZKEMS.js 200 OK (62ms)
+[wrangler:inf] GET /build/_shared/chunk-6BWNFDSZ.js 200 OK (62ms)
+[wrangler:inf] GET /build/_shared/chunk-MPYGKHX3.js 200 OK (62ms)
+[wrangler:inf] GET /build/_shared/chunk-2ODGUZ6V.js 200 OK (60ms)
+[wrangler:inf] GET /build/_shared/chunk-N6XXKDCC.js 200 OK (63ms)
+[wrangler:inf] GET /build/_shared/chunk-MP34OWMC.js 200 OK (34ms)
+[wrangler:inf] GET /build/_shared/chunk-6X6PQJVB.js 200 OK (39ms)
+[wrangler:inf] GET /build/_shared/chunk-NN5ULZ2Q.js 200 OK (42ms)
+[wrangler:inf] GET /build/_shared/chunk-TV27GJL5.js 200 OK (44ms)
+[wrangler:inf] GET /build/routes/_index-CH4DRRUG.js 200 OK (48ms)
+[wrangler:inf] GET /images/logo_poap.svg 200 OK (85ms)
+[wrangler:inf] GET /images/title_poapin_s.png 200 OK (89ms)
+[wrangler:inf] GET /__manifest 200 OK (14ms)
+🌐 Fetching POAPs from GraphQL: poap.eth, limit=100, offset=0
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mFailed to retrieve collector info from GraphQL: TypeError: Fetch API cannot load: undefined[0m
+
+      at Zte (file:///app/functions/[[path]].js:281:23)
+      at kg (file:///app/functions/[[path]].js:281:1463)
+      at async Xxe (file:///app/functions/[[path]].js:470:130014)
+      at async AL (file:///app/functions/[[path]].js:17:8384)
+      at null.<anonymous> (async file:///app/.wrangler/tmp/dev-t1WyRR/xbigugx9gs.js:2224:40)
+      at async vle (file:///app/functions/[[path]].js:3:5551)
+      at async Promise.all (index 1)
+      at async aL (file:///app/functions/[[path]].js:3:4179)
+      at async nL (file:///app/functions/[[path]].js:3:4613)
+      at async p (file:///app/functions/[[path]].js:2:39301)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mFailed to retrieve tokens from GraphQL: TypeError: Fetch API cannot load: undefined[0m
+
+      at Xte (file:///app/functions/[[path]].js:216:23)
+      at kg (file:///app/functions/[[path]].js:281:1490)
+      at async Xxe (file:///app/functions/[[path]].js:470:130014)
+      at async AL (file:///app/functions/[[path]].js:17:8384)
+      at null.<anonymous> (async file:///app/.wrangler/tmp/dev-t1WyRR/xbigugx9gs.js:2224:40)
+      at async vle (file:///app/functions/[[path]].js:3:5551)
+      at async Promise.all (index 1)
+      at async aL (file:///app/functions/[[path]].js:3:4179)
+      at async nL (file:///app/functions/[[path]].js:3:4613)
+      at async p (file:///app/functions/[[path]].js:2:39301)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mError fetching POAPs from GraphQL: TypeError: Fetch API cannot load: undefined[0m
+
+      at Xte (file:///app/functions/[[path]].js:216:23)
+      at kg (file:///app/functions/[[path]].js:281:1490)
+      at async Xxe (file:///app/functions/[[path]].js:470:130014)
+      at async AL (file:///app/functions/[[path]].js:17:8384)
+      at null.<anonymous> (async file:///app/.wrangler/tmp/dev-t1WyRR/xbigugx9gs.js:2224:40)
+      at async vle (file:///app/functions/[[path]].js:3:5551)
+      at async Promise.all (index 1)
+      at async aL (file:///app/functions/[[path]].js:3:4179)
+      at async nL (file:///app/functions/[[path]].js:3:4613)
+      at async p (file:///app/functions/[[path]].js:2:39301)
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mError in v.$address loader: TypeError: Fetch API cannot load: undefined[0m
+
+      at Xte (file:///app/functions/[[path]].js:216:23)
+      at kg (file:///app/functions/[[path]].js:281:1490)
+      at async Xxe (file:///app/functions/[[path]].js:470:130014)
+      at async AL (file:///app/functions/[[path]].js:17:8384)
+      at null.<anonymous> (async file:///app/.wrangler/tmp/dev-t1WyRR/xbigugx9gs.js:2224:40)
+      at async vle (file:///app/functions/[[path]].js:3:5551)
+      at async Promise.all (index 1)
+      at async aL (file:///app/functions/[[path]].js:3:4179)
+      at async nL (file:///app/functions/[[path]].js:3:4613)
+      at async p (file:///app/functions/[[path]].js:2:39301)
+
+
+[wrangler:inf] GET /v/poap.eth 500 Internal Server Error (220ms)
+[wrangler:inf] GET /build/routes/v.$address-YQNOWOWC.js 200 OK (555ms)
+[wrangler:inf] GET /build/_shared/chunk-463VG2DP.js 200 OK (555ms)
+[wrangler:inf] GET /build/_shared/chunk-YDHBMI2A.js 200 OK (553ms)
+[wrangler:inf] GET /build/_shared/chunk-CTUURJHJ.js 200 OK (553ms)
+[wrangler:inf] GET /build/_shared/chunk-KCJ4P4ZU.js 200 OK (561ms)
+[wrangler:inf] GET /images/title_poapin_s.png 200 OK (561ms)
+[wrangler:inf] GET /build/_shared/chunk-YO656DYY.js 200 OK (38ms)
+[wrangler:inf] GET /build/_shared/chunk-JT35X6AP.js 200 OK (32ms)
+[wrangler:inf] GET /build/_shared/chunk-TVGUU4CT.js 200 OK (52ms)
+[wrangler:inf] GET /build/_shared/chunk-VMR4T5Z7.js 200 OK (52ms)
+[wrangler:inf] GET /build/_shared/chunk-HKCJ6BOJ.js 200 OK (52ms)
+[wrangler:inf] GET /build/routes/v.$address._index-X57D3RG4.js 200 OK (45ms)
+[wrangler:inf] GET /images/logo_poap.svg 200 OK (42ms)

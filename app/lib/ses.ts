@@ -81,7 +81,7 @@ export class SESEmailService {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  private async hmac(key: ArrayBuffer, message: string): Promise<ArrayBuffer> {
+  private async hmac(key: BufferSource, message: string): Promise<ArrayBuffer> {
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       key,
