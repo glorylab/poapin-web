@@ -26,7 +26,7 @@ export const action: ActionFunction = async ({ context, params, request }) => {
 
     try {
         // Fetch POAPs directly by address
-        const poaps: POAP[] = await getPoapsOfAddress(context, address);
+        const { poaps } = await getPoapsOfAddress(context, address);
         
         if (!poaps || !poaps.length) {
             return json({ error: "No POAPs found" }, { status: 404 });

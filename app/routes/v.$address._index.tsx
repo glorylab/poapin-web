@@ -136,7 +136,7 @@ export default function POAPIndex() {
         setIsLoadingMore(true);
         try {
             const response = await fetch(`/api/poap/paginate/${meta.address}?limit=100&offset=${allPoaps.length}`);
-            const data = await response.json();
+            const data = await response.json() as any;
             
             if (data.success && data.poaps.length > 0) {
                 setAllPoaps(prev => [...prev, ...data.poaps]);
