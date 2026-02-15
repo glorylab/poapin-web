@@ -10,3 +10,13 @@ node_modules
 .wrangler
 .env
 app/tailwind_out.css
+
+# logs
+*.log
+
+# python
+__pycache__/
+
+# test artifacts
+test-results/
+.DS_Store
